@@ -3,12 +3,13 @@
   "weight": 3001,
   "javaplugin": "net.nerdypuzzle.geckolib.Launcher",
   "supportedversions": [
-    2024004
+    2024004,
+    202500333716
   ],
   "info": {
     "name": "GeckoLib Plugin",
     "version": "6.0.2",
-    "description": "Adds GeckoLib support for 1.20.1 and 1.21.1",
+    "description": "Adds GeckoLib support for Forge 1.20.1 and NeoForged 1.21.8",
     "author": "NerdyPuzzle",
     "pluginPageID": 91484,
     "updateJSONURL": "https://raw.githubusercontent.com/NerdyPuzzle/MCreator-Nerdys_Geckolib_Plugin/main/update.json"
