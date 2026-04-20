@@ -1091,10 +1091,10 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         onInitialSpawn.refreshListKeepSelected(null);
         finishedDying.refreshListKeepSelected(null);
 
-        spawningCondition.refreshListKeepSelected();
-        visualScale.refreshListKeepSelected();
-        boundingBoxScale.refreshListKeepSelected();
-        solidBoundingBox.refreshListKeepSelected();
+        spawningCondition.refreshListKeepSelected(null);
+        visualScale.refreshListKeepSelected(null);
+        boundingBoxScale.refreshListKeepSelected(null);
+        solidBoundingBox.refreshListKeepSelected(null);
 
         ComboBoxUtil.updateComboBoxContents(mobModelTexture, ListUtils.merge(Collections.singleton(""),
                 mcreator.getFolderManager().getTexturesList(TextureType.ENTITY).stream().map(File::getName)
@@ -1120,19 +1120,19 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         }).collect(Collectors.toList())), "");
     }
 
-    @Override protected AggregatedValidationResult validatePage(int page) {
+    @Override protected ValidationResult validatePage(int page) {
         if (page == 0) {
             return new AggregatedValidationResult(mobModelTexture, mobName, geoModel, animation1);
         } else if (page == 5) {
             if (hasErrors)
-                return new BlocklyAggregatedValidationResult(compileNotesPanel.getCompileNotes(),
+                return new BlocklyAggregatedValidationResult(compileNotesPanel.getNotes(),
                         compileNote -> "Living entity AI builder: " + compileNote);
         } else if (page == 6) {
             if ((int) minNumberOfMobsPerGroup.getValue() > (int) maxNumberOfMobsPerGroup.getValue()) {
-                return new AggregatedValidationResult.FAIL("Minimal mob group size can't be bigger than maximal size");
+                return AggregatedValidationResult.FAIL.of("Minimal mob group size can't be bigger than maximal size");
             }
         }
-        return new AggregatedValidationResult.PASS();
+        return AggregatedValidationResult.PASS.of("");
     }
 
     @Override public void openInEditingMode(AnimatedEntity livingEntity) {

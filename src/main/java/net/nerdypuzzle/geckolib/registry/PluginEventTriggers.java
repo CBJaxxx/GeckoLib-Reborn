@@ -107,10 +107,11 @@ public class PluginEventTriggers {
 
                     WebView browser = new WebView();
                     browser.setContextMenuEnabled(false);
-                    Scene scene = new Scene(browser);
-                    java.awt.Color bg = Theme.current().getSecondAltBackgroundColor();
-                    scene.setFill(javafx.scene.paint.Color.rgb(bg.getRed(), bg.getGreen(), bg.getBlue()));
-                    blocklyPanel.setScene(scene);
+                    // setScene removed - use direct webEngine access instead
+                    // Scene scene = new Scene(browser);
+                    // java.awt.Color bg = Theme.current().getSecondAltBackgroundColor();
+                    // scene.setFill(javafx.scene.paint.Color.rgb(bg.getRed(), bg.getGreen(), bg.getBlue()));
+                    // blocklyPanel.setScene(scene);
 
                     browser.getChildrenUnmodifiable().addListener(
                             (ListChangeListener<Node>) change -> browser.lookupAll(".scroll-bar")
@@ -140,7 +141,8 @@ public class PluginEventTriggers {
                             window.setMember("editorType", BlocklyEditorType.PROCEDURE.registryName());
                             // allow plugins to register additional JS objects
                             Map<String, Object> domWindowMembers = new HashMap<>();
-                            MCREvent.event(new BlocklyPanelRegisterDOMData(blocklyPanel, domWindowMembers));
+                            // BlocklyPanelRegisterDOMData constructor changed - pass WebView instead of blocklyPanel
+                            MCREvent.event(new BlocklyPanelRegisterDOMData(browser, domWindowMembers));
                             domWindowMembers.forEach(window::setMember);
                             // @formatter:off
                             webEngine.executeScript("var MCR_BLOCKLY_PREF = { "
@@ -252,7 +254,7 @@ public class PluginEventTriggers {
             PluginPanelGeckolib panel = new PluginPanelGeckolib(modmaker.getWorkspacePanel());
             panel.setOpaque(false);
 
-            modmaker.getWorkspacePanel().resourcesPan.addResourcesTab("geckolib", L10N.t("menubar.geckolib", new Object[0]), panel);
+            modmaker.getWorkspacePanel().resourcesPan.addResourcesTab("geckolib", panel);
             mcreator.getMainMenuBar().add(geckolib);
         }
 

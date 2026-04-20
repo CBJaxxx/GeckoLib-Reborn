@@ -175,7 +175,7 @@ public class PluginPanelGeckolib extends JPanel implements IReloadableFilterable
 
         void refilter() {
             this.filterItems.clear();
-            String term = PluginPanelGeckolib.this.workspacePanel.search.getText();
+            String term = PluginPanelGeckolib.this.workspacePanel.getSearchField().getText();
             this.filterItems.addAll(this.items.stream().filter(Objects::nonNull).filter((item) -> {
                 return item.getName().toLowerCase(Locale.ENGLISH).contains(term.toLowerCase(Locale.ENGLISH)) || item.getName().toLowerCase(Locale.ENGLISH).contains(term.toLowerCase(Locale.ENGLISH));
             }).toList());

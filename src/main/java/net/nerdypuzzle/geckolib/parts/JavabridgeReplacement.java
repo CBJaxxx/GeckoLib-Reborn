@@ -53,7 +53,7 @@ public final class JavabridgeReplacement {
     public JavabridgeReplacement(@Nonnull MCreator mcreator, @Nonnull Runnable blocklyEvent) {
         this.blocklyEvent = blocklyEvent;
         this.mcreator = mcreator;
-        List<ExternalTrigger> ar10000 = BlocklyLoader.INSTANCE.getExternalTriggerLoader().getExternalTrigers();
+        List<ExternalTrigger> ar10000 = BlocklyLoader.INSTANCE.getExternalTriggerLoader(BlocklyEditorType.PROCEDURE).getExternalTrigers();
         ar10000.forEach(this::addExternalTrigger);
     }
 
@@ -248,7 +248,7 @@ public final class JavabridgeReplacement {
                 }
 
                 if (!DataListLoader.loadDataList(type).isEmpty()) {
-                    yield openDataListEntrySelector(w -> ElementUtil.loadDataListAndElements(w, type, true, typeFilter,
+                    yield openDataListEntrySelector(w -> ElementUtil.loadDataListAndElements(w, type, "true", typeFilter,
                             StringUtils.split(customEntryProviders, ',')), type);
                 }
 
@@ -333,7 +333,8 @@ public final class JavabridgeReplacement {
                         .map(mu -> "CUSTOM:" + mu.getName()).collect(Collectors.toList());
                 break;
             case "material":
-                retval = ElementUtil.loadMaterialList().stream().map(DataListEntry::getName).collect(Collectors.toList());
+                // loadMaterialList() removed in newer MCreator - return empty list
+                retval = new ArrayList<>();
                 break;
             case "villagerprofessions":
                 return ElementUtil.loadAllVillagerProfessions(workspace).stream().map(DataListEntry::getName)
