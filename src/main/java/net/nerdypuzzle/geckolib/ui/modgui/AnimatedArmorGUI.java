@@ -19,8 +19,10 @@ import net.mcreator.ui.minecraft.*;
 import net.mcreator.ui.modgui.ModElementGUI;
 import net.mcreator.ui.procedure.ProcedureSelector;
 import net.mcreator.ui.validation.AggregatedValidationResult;
+import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
 import net.mcreator.ui.validation.Validator;
+import net.mcreator.ui.validation.ValidationResult;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
 import net.mcreator.ui.validation.validators.ConditionalTextFieldValidator;
@@ -39,6 +41,7 @@ import net.nerdypuzzle.geckolib.parts.WTextureComboBoxRenderer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -419,30 +422,26 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         textureHelmet.setValidator(() -> {
             if (enableHelmet.isSelected() && !textureHelmet.hasTexture())
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.armor.need_texture"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         textureBody.setValidator(() -> {
             if (enableBody.isSelected() && !textureBody.hasTexture())
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.armor.need_texture"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         textureLeggings.setValidator(() -> {
             if (enableLeggings.isSelected() && !textureLeggings.hasTexture())
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.armor.need_texture"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         textureBoots.setValidator(() -> {
             if (enableBoots.isSelected() && !textureBoots.hasTexture())
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.armor.need_texture"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         bootsName.setValidator(
@@ -498,9 +497,8 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         armorTextureFile.setValidator(() -> {
             if (armorTextureFile.getSelectedItem() == null || armorTextureFile.getSelectedItem().equals(""))
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.animatedarmor.texture_invalid"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedarmor.texture_invalid"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         group1page.addValidationElement(armorTextureFile);
@@ -551,9 +549,8 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         geoModel.setValidator(() -> {
             if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.animatedentity.modelname"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         this.idle.setValidator(
@@ -591,10 +588,10 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
             return s.endsWith(".png");
         }).collect(Collectors.toList())), "");
 
-        onHelmetTick.refreshListKeepSelected();
-        onBodyTick.refreshListKeepSelected();
-        onLeggingsTick.refreshListKeepSelected();
-        onBootsTick.refreshListKeepSelected();
+        onHelmetTick.refreshListKeepSelected(null);
+        onBodyTick.refreshListKeepSelected(null);
+        onLeggingsTick.refreshListKeepSelected(null);
+        onBootsTick.refreshListKeepSelected(null);
 
         ComboBoxUtil.updateComboBoxContents(helmetItemRenderType, ListUtils.merge(Arrays.asList(normal, tool),
                 Model.getModelsWithTextureMaps(mcreator.getWorkspace()).stream()
@@ -623,12 +620,8 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
     }
 
-    @Override protected AggregatedValidationResult validatePage(int page) {
-        if (page == 2)
-            return new AggregatedValidationResult(group2page);
-        else if (page == 0)
-            return new AggregatedValidationResult(group1page);
-        return new AggregatedValidationResult.PASS();
+    @Override public @Nullable java.net.URI contextURL() throws java.net.URISyntaxException {
+        return null;
     }
 
     @Override public void openInEditingMode(AnimatedArmor armor) {

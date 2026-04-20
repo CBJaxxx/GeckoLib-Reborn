@@ -3,6 +3,9 @@ package ${package}.item.renderer;
 public class ${name}ItemRenderer extends GeoItemRenderer<${name}Item> {
     public ${name}ItemRenderer() {
         super(new ${name}ItemModel());
+        <#if data.glowTexture?has_content>
+        addRenderLayer(new AutoGlowingGeoLayer<>(this));
+        </#if>
     }
 
 	@Override

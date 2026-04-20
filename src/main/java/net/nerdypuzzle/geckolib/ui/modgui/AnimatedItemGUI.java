@@ -26,10 +26,10 @@ import net.mcreator.ui.validation.AggregatedValidationResult;
 import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
 import net.mcreator.ui.validation.Validator;
+import net.mcreator.ui.validation.ValidationResult;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
 import net.mcreator.ui.validation.validators.TextFieldValidator;
-import net.mcreator.ui.validation.validators.TileHolderValidator;
 import net.mcreator.ui.workspace.resources.TextureType;
 import net.mcreator.util.ListUtils;
 import net.mcreator.util.StringUtils;
@@ -41,6 +41,7 @@ import net.nerdypuzzle.geckolib.parts.GeomodelRenderer;
 import net.nerdypuzzle.geckolib.parts.PluginModelActions;
 import net.nerdypuzzle.geckolib.parts.arm_pose_list.JArmPoseList;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -332,7 +333,7 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         inventoryProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/inventory_stack_size"), L10N.label("elementgui.common.max_stack_size", new Object[0])));
         inventoryProperties.add(this.inventoryStackSize);
         advancedProperties.add("Center", PanelUtils.totalCenterInPanel(inventoryProperties));
-        this.texture.setValidator(new TileHolderValidator(this.texture));
+        this.texture.setValidator(() -> new ValidationResult(ValidationResult.Type.PASSED, "", false));
         this.page1group.addValidationElement(this.texture);
         this.page1group.addValidationElement(this.idle);
         this.page1group.addValidationElement(this.geoModel);
@@ -363,16 +364,14 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
 
         geoModel.setValidator(() -> {
             if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.animatedentity.modelname"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         displaySettings.setValidator(() -> {
             if (displaySettings.getSelectedItem() == null || displaySettings.getSelectedItem().equals(""))
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.animatedentity.modelname"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         this.idle.setValidator(new TextFieldValidator(this.idle, L10N.t("elementgui.animateditem.needs_idle", new Object[0])));
@@ -403,18 +402,18 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
 
     public void reloadDataLists() {
         super.reloadDataLists();
-        this.onRightClickedInAir.refreshListKeepSelected();
-        this.onCrafted.refreshListKeepSelected();
-        this.onRightClickedOnBlock.refreshListKeepSelected();
-        this.onEntityHitWith.refreshListKeepSelected();
-        this.specialInformation.refreshListKeepSelected();
-        this.onItemInInventoryTick.refreshListKeepSelected();
-        this.onItemInUseTick.refreshListKeepSelected();
-        this.onStoppedUsing.refreshListKeepSelected();
-        this.onEntitySwing.refreshListKeepSelected();
-        this.onDroppedByPlayer.refreshListKeepSelected();
-        this.onFinishUsingItem.refreshListKeepSelected();
-        this.glowCondition.refreshListKeepSelected();
+        this.onRightClickedInAir.refreshListKeepSelected(null);
+        this.onCrafted.refreshListKeepSelected(null);
+        this.onRightClickedOnBlock.refreshListKeepSelected(null);
+        this.onEntityHitWith.refreshListKeepSelected(null);
+        this.specialInformation.refreshListKeepSelected(null);
+        this.onItemInInventoryTick.refreshListKeepSelected(null);
+        this.onItemInUseTick.refreshListKeepSelected(null);
+        this.onStoppedUsing.refreshListKeepSelected(null);
+        this.onEntitySwing.refreshListKeepSelected(null);
+        this.onDroppedByPlayer.refreshListKeepSelected(null);
+        this.onFinishUsingItem.refreshListKeepSelected(null);
+        this.glowCondition.refreshListKeepSelected(null);
         ComboBoxUtil.updateComboBoxContents(this.guiBoundTo, ListUtils.merge(Collections.singleton("<NONE>"), (Collection)this.mcreator.getWorkspace().getModElements().stream().filter((var) -> {
             return var.getType() == ModElementType.GUI;
         }).map(ModElement::getName).collect(Collectors.toList())), "<NONE>");
@@ -428,12 +427,16 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         }).collect(Collectors.toList())), "");
     }
 
-    protected AggregatedValidationResult validatePage(int page) {
+    @Override protected AggregatedValidationResult validatePage(int page) {
         if (page == 1) {
             return new AggregatedValidationResult(new IValidable[]{this.name});
         } else {
-            return (AggregatedValidationResult)(page == 0 ? new AggregatedValidationResult(new ValidationGroup[]{this.page1group}) : new AggregatedValidationResult.PASS());
+            return page == 0 ? new AggregatedValidationResult(this.page1group) : AggregatedValidationResult.PASSED;
         }
+    }
+
+    @Override public @Nullable java.net.URI contextURL() throws java.net.URISyntaxException {
+        return null;
     }
 
     public void openInEditingMode(AnimatedItem item) {

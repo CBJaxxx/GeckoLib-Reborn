@@ -1,8 +1,11 @@
 package ${package}.client.renderer;
 
-public class ${name}ArmorRenderer extends GeoArmorRenderer<${name}Item> {
+public class ${name}ArmorRenderer extends GeoArmorRenderer<${name}Item, ${name}ItemRenderState> {
 	public ${name}ArmorRenderer() {
 		super(new ${name}Model());
+		<#if data.glowTexture?has_content>
+		addRenderLayer(new AutoGlowingGeoLayer<>(this));
+		</#if>
 
 		this.head = new GeoBone(null, "${data.head}", false, (double) 0, false, false);
 		this.body = new GeoBone(null, "${data.chest}", false, (double) 0, false, false);

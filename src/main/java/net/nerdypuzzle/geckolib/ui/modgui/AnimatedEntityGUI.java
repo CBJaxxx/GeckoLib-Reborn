@@ -30,7 +30,10 @@ import net.mcreator.ui.procedure.AbstractProcedureSelector;
 import net.mcreator.ui.procedure.NumberProcedureSelector;
 import net.mcreator.ui.procedure.ProcedureSelector;
 import net.mcreator.ui.validation.AggregatedValidationResult;
+import net.mcreator.ui.validation.IValidable;
+import net.mcreator.ui.validation.ValidationGroup;
 import net.mcreator.ui.validation.Validator;
+import net.mcreator.ui.validation.ValidationResult;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
 import net.mcreator.ui.validation.validators.TextFieldValidator;
@@ -46,6 +49,7 @@ import net.nerdypuzzle.geckolib.parts.PluginModelActions;
 import net.nerdypuzzle.geckolib.parts.WTextureComboBoxRenderer;
 import net.nerdypuzzle.geckolib.registry.PluginElementTypes;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
@@ -832,7 +836,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
             if (mobModelTexture.getSelectedItem() == null || mobModelTexture.getSelectedItem().equals(""))
                 return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
                         L10N.t("elementgui.living_entity.error_entity_model_needs_texture"));
-            return Validator.ValidationResult.PASSED;
+            return AggregatedValidationResult.PASSED;
         });
 
         mobName.setValidator(
@@ -841,9 +845,8 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         geoModel.setValidator(() -> {
             if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.animatedentity.modelname"));
-            return Validator.ValidationResult.PASSED;
+                return new AggregatedValidationResult.ERROR(L10N.t("elementgui.animatedentity.modelname"));
+            return AggregatedValidationResult.PASSED;
         });
 
         pane1.setOpaque(false);
@@ -1077,16 +1080,16 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         disableMobModelCheckBoxListener = true;
 
         super.reloadDataLists();
-        onStruckByLightning.refreshListKeepSelected();
-        whenMobFalls.refreshListKeepSelected();
-        whenMobDies.refreshListKeepSelected();
-        whenMobIsHurt.refreshListKeepSelected();
-        onRightClickedOn.refreshListKeepSelected();
-        whenThisMobKillsAnother.refreshListKeepSelected();
-        onMobTickUpdate.refreshListKeepSelected();
-        onPlayerCollidesWith.refreshListKeepSelected();
-        onInitialSpawn.refreshListKeepSelected();
-        finishedDying.refreshListKeepSelected();;
+        onStruckByLightning.refreshListKeepSelected(null);
+        whenMobFalls.refreshListKeepSelected(null);
+        whenMobDies.refreshListKeepSelected(null);
+        whenMobIsHurt.refreshListKeepSelected(null);
+        onRightClickedOn.refreshListKeepSelected(null);
+        whenThisMobKillsAnother.refreshListKeepSelected(null);
+        onMobTickUpdate.refreshListKeepSelected(null);
+        onPlayerCollidesWith.refreshListKeepSelected(null);
+        onInitialSpawn.refreshListKeepSelected(null);
+        finishedDying.refreshListKeepSelected(null);
 
         spawningCondition.refreshListKeepSelected();
         visualScale.refreshListKeepSelected();
@@ -1444,6 +1447,10 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
             livingEntity.raidSpawnsCount[i] = (int) raidSpawnsCount[i].getValue();
 
         return livingEntity;
+    }
+
+    @Override public @Nullable java.net.URI contextURL() throws java.net.URISyntaxException {
+        return null;
     }
 
     @Override public Set<BlocklyPanel> getBlocklyPanels() {

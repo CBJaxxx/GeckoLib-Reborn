@@ -15,7 +15,7 @@ import net.mcreator.io.net.WebIO;
 import net.mcreator.plugin.MCREvent;
 import net.mcreator.plugin.PluginLoader;
 import net.mcreator.plugin.PluginUpdateInfo;
-import net.mcreator.plugin.events.ui.BlocklyPanelRegisterJSObjects;
+import net.mcreator.plugin.events.ui.BlocklyPanelRegisterDOMData;
 import net.mcreator.preferences.PreferencesManager;
 import net.mcreator.ui.MCreator;
 import net.mcreator.ui.MCreatorApplication;
@@ -85,7 +85,7 @@ public class PluginEventTriggers {
 
     public static void interceptProcedurePanel(MCreator mcreator, ModElementGUI modElement) {
         if (modElement instanceof ProcedureGUI procedure) {
-            ThreadUtil.runOnFxThread(() -> { // Run on FX thread to prevent issues
+            ThreadUtil.runOnSwingThread(() -> { // Run on Swing thread to prevent issues
                 try {
                     Field panel = ProcedureGUI.class.getDeclaredField("blocklyPanel");
                     panel.setAccessible(true);
@@ -130,22 +130,6 @@ public class PluginEventTriggers {
                                 css += FileIO.readResourceToString(PluginLoader.INSTANCE,
                                         "/themes/default_dark/styles/blockly.css");
                             }
-                            if (PreferencesManager.PREFERENCES.blockly.transparentBackground.get()
-                                    && OS.getOS() == OS.WINDOWS) {
-
-                                try {
-                                    Method comps = BlocklyPanel.class.getDeclaredMethod("makeComponentsTransparent", Scene.class);
-                                    comps.setAccessible(true);
-                                    comps.invoke(blocklyPanel, scene);
-                                } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                }
-                                css += FileIO.readResourceToString("/blockly/css/mcreator_blockly_transparent.css");
-                            }
-                            //remove font declaration if property set so
-                            if (PreferencesManager.PREFERENCES.blockly.legacyFont.get()) {
-                                css = css.replace("font-family: sans-serif;", "");
-                            }
                             Text styleContent = webEngine.getDocument().createTextNode(css);
                             styleNode.appendChild(styleContent);
                             webEngine.getDocument().getDocumentElement().getElementsByTagName("head").item(0)
@@ -156,7 +140,7 @@ public class PluginEventTriggers {
                             window.setMember("editorType", BlocklyEditorType.PROCEDURE.registryName());
                             // allow plugins to register additional JS objects
                             Map<String, Object> domWindowMembers = new HashMap<>();
-                            MCREvent.event(new BlocklyPanelRegisterJSObjects(blocklyPanel, domWindowMembers));
+                            MCREvent.event(new BlocklyPanelRegisterDOMData(blocklyPanel, domWindowMembers));
                             domWindowMembers.forEach(window::setMember);
                             // @formatter:off
                             webEngine.executeScript("var MCR_BLOCKLY_PREF = { "
@@ -188,7 +172,7 @@ public class PluginEventTriggers {
                                 Field tasks = BlocklyPanel.class.getDeclaredField("runAfterLoaded");
                                 tasks.setAccessible(true);
                                 List<Runnable> tasklist = (List<Runnable>) tasks.get(blocklyPanel);
-                                tasklist.forEach(ThreadUtil::runOnFxThread);
+                                tasklist.forEach(ThreadUtil::runOnSwingThread);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }

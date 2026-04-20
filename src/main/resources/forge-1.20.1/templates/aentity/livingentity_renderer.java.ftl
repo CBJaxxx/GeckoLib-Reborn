@@ -41,7 +41,7 @@ public class ${name}Renderer extends GeoEntityRenderer<${name}Entity> {
      super(renderManager, new ${name}Model());
      ${shadowRadius}
      <#if data.mobModelGlowTexture?has_content>
-     this.addRenderLayer(new ${name}Layer(this));
+     addRenderLayer(new AutoGlowingGeoLayer<>(this));
      </#if>
   }
 

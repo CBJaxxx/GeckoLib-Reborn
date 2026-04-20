@@ -36,12 +36,12 @@ package ${package}.client.renderer;
 
 <#assign shadowRadius = "this.shadowRadius = " + data.modelShadowSize + "f;">
 
-public class ${name}Renderer extends GeoEntityRenderer<${name}Entity> {
+public class ${name}Renderer extends GeoEntityRenderer<${name}Entity, ${name}RenderState> {
   public ${name}Renderer(EntityRendererProvider.Context renderManager) {
      super(renderManager, new ${name}Model());
      ${shadowRadius}
      <#if data.mobModelGlowTexture?has_content>
-     this.addRenderLayer(new ${name}Layer(this));
+     addRenderLayer(new AutoGlowingGeoLayer<>(this));
      </#if>
   }
 

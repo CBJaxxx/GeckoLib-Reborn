@@ -17,7 +17,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 dependencies {
     implementation project(':MCreator')
-    implementation fileTree(dir: 'C:/Users/demet/Desktop/mcreators/MCreator20243/lib', include: ['*.jar'])
+    implementation fileTree(dir: 'C:/Users/codeb/Downloads/MCreator20253/lib', include: ['*.jar'])
 }
 
 tasks.jar {

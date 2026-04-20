@@ -10,6 +10,8 @@ import net.mcreator.element.parts.gui.OutputSlot;
 import net.mcreator.element.parts.gui.Slot;
 import net.mcreator.element.types.GUI;
 import net.mcreator.element.types.interfaces.IBlockWithBoundingBox;
+import net.mcreator.minecraft.DataListEntry;
+import net.mcreator.minecraft.DataListLoader;
 import net.mcreator.minecraft.ElementUtil;
 import net.mcreator.ui.MCreator;
 import net.mcreator.ui.component.JColor;
@@ -37,6 +39,7 @@ import net.mcreator.ui.validation.AggregatedValidationResult;
 import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
 import net.mcreator.ui.validation.Validator;
+import net.mcreator.ui.validation.ValidationResult;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
 import net.mcreator.ui.validation.validators.*;
@@ -51,7 +54,10 @@ import net.nerdypuzzle.geckolib.parts.GeomodelRenderer;
 import net.nerdypuzzle.geckolib.parts.PluginModelActions;
 import net.nerdypuzzle.geckolib.parts.blockstate_list.JBlockstateList;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.io.File;
@@ -185,7 +191,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         super(mcreator, modElement, editingMode);
         this.geoModel = new SearchableComboBox();
         this.displaySettings = new SearchableComboBox();
-        this.material = new DataListComboBox(this.mcreator, ElementUtil.loadMaterials());
+        this.material = new DataListComboBox(this.mcreator, DataListLoader.loadDataList("materials"));
         this.disableOffset = L10N.checkbox("elementgui.common.enable", new Object[0]);
         this.hardness = new JSpinner(new SpinnerNumberModel(1.0, -1.0, 64000.0, 0.05));
         this.resistance = new JSpinner(new SpinnerNumberModel(10.0, 0.0, 2.147483647E9, 0.5));
@@ -806,7 +812,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         pane7.setOpaque(false);
         pane9.setOpaque(false);
         pane9.add("Center", PanelUtils.totalCenterInPanel(PanelUtils.centerInPanel(enderpanel2)));
-        this.texture.setValidator(new TileHolderValidator(this.texture));
+        this.texture.setValidator(() -> new ValidationResult(ValidationResult.Type.PASSED, "", false));
         this.page1group.addValidationElement(this.texture);
         this.page1group.addValidationElement(this.geoModel);
         this.page1group.addValidationElement(this.displaySettings);
@@ -848,16 +854,14 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
 
         geoModel.setValidator(() -> {
             if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.animatedentity.modelname"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         displaySettings.setValidator(() -> {
             if (displaySettings.getSelectedItem() == null || displaySettings.getSelectedItem().equals(""))
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.aniblockitems.display_settings_missing"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.aniblockitems.display_settings_missing"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
 
         this.textureTop.setVisible(false);
@@ -930,25 +934,25 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
 
     public void reloadDataLists() {
         super.reloadDataLists();
-        this.onBlockAdded.refreshListKeepSelected();
-        this.onNeighbourBlockChanges.refreshListKeepSelected();
-        this.specialInformation.refreshListKeepSelected();
-        this.onEntityCollides.refreshListKeepSelected();
-        this.onTickUpdate.refreshListKeepSelected();
-        this.onRandomUpdateEvent.refreshListKeepSelected();
-        this.onDestroyedByPlayer.refreshListKeepSelected();
-        this.onDestroyedByExplosion.refreshListKeepSelected();
-        this.onStartToDestroy.refreshListKeepSelected();
-        this.onEntityWalksOn.refreshListKeepSelected();
-        this.onBlockPlayedBy.refreshListKeepSelected();
-        this.onRightClicked.refreshListKeepSelected();
-        this.onRedstoneOn.refreshListKeepSelected();
-        this.onRedstoneOff.refreshListKeepSelected();
-        this.onHitByProjectile.refreshListKeepSelected();
-        this.emittedRedstonePower.refreshListKeepSelected();
-        this.placingCondition.refreshListKeepSelected();
-        this.generateCondition.refreshListKeepSelected();
-        this.additionalHarvestCondition.refreshListKeepSelected();
+        this.onBlockAdded.refreshListKeepSelected(null);
+        this.onNeighbourBlockChanges.refreshListKeepSelected(null);
+        this.specialInformation.refreshListKeepSelected(null);
+        this.onEntityCollides.refreshListKeepSelected(null);
+        this.onTickUpdate.refreshListKeepSelected(null);
+        this.onRandomUpdateEvent.refreshListKeepSelected(null);
+        this.onDestroyedByPlayer.refreshListKeepSelected(null);
+        this.onDestroyedByExplosion.refreshListKeepSelected(null);
+        this.onStartToDestroy.refreshListKeepSelected(null);
+        this.onEntityWalksOn.refreshListKeepSelected(null);
+        this.onBlockPlayedBy.refreshListKeepSelected(null);
+        this.onRightClicked.refreshListKeepSelected(null);
+        this.onRedstoneOn.refreshListKeepSelected(null);
+        this.onRedstoneOff.refreshListKeepSelected(null);
+        this.onHitByProjectile.refreshListKeepSelected(null);
+        this.emittedRedstonePower.refreshListKeepSelected(null);
+        this.placingCondition.refreshListKeepSelected(null);
+        this.generateCondition.refreshListKeepSelected(null);
+        this.additionalHarvestCondition.refreshListKeepSelected(null);
         ComboBoxUtil.updateComboBoxContents(this.guiBoundTo, ListUtils.merge(Collections.singleton("<NONE>"), (Collection)this.mcreator.getWorkspace().getModElements().stream().filter((var) -> {
             return var.getType() == ModElementType.GUI;
         }).map(ModElement::getName).collect(Collectors.toList())), "<NONE>");
@@ -962,6 +966,10 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         ComboBoxUtil.updateComboBoxContents(this.displaySettings, ListUtils.merge(Collections.singleton(""), (Collection) PluginModelActions.getDisplaysettings(this.mcreator).stream().map(File::getName).filter((s) -> {
             return s.endsWith(".json");
         }).collect(Collectors.toList())), "");
+    }
+
+    @Override public @Nullable URI contextURL() throws URISyntaxException {
+        return null;
     }
 
     protected AggregatedValidationResult validatePage(int page) {
@@ -1052,7 +1060,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         this.unbreakable.setSelected(block.unbreakable);
         this.canRedstoneConnect.setSelected(block.canRedstoneConnect);
         this.lightOpacity.setValue(block.lightOpacity);
-        this.material.setSelectedItem(block.material.getUnmappedValue());
+        this.material.setSelectedItem(block.material);
         this.transparencyType.setSelectedItem(block.transparencyType);
         this.tintType.setSelectedItem(block.tintType);
         this.isItemTinted.setSelected(block.isItemTinted);
@@ -1152,7 +1160,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         block.blockstateList = this.blockstateList.getEntries();
         block.canRedstoneConnect = this.canRedstoneConnect.isSelected();
         block.lightOpacity = (Integer)this.lightOpacity.getValue();
-        block.material = new Material(this.mcreator.getWorkspace(), this.material.getSelectedItem());
+        block.material = ((DataListEntry)this.material.getSelectedItem()).getName();
         block.tickRate = (Integer)this.tickRate.getValue();
         block.isCustomSoundType = this.customSoundType.isSelected();
         block.soundOnStep = new StepSound(this.mcreator.getWorkspace(), this.soundOnStep.getSelectedItem());

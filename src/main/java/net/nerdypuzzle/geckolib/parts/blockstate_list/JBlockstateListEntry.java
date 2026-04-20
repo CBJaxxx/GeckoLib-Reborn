@@ -16,7 +16,7 @@ import net.mcreator.ui.minecraft.boundingboxes.JBoundingBoxList;
 import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
 import net.mcreator.ui.validation.Validator;
-import net.mcreator.ui.validation.validators.TileHolderValidator;
+import net.mcreator.ui.validation.ValidationResult;
 import net.mcreator.ui.workspace.resources.TextureType;
 import net.mcreator.util.ListUtils;
 import net.mcreator.workspace.Workspace;
@@ -83,13 +83,12 @@ public class JBlockstateListEntry extends JSimpleListEntry<AnimatedBlock.Blockst
 
         geoModel.setValidator(() -> {
             if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
-                        L10N.t("elementgui.animatedentity.modelname"));
-            return Validator.ValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
+            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
         });
         this.page1group.addValidationElement(geoModel);
 
-        this.texture.setValidator(new TileHolderValidator(this.texture));
+        this.texture.setValidator(() -> new ValidationResult(ValidationResult.Type.PASSED, "", false));
         this.page1group.addValidationElement(this.texture);
     }
 
@@ -103,13 +102,11 @@ public class JBlockstateListEntry extends JSimpleListEntry<AnimatedBlock.Blockst
     protected void setEntryEnabled(boolean enabled) {
     }
 
-    @Override public Validator.ValidationResult getValidationStatus() {
-        Validator.ValidationResult validationResult = Validator.ValidationResult.PASSED;
+    @Override public ValidationResult getValidationStatus() {
         if (!page1group.validateIsErrorFree()) {
-            Validator.ValidationResult result = new Validator.ValidationResult(Validator.ValidationResultType.ERROR, page1group.getValidationProblemMessages().get(0));
-            return result;
+            return new ValidationResult(ValidationResult.Type.ERROR, page1group.getValidationProblemMessages().get(0), false);
         }
-        return validationResult;
+        return new ValidationResult(ValidationResult.Type.PASSED, "", false);
     }
 
     @Override public void setValidator(Validator validator) {

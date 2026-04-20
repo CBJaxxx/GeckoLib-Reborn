@@ -1,7 +1,11 @@
 {
   "geckolib_plugin": {
-    "latest": "6.0.2",
+    "latest": "6.1.0",
     "changes": [
+      "(6.1.0) Updated to GeckoLib 5.2.2 for NeoForge 1.21.8",
+      "(6.1.0) Updated to GeckoLib 4.7 for Forge 1.20.1",
+      "(6.1.0) Fixed glowmask rendering using AutoGlowingGeoLayer",
+      "(6.1.0) Removed custom layer templates in favor of built-in AutoGlowingGeoLayer",
       "(6.0.2) Fixed inventories of animated items in 1.21.1 not holding items",
       "(6.0.2) Fixed animated armor in 1.21.1 build error",
       "(6.0.2) Fixed animated block item descriptions",

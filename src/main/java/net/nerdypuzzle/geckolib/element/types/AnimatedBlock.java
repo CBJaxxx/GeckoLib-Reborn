@@ -10,6 +10,7 @@ import net.mcreator.element.types.interfaces.IBlock;
 import net.mcreator.element.types.interfaces.IBlockWithBoundingBox;
 import net.mcreator.element.types.interfaces.ITabContainedElement;
 import net.mcreator.generator.GeneratorFlavor;
+import net.mcreator.minecraft.DataListEntry;
 import net.mcreator.minecraft.MCItem;
 import net.mcreator.minecraft.MinecraftImageGenerator;
 import net.mcreator.ui.workspace.resources.TextureType;
@@ -68,7 +69,7 @@ public class AnimatedBlock extends GeneratableElement implements IBlock, ITabCon
     public boolean plantsGrowOn;
     public boolean canRedstoneConnect;
     public int lightOpacity;
-    public Material material;
+    public String material;
     public int tickRate;
     public boolean tickRandomly;
     public boolean isReplaceable;

@@ -333,7 +333,7 @@ public final class JavabridgeReplacement {
                         .map(mu -> "CUSTOM:" + mu.getName()).collect(Collectors.toList());
                 break;
             case "material":
-                retval = ElementUtil.loadMaterials().stream().map(DataListEntry::getName).collect(Collectors.toList());
+                retval = ElementUtil.loadMaterialList().stream().map(DataListEntry::getName).collect(Collectors.toList());
                 break;
             case "villagerprofessions":
                 return ElementUtil.loadAllVillagerProfessions(workspace).stream().map(DataListEntry::getName)
