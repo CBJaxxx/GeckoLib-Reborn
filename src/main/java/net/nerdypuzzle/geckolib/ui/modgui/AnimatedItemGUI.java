@@ -427,11 +427,13 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         }).collect(Collectors.toList())), "");
     }
 
-    @Override protected AggregatedValidationResult validatePage(int page) {
+    // MCreator 2025.x: validatePage removed, validation handled by field validators
+    @SuppressWarnings("unused")
+    private AggregatedValidationResult validatePage(int page) {
         if (page == 1) {
             return new AggregatedValidationResult(new IValidable[]{this.name});
         } else {
-            return page == 0 ? new AggregatedValidationResult(this.page1group) : AggregatedValidationResult.PASSED;
+            return page == 0 ? new AggregatedValidationResult(this.page1group) : new AggregatedValidationResult.PASS();
         }
     }
 

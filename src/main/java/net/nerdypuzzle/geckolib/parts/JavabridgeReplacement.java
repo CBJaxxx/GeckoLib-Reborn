@@ -15,6 +15,7 @@ import javafx.application.Platform;
 import net.mcreator.blockly.data.BlocklyLoader;
 import net.mcreator.blockly.data.Dependency;
 import net.mcreator.blockly.data.ExternalTrigger;
+import net.mcreator.ui.blockly.BlocklyEditorType;
 import net.mcreator.blockly.java.BlocklyVariables;
 import net.mcreator.element.ModElementType;
 import net.mcreator.element.types.LivingEntity;
@@ -53,7 +54,7 @@ public final class JavabridgeReplacement {
     public JavabridgeReplacement(@Nonnull MCreator mcreator, @Nonnull Runnable blocklyEvent) {
         this.blocklyEvent = blocklyEvent;
         this.mcreator = mcreator;
-        List<ExternalTrigger> ar10000 = BlocklyLoader.INSTANCE.getExternalTriggerLoader(BlocklyEditorType.PROCEDURE).getExternalTrigers();
+        List<ExternalTrigger> ar10000 = BlocklyLoader.INSTANCE.getExternalTriggerLoader(BlocklyEditorType.PROCEDURE).getExternalTriggers();
         ar10000.forEach(this::addExternalTrigger);
     }
 
@@ -248,7 +249,7 @@ public final class JavabridgeReplacement {
                 }
 
                 if (!DataListLoader.loadDataList(type).isEmpty()) {
-                    yield openDataListEntrySelector(w -> ElementUtil.loadDataListAndElements(w, type, "true", typeFilter,
+                    yield openDataListEntrySelector(w -> ElementUtil.loadDataListAndElements(w, type, typeFilter,
                             StringUtils.split(customEntryProviders, ',')), type);
                 }
 

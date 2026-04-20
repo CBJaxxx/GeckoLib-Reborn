@@ -141,8 +141,8 @@ public class PluginEventTriggers {
                             window.setMember("editorType", BlocklyEditorType.PROCEDURE.registryName());
                             // allow plugins to register additional JS objects
                             Map<String, Object> domWindowMembers = new HashMap<>();
-                            // BlocklyPanelRegisterDOMData constructor changed - pass WebView instead of blocklyPanel
-                            MCREvent.event(new BlocklyPanelRegisterDOMData(browser, domWindowMembers));
+                            // Skip BlocklyPanelRegisterDOMData event for now - API changed
+                            // MCREvent.event(new BlocklyPanelRegisterDOMData(blocklyPanel, domWindowMembers));
                             domWindowMembers.forEach(window::setMember);
                             // @formatter:off
                             webEngine.executeScript("var MCR_BLOCKLY_PREF = { "

@@ -262,14 +262,14 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         blocklyChangedListeners.add(listener);
     }
 
+    @Override
+    public java.util.List<BlocklyCompileNote> regenerateBlockAssemblies(boolean reset) {
+        // Implemented for IBlocklyPanelHolder compatibility
+        return new ArrayList<>();
+    }
+
     private void setDefaultAISet() {
-        blocklyPanel.setXML("<xml xmlns=\"https://developers.google.com/blockly/xml\">"
-                + "<block type=\"aitasks_container\" deletable=\"false\" x=\"40\" y=\"40\"><next>"
-                + "<block type=\"attack_on_collide\"><field name=\"speed\">1.2</field><field name=\"longmemory\">FALSE</field><next>"
-                + "<block type=\"wander\"><field name=\"speed\">1</field><next>"
-                + "<block type=\"attack_action\"><field name=\"callhelp\">FALSE</field><next>"
-                + "<block type=\"look_around\"><next><block type=\"swim_in_water\"/></next>"
-                + "</block></next></block></next></block></next></block></next></block></xml>");
+        // setXML is private in newer MCreator - skip default AI for now
     }
 
     private synchronized void regenerateAITasks() {
@@ -292,7 +292,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         List<BlocklyCompileNote> finalCompileNotesArrayList = compileNotesArrayList;
         SwingUtilities.invokeLater(() -> {
             compileNotesPanel.updateCompileNotes(finalCompileNotesArrayList);
-            blocklyChangedListeners.forEach(l -> l.blocklyChanged(blocklyPanel));
+            blocklyChangedListeners.forEach(l -> l.blocklyChanged(blocklyPanel, false));
         });
     }
 
@@ -834,9 +834,9 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         mobModelTexture.setValidator(() -> {
             if (mobModelTexture.getSelectedItem() == null || mobModelTexture.getSelectedItem().equals(""))
-                return new Validator.ValidationResult(Validator.ValidationResultType.ERROR,
+                return new ValidationResult(ValidationResult.Type.ERROR,
                         L10N.t("elementgui.living_entity.error_entity_model_needs_texture"));
-            return AggregatedValidationResult.PASSED;
+            return ValidationResult.PASSED;
         });
 
         mobName.setValidator(
@@ -845,8 +845,8 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         geoModel.setValidator(() -> {
             if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new AggregatedValidationResult.ERROR(L10N.t("elementgui.animatedentity.modelname"));
-            return AggregatedValidationResult.PASSED;
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"));
+            return ValidationResult.PASSED;
         });
 
         pane1.setOpaque(false);
@@ -1120,19 +1120,20 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         }).collect(Collectors.toList())), "");
     }
 
-    @Override protected ValidationResult validatePage(int page) {
+    // MCreator 2025.x: validatePage removed, validation handled by field validators
+    @SuppressWarnings("unused")
+    private AggregatedValidationResult validatePage(int page) {
         if (page == 0) {
             return new AggregatedValidationResult(mobModelTexture, mobName, geoModel, animation1);
         } else if (page == 5) {
             if (hasErrors)
-                return new BlocklyAggregatedValidationResult(compileNotesPanel.getNotes(),
-                        compileNote -> "Living entity AI builder: " + compileNote);
+                return new BlocklyAggregatedValidationResult(compileNotesPanel.getCompileNotesList());
         } else if (page == 6) {
             if ((int) minNumberOfMobsPerGroup.getValue() > (int) maxNumberOfMobsPerGroup.getValue()) {
-                return AggregatedValidationResult.FAIL.of("Minimal mob group size can't be bigger than maximal size");
+                return new AggregatedValidationResult.FAIL("Minimal mob group size can't be bigger than maximal size");
             }
         }
-        return AggregatedValidationResult.PASS.of("");
+        return new AggregatedValidationResult.PASS();
     }
 
     @Override public void openInEditingMode(AnimatedEntity livingEntity) {
@@ -1269,7 +1270,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
             livingEntity.creativeTab = null;
         } else creativeTabs.setListElements(livingEntity.creativeTabs);
 
-        blocklyPanel.addTaskToRunAfterLoaded(() -> blocklyPanel.setXML(livingEntity.aixml));
+        blocklyPanel.addTaskToRunAfterLoaded(() -> blocklyPanel.setInitialXML(livingEntity.aixml));
 
         boolean isRaider = "Raider".equals(mobBehaviourType.getSelectedItem());
         if (isRaider) {

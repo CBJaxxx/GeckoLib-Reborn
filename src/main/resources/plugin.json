@@ -4,7 +4,7 @@
   "javaplugin": "net.nerdypuzzle.geckolib.Launcher",
   "supportedversions": [
     2024004,
-    202500333716
+    2025003
   ],
   "info": {
     "name": "GeckoLib Plugin",
