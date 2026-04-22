@@ -8,6 +8,7 @@ repositories {
     mavenCentral()
     maven { url "https://repo.gradle.org/gradle/libs-releases" } // for gradle-tooling-api
     flatDir { dirs mcreator_path + '/lib' }
+    flatDir { dirs 'C:/Program Files/Pylo/MCreator/lib' }
 }
 
 group = 'net.nerdypuzzle.geckolib'
@@ -15,13 +16,21 @@ version = new JsonSlurper().parse(file('src/main/resources/plugin.json'))['info'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+compileJava {
+    options.compilerArgs += ['-Xlint:deprecation', '-Xlint:unchecked']
+    options.encoding = 'UTF-8'
+}
+
 dependencies {
     implementation project(':MCreator')
-    implementation fileTree(dir: 'C:/Users/codeb/Downloads/MCreator20253/lib', include: ['*.jar'])
+    implementation fileTree(dir: 'C:/Program Files/Pylo/MCreator/lib', include: ['*.jar'])
 }
 
 tasks.jar {
     archiveFileName.set("Nerdys_Geckolib_Plugin.zip")
+    manifest {
+        attributes 'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' ')
+    }
 }
 
 tasks.register('runMCreatorWithPlugin', JavaExec) {

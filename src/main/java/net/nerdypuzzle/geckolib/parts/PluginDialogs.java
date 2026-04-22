@@ -6,7 +6,7 @@ import net.mcreator.element.types.LivingEntity;
 import net.mcreator.ui.MCreator;
 import net.mcreator.ui.action.BasicAction;
 import net.mcreator.ui.component.util.ComboBoxUtil;
-import net.mcreator.ui.component.util.PanelUtils;
+import net.nerdypuzzle.geckolib.parts.PluginPanelUtils;
 import net.mcreator.ui.dialogs.MCreatorDialog;
 import net.mcreator.ui.init.L10N;
 import net.mcreator.ui.init.UIRES;
@@ -162,7 +162,7 @@ public class PluginDialogs {
                     dialog.setVisible(false);
             });
 
-            main.add("South", PanelUtils.join(ok, cancel));
+            main.add("South", PluginPanelUtils.join(ok, cancel));
             dialog.add("Center", main);
             dialog.setSize(400, 100);
             dialog.setLocationRelativeTo(mcreator);
@@ -312,7 +312,7 @@ public class PluginDialogs {
                     dialog.setVisible(false);
             });
 
-            main.add("South", PanelUtils.join(ok, cancel));
+            main.add("South", PluginPanelUtils.join(ok, cancel));
             dialog.add("Center", main);
             dialog.setSize(400, 100);
             dialog.setLocationRelativeTo(mcreator);

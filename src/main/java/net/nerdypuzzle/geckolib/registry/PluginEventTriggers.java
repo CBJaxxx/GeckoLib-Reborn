@@ -15,13 +15,12 @@ import net.mcreator.io.net.WebIO;
 import net.mcreator.plugin.MCREvent;
 import net.mcreator.plugin.PluginLoader;
 import net.mcreator.plugin.PluginUpdateInfo;
-import net.mcreator.plugin.events.ui.BlocklyPanelRegisterDOMData;
 import net.mcreator.preferences.PreferencesManager;
 import net.mcreator.ui.MCreator;
 import net.mcreator.ui.MCreatorApplication;
 import net.mcreator.ui.blockly.BlocklyEditorType;
 import net.mcreator.ui.blockly.BlocklyPanel;
-import net.mcreator.ui.component.util.PanelUtils;
+import net.nerdypuzzle.geckolib.parts.PluginPanelUtils;
 import net.mcreator.ui.component.util.ThreadUtil;
 import net.mcreator.ui.dialogs.MCreatorDialog;
 import net.mcreator.ui.init.BlocklyJavaScriptsLoader;
@@ -199,7 +198,9 @@ public class PluginEventTriggers {
         if (!pluginUpdateInfos.isEmpty()) {
             JPanel pan = new JPanel(new BorderLayout(10, 15));
             JPanel plugins = new JPanel(new GridLayout(0, 1, 10, 10));
-            pan.add("North", new JScrollPane(PanelUtils.pullElementUp(plugins)));
+            JPanel scrollWrapper = new JPanel(new BorderLayout());
+            scrollWrapper.add("North", plugins);
+            pan.add("North", new JScrollPane(scrollWrapper));
             pan.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             pan.setPreferredSize(new Dimension(560, 250));
             Iterator var5 = pluginUpdateInfos.iterator();
@@ -222,7 +223,11 @@ public class PluginEventTriggers {
                 update.addActionListener((e) -> {
                     DesktopUtils.browseSafe("https://mcreator.net/node/" + pluginUpdateInfo.plugin().getInfo().getPluginPageID());
                 });
-                plugins.add(PanelUtils.westAndEastElement(label, PanelUtils.join(new Component[]{update})));
+                JPanel labelPanel = new JPanel(new BorderLayout());
+                labelPanel.setOpaque(false);
+                labelPanel.add("West", label);
+                labelPanel.add("East", PluginPanelUtils.join(new Component[]{update}));
+                plugins.add(labelPanel);
             }
 
             MCreatorDialog dialog = new MCreatorDialog(mcreator, L10N.t("dialog.plugin_update_notify.update_title", new Object[0]));
@@ -233,7 +238,12 @@ public class PluginEventTriggers {
             close.addActionListener((e) -> {
                 dialog.setVisible(false);
             });
-            dialog.add("Center", PanelUtils.centerAndSouthElement(pan, PanelUtils.join(new Component[]{close})));
+            // Fixed: Use BorderLayout directly instead of centerAndSouthElement
+            JPanel dialogCenterPanel = new JPanel(new BorderLayout());
+            dialogCenterPanel.setOpaque(false);
+            dialogCenterPanel.add("Center", pan);
+            dialogCenterPanel.add("South", PluginPanelUtils.join(close));
+            dialog.add("Center", dialogCenterPanel);
             dialog.setVisible(true);
         }
     }

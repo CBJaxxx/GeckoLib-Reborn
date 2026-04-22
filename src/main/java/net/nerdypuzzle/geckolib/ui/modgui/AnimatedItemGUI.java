@@ -11,7 +11,7 @@ import net.mcreator.ui.component.JStringListField;
 import net.mcreator.ui.component.SearchableComboBox;
 import net.mcreator.ui.component.util.ComboBoxUtil;
 import net.mcreator.ui.component.util.ComponentUtils;
-import net.mcreator.ui.component.util.PanelUtils;
+import net.nerdypuzzle.geckolib.parts.PluginPanelUtils;
 import net.mcreator.ui.dialogs.TypedTextureSelectorDialog;
 import net.mcreator.ui.help.HelpUtils;
 import net.mcreator.ui.init.L10N;
@@ -25,8 +25,8 @@ import net.mcreator.ui.procedure.StringListProcedureSelector;
 import net.mcreator.ui.validation.AggregatedValidationResult;
 import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
-import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.ValidationResult;
+import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
 import net.mcreator.ui.validation.validators.TextFieldValidator;
@@ -177,13 +177,13 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         destal2.setOpaque(false);
         JPanel destal3 = new JPanel(new BorderLayout(15, 15));
         destal3.setOpaque(false);
-        destal3.add("West", PanelUtils.totalCenterInPanel(ComponentUtils.squareAndBorder(this.texture, L10N.t("elementgui.item.texture", new Object[0]))));
+        destal3.add("West", PluginPanelUtils.totalCenterInPanel(ComponentUtils.squareAndBorder(this.texture, L10N.t("elementgui.item.texture", new Object[0]))));
         destal2.add("North", destal3);
 
 
         JPanel destal = new JPanel(new GridLayout(8, 2, 15, 5));
         destal.setOpaque(false);
-        JComponent destal1 = PanelUtils.join(0, new Component[]{HelpUtils.wrapWithHelpButton(this.withEntry("item/glowing_effect"), L10N.label("elementgui.item.glowing_effect", new Object[0])), this.hasGlow, this.glowCondition});
+        JComponent destal1 = PluginPanelUtils.join(0, new Component[]{HelpUtils.wrapWithHelpButton(this.withEntry("item/glowing_effect"), L10N.label("elementgui.item.glowing_effect", new Object[0])), this.hasGlow, this.glowCondition});
         destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/special_information"), L10N.label("elementgui.item.tooltip_tip", new Object[0])));
         destal.add(this.specialInformation);
         destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/animation_name"), L10N.label("elementgui.animateditem.idle_animation", new Object[0])));
@@ -212,7 +212,7 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         this.hasGlow.addActionListener((e) -> {
             this.updateGlowElements();
         });
-        destal2.add("Center", PanelUtils.northAndCenterElement(destal, destal1, 10, 10));
+        destal2.add("Center", PluginPanelUtils.northAndCenterElement(destal, destal1, 10, 10));
         ComponentUtils.deriveFont(this.idle, 16.0F);
         ComponentUtils.deriveFont(this.leftArm, 16.0F);
         ComponentUtils.deriveFont(this.rightArm, 16.0F);
@@ -221,19 +221,19 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         this.geoModel.setPrototypeDisplayValue("XXXXXXXXXXXXXXXXXXXXXXXXXX");
         this.geoModel.setRenderer(new GeomodelRenderer());
         ComponentUtils.deriveFont(this.geoModel, 16.0F);
-        rent.add(PanelUtils.join(
+        rent.add(PluginPanelUtils.join(
                 HelpUtils.wrapWithHelpButton(this.withEntry("item/model"), L10N.label("elementgui.animateditem.geckolib_model")), this.geoModel));
         this.displaySettings.setPrototypeDisplayValue("XXXXXXXXXXXXXXXXXXXXXXXXXX");
         this.displaySettings.setRenderer(new GeomodelRenderer());
         ComponentUtils.deriveFont(this.displaySettings, 16.0F);
-        rent.add(PanelUtils.join(
+        rent.add(PluginPanelUtils.join(
                 HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/display_settings"), L10N.label("elementgui.aniblockitems.display_settings")), this.displaySettings));
         destal3.add("Center", rent);
         rent.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.animateditem.model", new Object[0]), 0, 0, this.getFont().deriveFont(12.0F), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
         JPanel sbbp2 = new JPanel(new BorderLayout());
         sbbp2.setOpaque(false);
         sbbp2.add("West", destal2);
-        pane2.add("Center", PanelUtils.totalCenterInPanel(PanelUtils.centerInPanel(sbbp2)));
+        pane2.add("Center", PluginPanelUtils.totalCenterInPanel(PluginPanelUtils.centerInPanel(sbbp2)));
         pane2.setOpaque(false);
         JPanel subpane2 = new JPanel(new GridLayout(15, 2, 2, 2));
         ComponentUtils.deriveFont(this.name, 16.0F);
@@ -250,7 +250,7 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         subpane2.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/destroy_speed"), L10N.label("elementgui.item.destroy_speed", new Object[0])));
         subpane2.add(this.toolType);
         subpane2.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/damage_vs_entity"), L10N.label("elementgui.item.damage_vs_entity", new Object[0])));
-        subpane2.add(PanelUtils.westAndCenterElement(this.enableMeleeDamage, this.damageVsEntity));
+        subpane2.add(PluginPanelUtils.westAndCenterElement(this.enableMeleeDamage, this.damageVsEntity));
         subpane2.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/number_of_uses"), L10N.label("elementgui.item.number_of_uses", new Object[0])));
         subpane2.add(this.damageCount);
         subpane2.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/immune_to_fire"), L10N.label("elementgui.item.is_immune_to_fire", new Object[0])));
@@ -262,7 +262,7 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         subpane2.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/container_item_damage"), L10N.label("elementgui.item.container_item_damage", new Object[0])));
         subpane2.add(this.damageOnCrafting);
         subpane2.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/recipe_remainder"), L10N.label("elementgui.item.recipe_remainder", new Object[0])));
-        subpane2.add(PanelUtils.centerInPanel(this.recipeRemainder));
+        subpane2.add(PluginPanelUtils.centerInPanel(this.recipeRemainder));
         subpane2.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/animation"), L10N.label("elementgui.item.item_animation", new Object[0])));
         subpane2.add(this.animation);
         subpane2.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/use_duration"), L10N.label("elementgui.item.use_duration", new Object[0])));
@@ -277,7 +277,7 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         this.damageOnCrafting.setOpaque(false);
         subpane2.setOpaque(false);
         pane3.setOpaque(false);
-        pane3.add("Center", PanelUtils.totalCenterInPanel(subpane2));
+        pane3.add("Center", PluginPanelUtils.totalCenterInPanel(subpane2));
         JPanel foodSubpane = new JPanel(new GridLayout(6, 2, 2, 2));
         foodSubpane.setOpaque(false);
         this.isFood.setOpaque(false);
@@ -301,12 +301,12 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         foodSubpane.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/saturation"), L10N.label("elementgui.item.saturation", new Object[0])));
         foodSubpane.add(this.saturation);
         foodSubpane.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/result_item"), L10N.label("elementgui.item.eating_result", new Object[0])));
-        foodSubpane.add(PanelUtils.centerInPanel(this.eatResultItem));
+        foodSubpane.add(PluginPanelUtils.centerInPanel(this.eatResultItem));
         foodSubpane.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/is_meat"), L10N.label("elementgui.item.is_meat", new Object[0])));
         foodSubpane.add(this.isMeat);
         foodSubpane.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/always_edible"), L10N.label("elementgui.item.is_edible", new Object[0])));
         foodSubpane.add(this.isAlwaysEdible);
-        foodProperties.add("Center", PanelUtils.totalCenterInPanel(foodSubpane));
+        foodProperties.add("Center", PluginPanelUtils.totalCenterInPanel(foodSubpane));
         foodProperties.setOpaque(false);
         advancedProperties.setOpaque(false);
         JPanel events = new JPanel(new GridLayout(4, 3, 10, 10));
@@ -321,7 +321,7 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         events.add(this.onEntitySwing);
         events.add(this.onDroppedByPlayer);
         events.add(this.onFinishUsingItem);
-        pane4.add("Center", PanelUtils.totalCenterInPanel(events));
+        pane4.add("Center", PluginPanelUtils.totalCenterInPanel(events));
         pane4.setOpaque(false);
         JPanel inventoryProperties = new JPanel(new GridLayout(3, 2, 35, 2));
         inventoryProperties.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.common.page_inventory", new Object[0]), 4, 0, this.getFont(), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
@@ -332,8 +332,12 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         inventoryProperties.add(this.inventorySize);
         inventoryProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/inventory_stack_size"), L10N.label("elementgui.common.max_stack_size", new Object[0])));
         inventoryProperties.add(this.inventoryStackSize);
-        advancedProperties.add("Center", PanelUtils.totalCenterInPanel(inventoryProperties));
-        this.texture.setValidator(() -> new ValidationResult(ValidationResult.Type.PASSED, "", false));
+        advancedProperties.add("Center", PluginPanelUtils.totalCenterInPanel(inventoryProperties));
+        this.texture.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                return ValidationResult.PASSED;
+            }
+        });
         this.page1group.addValidationElement(this.texture);
         this.page1group.addValidationElement(this.idle);
         this.page1group.addValidationElement(this.geoModel);
@@ -348,8 +352,8 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         enableArmPose.addActionListener((e) -> {
             armPoseList.setEnabled(enableArmPose.isSelected());
         });
-        JComponent poseEditor = PanelUtils.northAndCenterElement(enableArmPose, armPoseList);
-        paneHands.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, new Component[]{new JEmptyBox()}), poseEditor));
+        JComponent poseEditor = PluginPanelUtils.northAndCenterElement(enableArmPose, armPoseList);
+        paneHands.add(PluginPanelUtils.northAndCenterElement(PluginPanelUtils.join(0, new Component[]{new JEmptyBox()}), poseEditor));
 
         this.addPage(L10N.t("elementgui.common.page_visual", new Object[0]), pane2);
         this.addPage(L10N.t("elementgui.animateditem.page_hands", new Object[0]), paneHands);
@@ -362,16 +366,20 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
             this.name.setText(readableNameFromModElement);
         }
 
-        geoModel.setValidator(() -> {
-            if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        geoModel.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"));
+                return ValidationResult.PASSED;
+            }
         });
 
-        displaySettings.setValidator(() -> {
-            if (displaySettings.getSelectedItem() == null || displaySettings.getSelectedItem().equals(""))
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        displaySettings.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (displaySettings.getSelectedItem() == null || displaySettings.getSelectedItem().equals(""))
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"));
+                return ValidationResult.PASSED;
+            }
         });
 
         this.idle.setValidator(new TextFieldValidator(this.idle, L10N.t("elementgui.animateditem.needs_idle", new Object[0])));

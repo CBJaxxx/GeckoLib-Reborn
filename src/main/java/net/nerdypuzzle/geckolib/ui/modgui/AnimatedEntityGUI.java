@@ -17,7 +17,7 @@ import net.mcreator.ui.component.JEmptyBox;
 import net.mcreator.ui.component.SearchableComboBox;
 import net.mcreator.ui.component.util.ComboBoxUtil;
 import net.mcreator.ui.component.util.ComponentUtils;
-import net.mcreator.ui.component.util.PanelUtils;
+import net.nerdypuzzle.geckolib.parts.PluginPanelUtils;
 import net.mcreator.ui.dialogs.TextureImportDialogs;
 import net.mcreator.ui.help.HelpUtils;
 import net.mcreator.ui.init.L10N;
@@ -32,8 +32,8 @@ import net.mcreator.ui.procedure.ProcedureSelector;
 import net.mcreator.ui.validation.AggregatedValidationResult;
 import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
-import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.ValidationResult;
+import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
 import net.mcreator.ui.validation.validators.TextFieldValidator;
@@ -419,42 +419,59 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
                 L10N.label("elementgui.living_entity.creature_type")));
         subpane1.add(mobCreatureType);
 
-        subpane1.add(PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.living_entity.drop_health_xp_amount"),
+        subpane1.add(PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.living_entity.drop_health_xp_amount"),
                 HelpUtils.helpButton(this.withEntry("entity/drop")),
                 HelpUtils.helpButton(this.withEntry("entity/health")),
                 HelpUtils.helpButton(this.withEntry("entity/xp_amount"))));
-        subpane1.add(PanelUtils.westAndCenterElement(PanelUtils.totalCenterInPanel(mobDrop),
-                PanelUtils.gridElements(1, 2, 2, 0, health, xpAmount), 8, 8));
+        JPanel healthXpPanel = new JPanel(new GridLayout(1, 2, 2, 0));
+        healthXpPanel.setOpaque(false);
+        healthXpPanel.add(health);
+        healthXpPanel.add(xpAmount);
+        subpane1.add(PluginPanelUtils.westAndCenterElement(PluginPanelUtils.totalCenterInPanel(mobDrop),
+                PluginPanelUtils.northAndCenterElement(healthXpPanel, new JPanel()), 8, 8));
 
-        subpane1.add(PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.living_entity.movement_speed_step_height"),
+        subpane1.add(PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.living_entity.movement_speed_step_height"),
                 HelpUtils.helpButton(this.withEntry("entity/movement_speed")),
                 HelpUtils.helpButton(this.withEntry("entity/step_height"))));
-        subpane1.add(PanelUtils.gridElements(1, 2, 2, 0, movementSpeed, stepHeight));
+        JPanel speedStepPanel = new JPanel(new GridLayout(1, 2, 2, 0));
+        speedStepPanel.setOpaque(false);
+        speedStepPanel.add(movementSpeed);
+        speedStepPanel.add(stepHeight);
+        subpane1.add(speedStepPanel);
 
         subpane1.add(
-                PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.living_entity.follow_range_tracking_range"),
+                PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.living_entity.follow_range_tracking_range"),
                         HelpUtils.helpButton(this.withEntry("entity/follow_range")),
                         HelpUtils.helpButton(this.withEntry("entity/tracking_range"))));
-        subpane1.add(PanelUtils.gridElements(1, 2, 2, 0, followRange, trackingRange));
+        JPanel followTrackPanel = new JPanel(new GridLayout(1, 2, 2, 0));
+        followTrackPanel.setOpaque(false);
+        followTrackPanel.add(followRange);
+        followTrackPanel.add(trackingRange);
+        subpane1.add(followTrackPanel);
 
-        subpane1.add(PanelUtils.join(FlowLayout.LEFT,
+        subpane1.add(PluginPanelUtils.join(FlowLayout.LEFT,
                 L10N.label("elementgui.living_entity.attack_strenght_armor_value_knockback"),
                 HelpUtils.helpButton(this.withEntry("entity/attack_strength")),
                 HelpUtils.helpButton(this.withEntry("entity/armor_base_value")),
                 HelpUtils.helpButton(this.withEntry("entity/attack_knockback")),
                 HelpUtils.helpButton(this.withEntry("entity/knockback_resistance"))));
-        subpane1.add(PanelUtils.gridElements(1, 4, 2, 0, attackStrength, armorBaseValue, attackKnockback,
-                knockbackResistance));
+        JPanel attackPanel = new JPanel(new GridLayout(1, 4, 2, 0));
+        attackPanel.setOpaque(false);
+        attackPanel.add(attackStrength);
+        attackPanel.add(armorBaseValue);
+        attackPanel.add(attackKnockback);
+        attackPanel.add(knockbackResistance);
+        subpane1.add(attackPanel);
 
         subpane1.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/equipment"),
                 L10N.label("elementgui.living_entity.equipment")));
-        subpane1.add(PanelUtils.join(FlowLayout.LEFT, 0, 2, PanelUtils.totalCenterInPanel(
-                PanelUtils.join(FlowLayout.LEFT, 2, 0, equipmentMainHand, equipmentOffHand, equipmentHelmet,
+        subpane1.add(PluginPanelUtils.join(FlowLayout.LEFT, 0, 2, PluginPanelUtils.totalCenterInPanel(
+                PluginPanelUtils.join(FlowLayout.LEFT, 2, 0, equipmentMainHand, equipmentOffHand, equipmentHelmet,
                         equipmentBody, equipmentLeggings, equipmentBoots))));
 
         subpane1.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/ridable"),
                 L10N.label("elementgui.living_entity.ridable")));
-        subpane1.add(PanelUtils.join(FlowLayout.LEFT, 0, 0, ridable, canControlForward, canControlStrafe));
+        subpane1.add(PluginPanelUtils.join(FlowLayout.LEFT, 0, 0, ridable, canControlForward, canControlStrafe));
 
         subpane1.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/water_entity"),
                 L10N.label("elementgui.living_entity.water_mob")));
@@ -480,16 +497,28 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         subpanel2.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/immunity"),
                 L10N.label("elementgui.living_entity.is_immune_to")));
-        subpanel2.add(
-                PanelUtils.gridElements(4, 4, 0, 0, immuneToFire, immuneToArrows, immuneToFallDamage, immuneToCactus,
-                        immuneToDrowning, immuneToLightning, immuneToPotions, immuneToPlayer, immuneToExplosion,
-                        immuneToAnvil, immuneToTrident, immuneToDragonBreath, immuneToWither));
+        JPanel immunityPanel = new JPanel(new GridLayout(4, 4, 0, 0));
+        immunityPanel.setOpaque(false);
+        immunityPanel.add(immuneToFire);
+        immunityPanel.add(immuneToArrows);
+        immunityPanel.add(immuneToFallDamage);
+        immunityPanel.add(immuneToCactus);
+        immunityPanel.add(immuneToDrowning);
+        immunityPanel.add(immuneToLightning);
+        immunityPanel.add(immuneToPotions);
+        immunityPanel.add(immuneToPlayer);
+        immunityPanel.add(immuneToExplosion);
+        immunityPanel.add(immuneToAnvil);
+        immunityPanel.add(immuneToTrident);
+        immunityPanel.add(immuneToDragonBreath);
+        immunityPanel.add(immuneToWither);
+        subpanel2.add(immunityPanel);
 
-        pane1.add("Center", PanelUtils.totalCenterInPanel(PanelUtils.northAndCenterElement(subpane1, subpanel2)));
+        pane1.add("Center", PluginPanelUtils.totalCenterInPanel(PluginPanelUtils.northAndCenterElement(subpane1, subpanel2)));
 
         JPanel entityDataListPanel = new JPanel(new GridLayout());
 
-        JComponent entityDataListComp = PanelUtils.northAndCenterElement(
+        JComponent entityDataListComp = PluginPanelUtils.northAndCenterElement(
                 HelpUtils.wrapWithHelpButton(this.withEntry("entity/entity_data"),
                         L10N.label("elementgui.living_entity.entity_data")), entityDataList);
         entityDataListPanel.setOpaque(false);
@@ -537,7 +566,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         spo2.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/texture"),
                 L10N.label("elementgui.living_entity.texture")));
-        spo2.add(PanelUtils.centerAndEastElement(mobModelTexture, importmobtexture, 0, 0));
+        spo2.add(PluginPanelUtils.centerAndEastElement(mobModelTexture, importmobtexture, 0, 0));
 
         spo2.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/glow_texture"),
                 L10N.label("elementgui.living_entity.glow_texture")));
@@ -573,20 +602,20 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         spo2.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/bounding_box"),
                 L10N.label("elementgui.living_entity.bounding_box")));
-        spo2.add(PanelUtils.join(FlowLayout.LEFT, 0, 0, modelWidth, new JEmptyBox(7, 7), modelHeight, new JEmptyBox(7, 7), modelShadowSize,
+        spo2.add(PluginPanelUtils.join(FlowLayout.LEFT, 0, 0, modelWidth, new JEmptyBox(7, 7), modelHeight, new JEmptyBox(7, 7), modelShadowSize,
                 new JEmptyBox(7, 7), mountedYOffset, new JEmptyBox(7, 7), disableCollisions));
 
         spo2.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/spawn_egg_options"),
                 L10N.label("elementgui.living_entity.spawn_egg_options")));
         creativeTabs.setPreferredSize(new Dimension(200, 30));
-        spo2.add(PanelUtils.join(FlowLayout.LEFT, 5, 0, hasSpawnEgg, spawnEggBaseColor, spawnEggDotColor, creativeTabs));
+        spo2.add(PluginPanelUtils.join(FlowLayout.LEFT, 5, 0, hasSpawnEgg, spawnEggBaseColor, spawnEggDotColor, creativeTabs));
 
         bossBarColor.setEnabled(false);
         bossBarType.setEnabled(false);
 
         spo2.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/boss_entity"),
                 L10N.label("elementgui.living_entity.mob_boss")));
-        spo2.add(PanelUtils.join(FlowLayout.LEFT, 5, 0, isBoss, bossBarColor, bossBarType));
+        spo2.add(PluginPanelUtils.join(FlowLayout.LEFT, 5, 0, isBoss, bossBarColor, bossBarType));
 
         spo2.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/label"),
                 L10N.label("elementgui.living_entity.label")));
@@ -612,20 +641,20 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         pane2.setOpaque(false);
 
-        pane2.add("Center", PanelUtils.totalCenterInPanel(spo2));
+        pane2.add("Center", PluginPanelUtils.totalCenterInPanel(spo2));
 
         JPanel aitop = new JPanel(new GridLayout(3, 1, 0, 2));
         aitop.setOpaque(false);
-        aitop.add(PanelUtils.join(FlowLayout.LEFT,
+        aitop.add(PluginPanelUtils.join(FlowLayout.LEFT,
                 HelpUtils.wrapWithHelpButton(this.withEntry("entity/enable_ai"), hasAI)));
 
-        aitop.add(PanelUtils.join(FlowLayout.LEFT,
+        aitop.add(PluginPanelUtils.join(FlowLayout.LEFT,
                 HelpUtils.wrapWithHelpButton(this.withEntry("entity/breedable"), breedable), breedTriggerItems,
                 tameable));
 
         breedTriggerItems.setPreferredSize(new Dimension(230, 32));
 
-        aitop.add(PanelUtils.join(FlowLayout.LEFT, new JEmptyBox(5, 5),
+        aitop.add(PluginPanelUtils.join(FlowLayout.LEFT, new JEmptyBox(5, 5),
                 HelpUtils.wrapWithHelpButton(this.withEntry("entity/base"),
                         L10N.label("elementgui.living_entity.mob_base")), aiBase));
 
@@ -640,14 +669,14 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         JPanel aitop2 = new JPanel(new GridLayout(2, 1, 0, 0));
         aitop2.setOpaque(false);
 
-        aitop2.add(PanelUtils.join(FlowLayout.LEFT,
+        aitop2.add(PluginPanelUtils.join(FlowLayout.LEFT,
                 HelpUtils.wrapWithHelpButton(this.withEntry("entity/do_ranged_attacks"), ranged),
                 rangedItemType, rangedAttackItem, rangedAttackInterval, rangedAttackRadius));
 
         JPanel aitop3 = new JPanel(new GridLayout(1, 1, 0, 0));
         aitop3.setOpaque(false);
 
-        aitop3.add(PanelUtils.join(FlowLayout.LEFT,
+        aitop3.add(PluginPanelUtils.join(FlowLayout.LEFT,
                 HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/eye_height"),
                         eyeHeight), height));
 
@@ -696,7 +725,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         BlocklyEditorToolbar blocklyEditorToolbar = new BlocklyEditorToolbar(mcreator, BlocklyEditorType.AI_TASK,
                 blocklyPanel);
         blocklyEditorToolbar.setTemplateLibButtonWidth(156);
-        bpb.add(PanelUtils.northAndCenterElement(blocklyEditorToolbar, blocklyPanel));
+        bpb.add(PluginPanelUtils.northAndCenterElement(blocklyEditorToolbar, blocklyPanel));
         aipan.add("Center", bpb);
         aipan.add("South", compileNotesPanel);
 
@@ -741,7 +770,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         events.add(onPlayerCollidesWith);
         events.add(onInitialSpawn);
         events.setOpaque(false);
-        pane4.add("Center", PanelUtils.totalCenterInPanel(events));
+        pane4.add("Center", PluginPanelUtils.totalCenterInPanel(events));
 
         isBoss.setOpaque(false);
 
@@ -793,8 +822,12 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("entity/raid_spawns_counts"),
                 L10N.label("elementgui.living_entity.raid_spawns_counts")));
-        selp.add(PanelUtils.gridElements(1, -1, 2, 2, raidSpawnsCount[0], raidSpawnsCount[1], raidSpawnsCount[2],
-                raidSpawnsCount[3], raidSpawnsCount[4], raidSpawnsCount[5], raidSpawnsCount[6]));
+        JPanel raidPanel = new JPanel(new GridLayout(1, -1, 2, 2));
+        raidPanel.setOpaque(false);
+        for (JSpinner spinner : raidSpawnsCount) {
+            raidPanel.add(spinner);
+        }
+        selp.add(raidPanel);
 
         for (JSpinner spinner : raidSpawnsCount)
             spinner.setPreferredSize(new Dimension(40, 0));
@@ -805,11 +838,10 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         selp.setOpaque(false);
 
-        JComponent selpcont = PanelUtils.northAndCenterElement(selp,
-                PanelUtils.gridElements(1, 2, 5, 5, L10N.label("elementgui.living_entity.spawn_general_condition"),
-                        PanelUtils.westAndCenterElement(new JEmptyBox(12, 5), spawningCondition)), 5, 5);
+        JComponent selpcont = PluginPanelUtils.northAndCenterElement(selp,
+                PluginPanelUtils.westAndCenterElement(new JEmptyBox(12, 5), spawningCondition), 5, 5);
 
-        pane5.add("Center", PanelUtils.totalCenterInPanel(selpcont));
+        pane5.add("Center", PluginPanelUtils.totalCenterInPanel(selpcont));
 
         pane5.setOpaque(false);
 
@@ -828,25 +860,28 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
                 L10N.label("elementgui.common.max_stack_size")));
         props.add(inventoryStackSize);
 
-        pane7.add(PanelUtils.totalCenterInPanel(props));
+        pane7.add(PluginPanelUtils.totalCenterInPanel(props));
         pane7.setOpaque(false);
         pane7.setOpaque(false);
 
-        mobModelTexture.setValidator(() -> {
-            if (mobModelTexture.getSelectedItem() == null || mobModelTexture.getSelectedItem().equals(""))
-                return new ValidationResult(ValidationResult.Type.ERROR,
-                        L10N.t("elementgui.living_entity.error_entity_model_needs_texture"));
-            return ValidationResult.PASSED;
+        mobModelTexture.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (mobModelTexture.getSelectedItem() == null || mobModelTexture.getSelectedItem().equals(""))
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.living_entity.error_entity_model_needs_texture"));
+                return ValidationResult.PASSED;
+            }
         });
 
         mobName.setValidator(
                 new TextFieldValidator(mobName, L10N.t("elementgui.living_entity.error_entity_needs_name")));
         mobName.enableRealtimeValidation();
 
-        geoModel.setValidator(() -> {
-            if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"));
-            return ValidationResult.PASSED;
+        geoModel.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"));
+                return ValidationResult.PASSED;
+            }
         });
 
         pane1.setOpaque(false);
@@ -881,39 +916,39 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/walk_animation"),
                 L10N.label("elementgui.animatedentity.walk_animation")));
-        animations.add(PanelUtils.join(enable2, animation2));
+        animations.add(PluginPanelUtils.join(enable2, animation2));
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/death_animation"),
                 L10N.label("elementgui.animatedentity.death_animation")));
-        animations.add(PanelUtils.join(enable3, animation3));
+        animations.add(PluginPanelUtils.join(enable3, animation3));
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/attack_animation"),
                 L10N.label("elementgui.animatedentity.attack_animation")));
-        animations.add(PanelUtils.join(enable4, animation4));
+        animations.add(PluginPanelUtils.join(enable4, animation4));
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/swim_animation"),
                 L10N.label("elementgui.animatedentity.swim_animation")));
-        animations.add(PanelUtils.join(enable5, animation5));
+        animations.add(PluginPanelUtils.join(enable5, animation5));
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/sneak_animation"),
                 L10N.label("elementgui.animatedentity.sneak_animation")));
-        animations.add(PanelUtils.join(enable6, animation6));
+        animations.add(PluginPanelUtils.join(enable6, animation6));
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/sprint_animation"),
                 L10N.label("elementgui.animatedentity.sprint_animation")));
-        animations.add(PanelUtils.join(enable7, animation7));
+        animations.add(PluginPanelUtils.join(enable7, animation7));
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/flight_animation"),
                 L10N.label("elementgui.animatedentity.flight_animation")));
-        animations.add(PanelUtils.join(enable8, animation8));
+        animations.add(PluginPanelUtils.join(enable8, animation8));
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/riding_animation"),
                 L10N.label("elementgui.animatedentity.riding_animation")));
-        animations.add(PanelUtils.join(enable9, animation9));
+        animations.add(PluginPanelUtils.join(enable9, animation9));
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/aggression_animation"),
                 L10N.label("elementgui.animatedentity.aggression_animation")));
-        animations.add(PanelUtils.join(enable10, animation10));
+        animations.add(PluginPanelUtils.join(enable10, animation10));
 
         animations.add(HelpUtils.wrapWithHelpButton(this.withEntry("geckolib/lerp"),
                 L10N.label("elementgui.animatedentity.lerp")));
@@ -941,8 +976,8 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         dpanel_procedure.add(finishedDying);
 
-        animations_extras.add(PanelUtils.centerInPanel(dpanel));
-        animations_extras.add(PanelUtils.centerInPanel(dpanel_procedure));
+        animations_extras.add(PluginPanelUtils.centerInPanel(dpanel));
+        animations_extras.add(PluginPanelUtils.centerInPanel(dpanel_procedure));
 
 
         //extra animations panel
@@ -964,7 +999,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
                 L10N.label("elementgui.animatedentity.attack_interval")));
         extras_head.add(attackRate);
 
-        extras.add(PanelUtils.centerInPanel(extras_head));
+        extras.add(PluginPanelUtils.centerInPanel(extras_head));
 
         //merge the right side panels
         JPanel merged_extras = new JPanel(new GridLayout(2, 1, 20, 2));
@@ -979,7 +1014,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         animations_master.add(animations);
         animations_master.add(merged_extras);
 
-        pane8.add(PanelUtils.totalCenterInPanel(animations_master));
+        pane8.add(PluginPanelUtils.totalCenterInPanel(animations_master));
 
         animations_master.setOpaque(false);
         animations_extras.setOpaque(false);

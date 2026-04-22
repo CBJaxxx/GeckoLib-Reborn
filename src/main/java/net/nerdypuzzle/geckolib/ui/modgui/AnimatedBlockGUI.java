@@ -20,7 +20,7 @@ import net.mcreator.ui.component.JStringListField;
 import net.mcreator.ui.component.SearchableComboBox;
 import net.mcreator.ui.component.util.ComboBoxUtil;
 import net.mcreator.ui.component.util.ComponentUtils;
-import net.mcreator.ui.component.util.PanelUtils;
+import net.nerdypuzzle.geckolib.parts.PluginPanelUtils;
 import net.mcreator.ui.dialogs.TypedTextureSelectorDialog;
 import net.mcreator.ui.help.HelpUtils;
 import net.mcreator.ui.help.IHelpContext;
@@ -38,8 +38,8 @@ import net.mcreator.ui.procedure.StringListProcedureSelector;
 import net.mcreator.ui.validation.AggregatedValidationResult;
 import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
-import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.ValidationResult;
+import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
 import net.mcreator.ui.validation.validators.*;
@@ -414,16 +414,26 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         JPanel txblock4 = new JPanel(new BorderLayout());
         txblock4.setOpaque(false);
         txblock4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.block.block_base_item_texture", new Object[0]), 0, 0, this.getFont().deriveFont(12.0F), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
-        txblock4.add("Center", PanelUtils.gridElements(3, 2, new Component[]{HelpUtils.wrapWithHelpButton(this.withEntry("block/base"), L10N.label("elementgui.block.block_base", new Object[0])), this.blockBase, HelpUtils.wrapWithHelpButton(this.withEntry("block/item_texture"), L10N.label("elementgui.block.item_texture", new Object[0])), PanelUtils.centerInPanel(this.itemTexture), HelpUtils.wrapWithHelpButton(this.withEntry("block/particle_texture"), L10N.label("elementgui.block.particle_texture", new Object[0])), PanelUtils.centerInPanel(this.particleTexture)}));
+        JPanel gridPanel = new JPanel(new GridLayout(3, 2));
+        gridPanel.setOpaque(false);
+        gridPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/base"), L10N.label("elementgui.block.block_base", new Object[0])));
+        gridPanel.add(this.blockBase);
+        gridPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/item_texture"), L10N.label("elementgui.block.item_texture", new Object[0])));
+        gridPanel.add(PluginPanelUtils.centerInPanel(this.itemTexture));
+        gridPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/particle_texture"), L10N.label("elementgui.block.particle_texture", new Object[0])));
+        gridPanel.add(PluginPanelUtils.centerInPanel(this.particleTexture));
+        txblock4.add("Center", gridPanel);
         JPanel sbbp2 = new JPanel(new BorderLayout(1, 5));
-        JPanel sbbp22 = PanelUtils.totalCenterInPanel(destal);
+        JPanel sbbp22 = PluginPanelUtils.totalCenterInPanel(destal);
         sbbp2.setOpaque(false);
         this.plantsGrowOn.setOpaque(false);
         sbbp22.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.block.block_textures", new Object[0]), 0, 0, this.getFont().deriveFont(12.0F), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
         JPanel topnbot = new JPanel(new BorderLayout());
         topnbot.setOpaque(false);
         topnbot.add("Center", sbbp22);
-        JComponent txblock3 = PanelUtils.gridElements(1, 1, specialInformation);
+        JComponent txblock3 = new JPanel(new GridLayout(1, 1));
+        ((JPanel)txblock3).setOpaque(false);
+        ((JPanel)txblock3).add(specialInformation);
         txblock3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.common.special_information", new Object[0]), 0, 0, this.getFont().deriveFont(12.0F), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
         sbbp2.add("Center", topnbot);
         JPanel render = new JPanel();
@@ -481,7 +491,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         tintPanel.add(this.tintType);
         tintPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/is_item_tinted"), L10N.label("elementgui.block.is_item_tinted", new Object[0])));
         tintPanel.add(this.isItemTinted);
-        topnbot.add("South", PanelUtils.northAndCenterElement(tintPanel, txblock4));
+        topnbot.add("South", PluginPanelUtils.northAndCenterElement(tintPanel, txblock4));
         rent.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.block.render_type", new Object[0]), 0, 0, this.getFont().deriveFont(12.0F), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
         transparencySettings.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.block.transparency", new Object[0]), 0, 0, this.getFont().deriveFont(12.0F), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
         tintPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.block.block_tint", new Object[0]), 0, 0, this.getFont().deriveFont(12.0F), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
@@ -493,15 +503,15 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         this.connectedSides.setOpaque(false);
         this.emissiveRendering.setOpaque(false);
         this.displayFluidOverlay.setOpaque(false);
-        sbbp2.add("East", PanelUtils.pullElementUp(render));
+        sbbp2.add("East", PluginPanelUtils.pullElementUp(render));
         pane2.setOpaque(false);
-        pane2.add("Center", PanelUtils.totalCenterInPanel(sbbp2));
+        pane2.add("Center", PluginPanelUtils.totalCenterInPanel(sbbp2));
         JPanel northPanel = new JPanel(new GridLayout(1, 2, 10, 2));
         northPanel.setOpaque(false);
         northPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/disable_offset"), L10N.label("elementgui.common.disable_offset", new Object[0])));
         northPanel.add(this.disableOffset);
         this.disableOffset.setOpaque(false);
-        bbPane.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, new Component[]{northPanel}), this.boundingBoxList));
+        bbPane.add(PluginPanelUtils.northAndCenterElement(PluginPanelUtils.join(0, new Component[]{northPanel}), this.boundingBoxList));
         bbPane.setOpaque(false);
         bbPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         if (!this.isEditingMode()) {
@@ -560,13 +570,13 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/replaceable"), L10N.label("elementgui.block.is_replaceable", new Object[0])));
         selp.add(this.isReplaceable);
         selp3.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/custom_drop"), L10N.label("elementgui.common.custom_drop", new Object[0])));
-        selp3.add(PanelUtils.centerInPanel(this.customDrop));
+        selp3.add(PluginPanelUtils.centerInPanel(this.customDrop));
         selp3.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/drop_amount"), L10N.label("elementgui.common.drop_amount", new Object[0])));
         selp3.add(this.dropAmount);
         selp3.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/use_loot_table_for_drops"), L10N.label("elementgui.common.use_loot_table_for_drop", new Object[0])));
-        selp3.add(PanelUtils.centerInPanel(this.useLootTableForDrops));
+        selp3.add(PluginPanelUtils.centerInPanel(this.useLootTableForDrops));
         selp3.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/creative_pick_item"), L10N.label("elementgui.common.creative_pick_item", new Object[0])));
-        selp3.add(PanelUtils.centerInPanel(this.creativePickItem));
+        selp3.add(PluginPanelUtils.centerInPanel(this.creativePickItem));
         selp3.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/harvest_tool"), L10N.label("elementgui.block.harvest_tool", new Object[0])));
         selp3.add(this.destroyTool);
         selp3.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/vanilla_tool_tier"), L10N.label("elementgui.block.vanilla_tool_tier")));
@@ -589,7 +599,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         });
         soundProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/block_sound"), this.defaultSoundType));
         soundProperties.add(this.soundOnStep);
-        soundProperties.add(PanelUtils.join(0, new Component[]{this.customSoundType}));
+        soundProperties.add(PluginPanelUtils.join(0, new Component[]{this.customSoundType}));
         soundProperties.add(new JEmptyBox());
         soundProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/break_sound"), L10N.label("elementgui.common.soundtypes.break_sound", new Object[0])));
         soundProperties.add(this.breakSound);
@@ -628,7 +638,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         advancedProperties.add(this.aiPathNodeType);
         advancedProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/offset_type"), L10N.label("elementgui.common.offset_type", new Object[0])));
         advancedProperties.add(this.offsetType);
-        JComponent advancedWithCondition = PanelUtils.northAndCenterElement(advancedProperties, this.placingCondition, 5, 5);
+        JComponent advancedWithCondition = PluginPanelUtils.northAndCenterElement(advancedProperties, this.placingCondition, 5, 5);
         this.isWaterloggable.setOpaque(false);
         this.canRedstoneConnect.setOpaque(false);
         this.isLadder.setOpaque(false);
@@ -648,12 +658,12 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         advancedWithCondition.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.block.properties_advanced_block", new Object[0]), 4, 0, this.getFont(), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
         selp.setOpaque(false);
         soundProperties.setOpaque(false);
-        JComponent selpWrap = PanelUtils.centerAndSouthElement(selp3, additionalHarvestCondition);
+        JComponent selpWrap = PluginPanelUtils.centerAndSouthElement(selp3, additionalHarvestCondition);
         selpWrap.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(Theme.current().getForegroundColor(), 1),
                 L10N.t("elementgui.common.properties_dropping"), TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION,
                 getFont(), Theme.current().getForegroundColor()));
-        pane3.add("Center", PanelUtils.totalCenterInPanel(PanelUtils.westAndEastElement(selp, PanelUtils.centerAndSouthElement(selpWrap, soundProperties))));
+        pane3.add("Center", PluginPanelUtils.totalCenterInPanel(PluginPanelUtils.westAndEastElement(selp, PluginPanelUtils.centerAndSouthElement(selpWrap, soundProperties))));
         pane3.setOpaque(false);
         JPanel events2 = new JPanel(new GridLayout(4, 5, 5, 5));
         events2.setOpaque(false);
@@ -671,7 +681,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         events2.add(this.onRedstoneOn);
         events2.add(this.onRedstoneOff);
         events2.add(this.onRandomUpdateEvent);
-        pane4.add("Center", PanelUtils.totalCenterInPanel(events2));
+        pane4.add("Center", PluginPanelUtils.totalCenterInPanel(events2));
         pane4.setOpaque(false);
         JPanel invblock = new JPanel(new BorderLayout(10, 40));
         invblock.setOpaque(false);
@@ -764,7 +774,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         fluidTank.add(this.fluidCapacity);
         fluidTank.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluidtank/fluid_restrictions"), L10N.label("elementgui.block.fluid_restrictions", new Object[0])));
         fluidTank.add(this.fluidRestrictions);
-        pane10.add(PanelUtils.totalCenterInPanel(PanelUtils.northAndCenterElement(L10N.label("elementgui.block.tile_entity_tip", new Object[0]), PanelUtils.westAndEastElement(energyStorage, PanelUtils.northAndCenterElement(fluidTank, new JEmptyBox())), 10, 10)));
+        pane10.add(PluginPanelUtils.totalCenterInPanel(PluginPanelUtils.northAndCenterElement(L10N.label("elementgui.block.tile_entity_tip", new Object[0]), PluginPanelUtils.westAndEastElement(energyStorage, PluginPanelUtils.northAndCenterElement(fluidTank, new JEmptyBox())), 10, 10)));
         this.hasInventory.addActionListener((e) -> {
             this.refreshFieldsTileEntity();
         });
@@ -772,7 +782,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         props.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.block.settings_inventory", new Object[0]), 0, 0, this.getFont().deriveFont(12.0F), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
         invblock.add("Center", props);
         invblock.add("North", HelpUtils.wrapWithHelpButton(this.withEntry("block/has_inventory"), this.hasInventory));
-        pane8.add("Center", PanelUtils.totalCenterInPanel(invblock));
+        pane8.add("Center", PluginPanelUtils.totalCenterInPanel(invblock));
         JPanel enderpanel2 = new JPanel(new BorderLayout(30, 15));
         JPanel genPanel = new JPanel(new GridLayout(8, 2, 20, 2));
         genPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("common/generate_feature"), L10N.label("elementgui.block.generate_feature")));
@@ -792,8 +802,8 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         genPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/gen_max_height"), L10N.label("elementgui.block.gen_max_height", new Object[0])));
         genPanel.add(this.maxGenerateHeight);
         genPanel.setOpaque(false);
-        enderpanel2.add("West", PanelUtils.totalCenterInPanel(new JLabel(UIRES.get("chunk"))));
-        enderpanel2.add("Center", PanelUtils.pullElementUp(PanelUtils.northAndCenterElement(genPanel, PanelUtils.westAndCenterElement(new JEmptyBox(5, 5), this.generateCondition), 5, 5)));
+        enderpanel2.add("West", PluginPanelUtils.totalCenterInPanel(new JLabel(UIRES.get("chunk"))));
+        enderpanel2.add("Center", PluginPanelUtils.pullElementUp(PluginPanelUtils.northAndCenterElement(genPanel, PluginPanelUtils.westAndCenterElement(new JEmptyBox(5, 5), this.generateCondition), 5, 5)));
         enderpanel2.setOpaque(false);
         JPanel redstoneParameters = new JPanel(new GridLayout(2, 2, 0, 2));
         redstoneParameters.setOpaque(false);
@@ -801,18 +811,22 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         redstoneParameters.add(this.canRedstoneConnect);
         redstoneParameters.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/emits_redstone"), L10N.label("elementgui.block.emits_redstone", new Object[0])));
         redstoneParameters.add(this.canProvidePower);
-        JComponent redstoneMerger = PanelUtils.northAndCenterElement(redstoneParameters, emittedRedstonePower, 2, 2);
+        JComponent redstoneMerger = PluginPanelUtils.northAndCenterElement(redstoneParameters, emittedRedstonePower, 2, 2);
         redstoneMerger.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder((Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR"), 1), L10N.t("elementgui.block.properties_redstone", new Object[0]), 0, 0, this.getFont().deriveFont(12.0F), (Color)UIManager.get("MCreatorLAF.BRIGHT_COLOR")));
         this.canProvidePower.addActionListener((e) -> {
             this.refreshRedstoneEmitted();
         });
         this.refreshRedstoneEmitted();
 
-        pane7.add(PanelUtils.totalCenterInPanel(PanelUtils.westAndEastElement(advancedWithCondition, PanelUtils.pullElementUp(redstoneMerger))));
+        pane7.add(PluginPanelUtils.totalCenterInPanel(PluginPanelUtils.westAndEastElement(advancedWithCondition, PluginPanelUtils.pullElementUp(redstoneMerger))));
         pane7.setOpaque(false);
         pane9.setOpaque(false);
-        pane9.add("Center", PanelUtils.totalCenterInPanel(PanelUtils.centerInPanel(enderpanel2)));
-        this.texture.setValidator(() -> new ValidationResult(ValidationResult.Type.PASSED, "", false));
+        pane9.add("Center", PluginPanelUtils.totalCenterInPanel(PluginPanelUtils.centerInPanel(enderpanel2)));
+        this.texture.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                return ValidationResult.PASSED;
+            }
+        });
         this.page1group.addValidationElement(this.texture);
         this.page1group.addValidationElement(this.geoModel);
         this.page1group.addValidationElement(this.displaySettings);
@@ -832,9 +846,9 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
 
         JPanel blockstates = new JPanel(new BorderLayout());
         blockstates.setOpaque(false);
-        JComponent mainEditor = PanelUtils.northAndCenterElement(new JEmptyBox(), this.blockstateList);
+        JComponent mainEditor = PluginPanelUtils.northAndCenterElement(new JEmptyBox(), this.blockstateList);
         mainEditor.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        blockstates.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, new JEmptyBox()), mainEditor));
+        blockstates.add(PluginPanelUtils.northAndCenterElement(PluginPanelUtils.join(0, new JEmptyBox()), mainEditor));
 
         this.addPage(L10N.t("elementgui.common.page_visual", new Object[0]), pane2);
         this.addPage(L10N.t("elementgui.common.page_bounding_boxes", new Object[0]), bbPane);
@@ -852,16 +866,20 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
 
         this.updateSoundType();
 
-        geoModel.setValidator(() -> {
-            if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        geoModel.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"));
+                return ValidationResult.PASSED;
+            }
         });
 
-        displaySettings.setValidator(() -> {
-            if (displaySettings.getSelectedItem() == null || displaySettings.getSelectedItem().equals(""))
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.aniblockitems.display_settings_missing"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        displaySettings.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (displaySettings.getSelectedItem() == null || displaySettings.getSelectedItem().equals(""))
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.aniblockitems.display_settings_missing"));
+                return ValidationResult.PASSED;
+            }
         });
 
         this.textureTop.setVisible(false);

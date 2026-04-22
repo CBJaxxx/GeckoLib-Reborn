@@ -8,7 +8,9 @@ import net.mcreator.ui.component.JEmptyBox;
 import net.mcreator.ui.component.SearchableComboBox;
 import net.mcreator.ui.component.util.ComboBoxUtil;
 import net.mcreator.ui.component.util.ComponentUtils;
-import net.mcreator.ui.component.util.PanelUtils;
+import net.nerdypuzzle.geckolib.parts.PluginPanelUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import net.mcreator.ui.dialogs.TextureImportDialogs;
 import net.mcreator.ui.dialogs.TypedTextureSelectorDialog;
 import net.mcreator.ui.help.HelpUtils;
@@ -21,8 +23,8 @@ import net.mcreator.ui.procedure.ProcedureSelector;
 import net.mcreator.ui.validation.AggregatedValidationResult;
 import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
-import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.ValidationResult;
+import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
 import net.mcreator.ui.validation.validators.ConditionalTextFieldValidator;
@@ -238,7 +240,7 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
                 HelpUtils.wrapWithHelpButton(this.withEntry("item/model"), L10N.label("elementgui.common.item_model")));
         helmetSubPanel.add(helmetItemRenderType);
 
-        helmetSubPanel.add(PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.item.tooltip_tip")));
+        helmetSubPanel.add(PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.item.tooltip_tip")));
         helmetSubPanel.add(helmetSpecialInfo);
 
         helmetSubPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/immune_to_fire"),
@@ -247,19 +249,19 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         helmetCollapsiblePanel = new CollapsiblePanel(L10N.t("elementgui.armor.advanced_helmet"), helmetSubPanel);
 
-        JComponent helText = PanelUtils.centerAndSouthElement(PanelUtils.centerInPanelPadding(textureHelmet, 0, 0),
+        JComponent helText = PluginPanelUtils.centerAndSouthElement(PluginPanelUtils.centerInPanelPadding(textureHelmet, 0, 0),
                 enableHelmet);
         helText.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder((Color) UIManager.get("MCreatorLAF.GRAY_COLOR")),
                 BorderFactory.createEmptyBorder(15, 12, 0, 12)));
 
-        destal.add(PanelUtils.westAndCenterElement(PanelUtils.pullElementUp(helText), PanelUtils.centerAndSouthElement(
-                PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.armor.helmet_name"), helmetName),
+        destal.add(PluginPanelUtils.westAndCenterElement(PluginPanelUtils.pullElementUp(helText), PluginPanelUtils.centerAndSouthElement(
+                PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.armor.helmet_name"), helmetName),
                 helmetCollapsiblePanel), 5, 0));
 
         destal.add(new JEmptyBox(10, 10));
 
-        JComponent bodText = PanelUtils.centerAndSouthElement(PanelUtils.centerInPanelPadding(textureBody, 0, 0),
+        JComponent bodText = PluginPanelUtils.centerAndSouthElement(PluginPanelUtils.centerInPanelPadding(textureBody, 0, 0),
                 enableBody);
         bodText.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder((Color) UIManager.get("MCreatorLAF.GRAY_COLOR")),
@@ -272,7 +274,7 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
                 HelpUtils.wrapWithHelpButton(this.withEntry("item/model"), L10N.label("elementgui.common.item_model")));
         bodySubPanel.add(bodyItemRenderType);
 
-        bodySubPanel.add(PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.item.tooltip_tip")));
+        bodySubPanel.add(PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.item.tooltip_tip")));
         bodySubPanel.add(bodySpecialInfo);
 
         bodySubPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/immune_to_fire"),
@@ -281,13 +283,13 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         bodyCollapsiblePanel = new CollapsiblePanel(L10N.t("elementgui.armor.advanced_chestplate"), bodySubPanel);
 
-        destal.add(PanelUtils.westAndCenterElement(PanelUtils.pullElementUp(bodText), PanelUtils.centerAndSouthElement(
-                PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.armor.chestplate_name"), bodyName),
+        destal.add(PluginPanelUtils.westAndCenterElement(PluginPanelUtils.pullElementUp(bodText), PluginPanelUtils.centerAndSouthElement(
+                PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.armor.chestplate_name"), bodyName),
                 bodyCollapsiblePanel), 5, 0));
 
         destal.add(new JEmptyBox(10, 10));
 
-        JComponent legText = PanelUtils.centerAndSouthElement(PanelUtils.centerInPanelPadding(textureLeggings, 0, 0),
+        JComponent legText = PluginPanelUtils.centerAndSouthElement(PluginPanelUtils.centerInPanelPadding(textureLeggings, 0, 0),
                 enableLeggings);
         legText.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder((Color) UIManager.get("MCreatorLAF.GRAY_COLOR")),
@@ -300,7 +302,7 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
                 HelpUtils.wrapWithHelpButton(this.withEntry("item/model"), L10N.label("elementgui.common.item_model")));
         leggingsSubPanel.add(leggingsItemRenderType);
 
-        leggingsSubPanel.add(PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.item.tooltip_tip")));
+        leggingsSubPanel.add(PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.item.tooltip_tip")));
         leggingsSubPanel.add(leggingsSpecialInfo);
 
         leggingsSubPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/immune_to_fire"),
@@ -309,13 +311,13 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         leggingsCollapsiblePanel = new CollapsiblePanel(L10N.t("elementgui.armor.advanced_leggings"), leggingsSubPanel);
 
-        destal.add(PanelUtils.westAndCenterElement(PanelUtils.pullElementUp(legText), PanelUtils.centerAndSouthElement(
-                PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.armor.leggings_name"), leggingsName),
+        destal.add(PluginPanelUtils.westAndCenterElement(PluginPanelUtils.pullElementUp(legText), PluginPanelUtils.centerAndSouthElement(
+                PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.armor.leggings_name"), leggingsName),
                 leggingsCollapsiblePanel), 5, 0));
 
         destal.add(new JEmptyBox(10, 10));
 
-        JComponent bootText = PanelUtils.centerAndSouthElement(PanelUtils.centerInPanelPadding(textureBoots, 0, 0),
+        JComponent bootText = PluginPanelUtils.centerAndSouthElement(PluginPanelUtils.centerInPanelPadding(textureBoots, 0, 0),
                 enableBoots);
         bootText.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder((Color) UIManager.get("MCreatorLAF.GRAY_COLOR")),
@@ -328,7 +330,7 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
                 HelpUtils.wrapWithHelpButton(this.withEntry("item/model"), L10N.label("elementgui.common.item_model")));
         bootsSubPanel.add(bootsItemRenderType);
 
-        bootsSubPanel.add(PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.item.tooltip_tip")));
+        bootsSubPanel.add(PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.item.tooltip_tip")));
         bootsSubPanel.add(bootsSpecialInfo);
 
         bootsSubPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/immune_to_fire"),
@@ -337,8 +339,8 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         bootsCollapsiblePanel = new CollapsiblePanel(L10N.t("elementgui.armor.advanced_boots"), bootsSubPanel);
 
-        destal.add(PanelUtils.westAndCenterElement(PanelUtils.pullElementUp(bootText), PanelUtils.centerAndSouthElement(
-                PanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.armor.boots_name"), bootsName),
+        destal.add(PluginPanelUtils.westAndCenterElement(PluginPanelUtils.pullElementUp(bootText), PluginPanelUtils.centerAndSouthElement(
+                PluginPanelUtils.join(FlowLayout.LEFT, L10N.label("elementgui.armor.boots_name"), bootsName),
                 bootsCollapsiblePanel), 5, 0));
 
         enableHelmet.addActionListener(event -> {
@@ -373,7 +375,7 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
         klo.setVgap(20);
 
         pane2.setOpaque(false);
-        pane2.add("Center", PanelUtils.totalCenterInPanel(sbbp22));
+        pane2.add("Center", PluginPanelUtils.totalCenterInPanel(sbbp22));
 
         JPanel enderpanel = new JPanel(new GridLayout(8, 2, 20, 10));
 
@@ -391,8 +393,13 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         enderpanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("armor/damage_values"),
                 L10N.label("elementgui.armor.damage_values")));
-        enderpanel.add(PanelUtils.gridElements(1, 4, damageValueHelmet, damageValueBody, damageValueLeggings,
-                damageValueBoots));
+        JPanel damagePanel = new JPanel(new GridLayout(1, 4));
+        damagePanel.setOpaque(false);
+        damagePanel.add(damageValueHelmet);
+        damagePanel.add(damageValueBody);
+        damagePanel.add(damageValueLeggings);
+        damagePanel.add(damageValueBoots);
+        enderpanel.add(damagePanel);
 
         enderpanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("armor/enchantability"),
                 L10N.label("elementgui.common.enchantability")));
@@ -418,30 +425,38 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
         clopa.add("Center", enderpanel);
         clopa.setOpaque(false);
 
-        pane5.add("Center", PanelUtils.totalCenterInPanel(clopa));
+        pane5.add("Center", PluginPanelUtils.totalCenterInPanel(clopa));
 
-        textureHelmet.setValidator(() -> {
-            if (enableHelmet.isSelected() && !textureHelmet.hasTexture())
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        textureHelmet.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (enableHelmet.isSelected() && !textureHelmet.hasTexture())
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"));
+                return ValidationResult.PASSED;
+            }
         });
 
-        textureBody.setValidator(() -> {
-            if (enableBody.isSelected() && !textureBody.hasTexture())
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        textureBody.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (enableBody.isSelected() && !textureBody.hasTexture())
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"));
+                return ValidationResult.PASSED;
+            }
         });
 
-        textureLeggings.setValidator(() -> {
-            if (enableLeggings.isSelected() && !textureLeggings.hasTexture())
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        textureLeggings.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (enableLeggings.isSelected() && !textureLeggings.hasTexture())
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"));
+                return ValidationResult.PASSED;
+            }
         });
 
-        textureBoots.setValidator(() -> {
-            if (enableBoots.isSelected() && !textureBoots.hasTexture())
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        textureBoots.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (enableBoots.isSelected() && !textureBoots.hasTexture())
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.armor.need_texture"));
+                return ValidationResult.PASSED;
+            }
         });
 
         bootsName.setValidator(
@@ -495,10 +510,12 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         });
 
-        armorTextureFile.setValidator(() -> {
-            if (armorTextureFile.getSelectedItem() == null || armorTextureFile.getSelectedItem().equals(""))
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedarmor.texture_invalid"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        armorTextureFile.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (armorTextureFile.getSelectedItem() == null || armorTextureFile.getSelectedItem().equals(""))
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedarmor.texture_invalid"));
+                return ValidationResult.PASSED;
+            }
         });
 
         group1page.addValidationElement(armorTextureFile);
@@ -541,16 +558,18 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
         gprops.add(leftBoot);
 
 
-        pane3.add("Center", PanelUtils.totalCenterInPanel(gprops));
+        pane3.add("Center", PluginPanelUtils.totalCenterInPanel(gprops));
 
         gprops.setOpaque(false);
         pane3.setOpaque(false);
         this.fullyEquipped.setOpaque(false);
 
-        geoModel.setValidator(() -> {
-            if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        geoModel.setValidator(new Validator() {
+            @Override public ValidationResult validate() {
+                if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
+                    return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"));
+                return ValidationResult.PASSED;
+            }
         });
 
         this.idle.setValidator(
