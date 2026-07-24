@@ -1,6 +1,7 @@
 package net.nerdypuzzle.geckolib.element.types;
 
 import net.mcreator.blockly.data.BlocklyLoader;
+import net.mcreator.blockly.data.BlocklyXML;
 import net.mcreator.blockly.java.BlocklyToJava;
 import net.mcreator.element.BaseType;
 import net.mcreator.element.GeneratableElement;
@@ -43,6 +44,20 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class AnimatedEntity extends GeneratableElement
         implements IEntityWithModel, ITabContainedElement, ICommonType, IMCItemProvider {
+
+	/**
+	 * Default AI Blockly workspace with the non-deletable starter (aitasks_container)
+	 * plus a basic goal set — matches MCreator LivingEntity.XML_BASE.
+	 */
+	public static final String XML_BASE = """
+			<xml xmlns="https://developers.google.com/blockly/xml">
+			<block type="aitasks_container" deletable="false" x="40" y="40"><next>
+			<block type="attack_on_collide"><field name="speed">1.2</field><field name="longmemory">FALSE</field><field name="condition">null,null</field><next>
+			<block type="wander"><field name="speed">1</field><field name="condition">null,null</field><next>
+			<block type="attack_action"><field name="callhelp">FALSE</field><field name="condition">null,null</field><next>
+			<block type="look_around"><field name="condition">null,null</field><next>
+			<block type="swim_in_water"><field name="condition">null,null</field></block></next>
+			</block></next></block></next></block></next></block></next></block></xml>""";
 
     public String mobName;
     public String mobLabel;
@@ -137,7 +152,8 @@ public class AnimatedEntity extends GeneratableElement
 
     public boolean hasAI;
     public String aiBase;
-    public String aixml;
+	@BlocklyXML(name = "aitasks", defaultXML = AnimatedEntity.XML_BASE)
+	public String aixml;
 
     public String model;
     public String groupName;
@@ -315,8 +331,9 @@ public class AnimatedEntity extends GeneratableElement
                     additionalData).setTemplateExtension(
                     this.getModElement().getGeneratorConfiguration().getGeneratorFlavor().getBaseLanguage().name()
                             .toLowerCase(Locale.ENGLISH));
+			String aiWorkspaceXml = (this.aixml != null && !this.aixml.isBlank()) ? this.aixml : XML_BASE;
             BlocklyToJava blocklyToJava = new BlocklyToJava(this.getModElement().getWorkspace(), this.getModElement(),
-                    BlocklyEditorType.AI_TASK, this.aixml, this.getModElement().getGenerator()
+                    BlocklyEditorType.AI_TASK, aiWorkspaceXml, this.getModElement().getGenerator()
                     .getTemplateGeneratorFromName(BlocklyEditorType.AI_TASK.registryName()),
                     new ProceduralBlockCodeGenerator(blocklyBlockCodeGenerator));
 

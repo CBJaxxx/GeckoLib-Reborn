@@ -6,6 +6,7 @@ import net.mcreator.blockly.java.BlocklyToJava;
 import net.mcreator.element.GeneratableElement;
 import net.mcreator.element.ModElementType;
 import net.mcreator.element.types.GUI;
+import net.mcreator.element.util.AnnotationUtils;
 import net.mcreator.generator.blockly.BlocklyBlockCodeGenerator;
 import net.mcreator.generator.blockly.ProceduralBlockCodeGenerator;
 import net.mcreator.generator.template.TemplateGeneratorException;
@@ -268,8 +269,18 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         return new ArrayList<>();
     }
 
+    /**
+     * Default AI workspace XML (non-deletable starter + basic goals).
+     * Uses {@link BlocklyPanel#setInitialXML(String)} — setXML is private in modern MCreator.
+     */
     private void setDefaultAISet() {
-        // setXML is private in newer MCreator - skip default AI for now
+        blocklyPanel.setInitialXML(AnnotationUtils.getBlocklyXMLDefaultValue(AnimatedEntity.class, "aixml"));
+    }
+
+    private static String resolveAIXml(@javax.annotation.Nullable String stored) {
+        if (stored != null && !stored.isBlank() && stored.contains("aitasks_container"))
+            return stored;
+        return AnnotationUtils.getBlocklyXMLDefaultValue(AnimatedEntity.class, "aixml");
     }
 
     private synchronized void regenerateAITasks() {
@@ -709,10 +720,12 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
                     .loadBlocksAndCategoriesInPanel(blocklyPanel, ToolboxType.AI_BUILDER);
             blocklyPanel.addChangeListener(
                     changeEvent -> new Thread(AnimatedEntityGUI.this::regenerateAITasks, "AITasksRegenerate").start());
-            if (!isEditingMode()) {
-                setDefaultAISet();
-            }
         });
+        // New elements need the non-deletable AI starter (aitasks_container) + default goals.
+        // Matches LivingEntityGUI — setInitialXML works even before the WebView finishes loading.
+        if (!isEditingMode()) {
+            setDefaultAISet();
+        }
 
         aipan.add("North", aitopoveral);
 
@@ -1305,7 +1318,8 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
             livingEntity.creativeTab = null;
         } else creativeTabs.setListElements(livingEntity.creativeTabs);
 
-        blocklyPanel.addTaskToRunAfterLoaded(() -> blocklyPanel.setInitialXML(livingEntity.aixml));
+        // Restore saved AI; if missing/corrupt (no starter), inject LivingEntity-compatible default.
+        blocklyPanel.setInitialXML(resolveAIXml(livingEntity.aixml));
 
         boolean isRaider = "Raider".equals(mobBehaviourType.getSelectedItem());
         if (isRaider) {
