@@ -1,0 +1,70 @@
+<#--
+ # GeckoLib 4.9.2 GeoModel (NeoForge 1.21.1)
+ #
+ # Working Tanked mod (GeckoLib 4.9.2) uses DefaultedEntityGeoModel paths:
+ #   geo/entity/<id>.geo.json
+ #   animations/entity/<id>.animation.json
+ #   textures/entity/<id>.png
+ #
+ # MCreator also uses textures/entities/ for entity texture imports.
+ # This model tries entity/ subfolders first, then flat geo/ + animations/ (legacy imports).
+-->
+package ${package}.entity.model;
+
+<#assign modelFile = data.model>
+<#assign modelBase = data.model?replace(".geo.json", "")>
+
+import software.bernie.geckolib.cache.GeckoLibCache;
+import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.constant.DataTickets;
+import software.bernie.geckolib.model.data.EntityModelData;
+
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+
+import ${package}.entity.${name}Entity;
+
+public class ${name}Model extends GeoModel<${name}Entity> {
+	// DefaultedEntityGeoModel-style paths (recommended GeckoLib 4 layout)
+	private static final ResourceLocation MODEL_ENTITY = ResourceLocation.parse("${modid}:geo/entity/${modelFile}");
+	private static final ResourceLocation ANIM_ENTITY = ResourceLocation.parse("${modid}:animations/entity/${modelBase}.animation.json");
+	// Flat legacy layout (older plugin imports)
+	private static final ResourceLocation MODEL_FLAT = ResourceLocation.parse("${modid}:geo/${modelFile}");
+	private static final ResourceLocation ANIM_FLAT = ResourceLocation.parse("${modid}:animations/${modelBase}.animation.json");
+
+	@Override
+	public ResourceLocation getModelResource(${name}Entity animatable) {
+		if (GeckoLibCache.getBakedModels().containsKey(MODEL_ENTITY))
+			return MODEL_ENTITY;
+		return MODEL_FLAT;
+	}
+
+	@Override
+	public ResourceLocation getTextureResource(${name}Entity animatable) {
+		// MCreator entity textures are imported to textures/entities/
+		return ResourceLocation.parse("${modid}:textures/entities/" + animatable.getTexture() + ".png");
+	}
+
+	@Override
+	public ResourceLocation getAnimationResource(${name}Entity animatable) {
+		if (GeckoLibCache.getBakedAnimations().containsKey(ANIM_ENTITY))
+			return ANIM_ENTITY;
+		return ANIM_FLAT;
+	}
+
+	<#if data.headMovement>
+	@Override
+	public void setCustomAnimations(${name}Entity animatable, long instanceId, AnimationState<${name}Entity> animationState) {
+		GeoBone head = this.getAnimationProcessor().getBone("${data.groupName}");
+		if (head != null) {
+			EntityModelData entityData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+			if (entityData != null) {
+				head.setRotX(entityData.headPitch() * Mth.DEG_TO_RAD);
+				head.setRotY(entityData.netHeadYaw() * Mth.DEG_TO_RAD);
+			}
+		}
+	}
+	</#if>
+}

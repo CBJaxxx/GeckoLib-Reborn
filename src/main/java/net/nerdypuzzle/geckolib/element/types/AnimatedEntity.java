@@ -11,23 +11,32 @@ import net.mcreator.element.types.interfaces.ICommonType;
 import net.mcreator.element.types.interfaces.IEntityWithModel;
 import net.mcreator.element.types.interfaces.IMCItemProvider;
 import net.mcreator.element.types.interfaces.ITabContainedElement;
+import net.mcreator.generator.GeneratorFlavor;
 import net.mcreator.generator.blockly.BlocklyBlockCodeGenerator;
 import net.mcreator.generator.blockly.ProceduralBlockCodeGenerator;
 import net.mcreator.generator.template.IAdditionalTemplateDataProvider;
+import net.mcreator.io.FileIO;
+import net.mcreator.io.ResourcePointer;
 import net.mcreator.minecraft.MCItem;
 import net.mcreator.minecraft.MinecraftImageGenerator;
 import net.mcreator.ui.blockly.BlocklyEditorType;
+import net.mcreator.ui.init.ImageMakerTexturesCache;
 import net.mcreator.ui.minecraft.states.PropertyDataWithValue;
 import net.mcreator.ui.workspace.resources.TextureType;
 import net.mcreator.util.FilenameUtilsPatched;
+import net.mcreator.util.image.ImageUtils;
+import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.elements.ModElement;
 import net.mcreator.workspace.resources.Model;
 import net.mcreator.workspace.resources.Texture;
 import net.nerdypuzzle.geckolib.registry.PluginElementTypes;
 
 import javax.annotation.Nullable;
+import javax.swing.ImageIcon;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.lang.module.ModuleDescriptor;
 import java.util.*;
 import java.util.List;
 
@@ -179,7 +188,7 @@ public class AnimatedEntity extends GeneratableElement
     public boolean doesDespawnWhenIdle;
     public Procedure spawningCondition;
     public int spawningProbability;
-    public String mobSpawningType;
+    public MobSpawnType mobSpawningType;
     public int minNumberOfMobsPerGroup;
     public int maxNumberOfMobsPerGroup;
     public List<BiomeEntry> restrictionBiomes;
@@ -225,7 +234,10 @@ public class AnimatedEntity extends GeneratableElement
     }
 
     public boolean hasGlowTexture() {
-        return !mobModelGlowTexture.isEmpty();
+        // Only treat as glow when a dedicated glow map is set (not the same as the body texture).
+        // Using the body texture as a glow layer re-renders it with eyes/emissive and looks broken.
+        return mobModelGlowTexture != null && !mobModelGlowTexture.isEmpty()
+                && (mobModelTexture == null || !mobModelGlowTexture.equals(mobModelTexture));
     }
 
     @Override public List<TabEntry> getCreativeTabs() {
@@ -256,6 +268,41 @@ public class AnimatedEntity extends GeneratableElement
 
     @Override public List<MCItem> getCreativeTabItems() {
         return providedMCItems();
+    }
+
+    @Override public ImageIcon getIconForMCItem(Workspace workspace, String suffix) {
+        if ("spawn_egg".equals(suffix)) {
+            return MinecraftImageGenerator.generateSpawnEggIcon(spawnEggBaseColor, spawnEggDotColor);
+        }
+        return null;
+    }
+
+    /**
+     * MC 1.21.5+ / 26.1 no longer tints spawn eggs via template_spawn_egg.
+     * Match stock LivingEntity: write a generated item texture used by models/item + items client model JSON.
+     */
+    @Override public void finalizeModElementGeneration() {
+        if (!hasSpawnEgg)
+            return;
+        try {
+            if (ModuleDescriptor.Version.parse(getModElement().getGeneratorConfiguration().getGeneratorMinecraftVersion())
+                    .compareTo(ModuleDescriptor.Version.parse("1.21.5")) < 0)
+                return;
+            if (getModElement().getGeneratorConfiguration().getGeneratorFlavor().getGamePlatform()
+                    != GeneratorFlavor.GamePlatform.JAVAEDITION)
+                return;
+        } catch (Exception ignored) {
+            // If version parse fails, still generate for safety on modern NeoForge generators.
+        }
+
+        File spawnEggTextureFile = getModElement().getFolderManager()
+                .getTextureFile(getModElement().getRegistryName() + "_spawn_egg_generated", TextureType.ITEM);
+        ImageIcon spawnEgg = ImageUtils.drawOver(
+                ImageUtils.colorize(ImageMakerTexturesCache.CACHE.get(
+                        new ResourcePointer("templates/textures/texturemaker/egg_base.png")), spawnEggBaseColor, true),
+                ImageUtils.colorize(ImageMakerTexturesCache.CACHE.get(
+                        new ResourcePointer("templates/textures/texturemaker/egg_accent.png")), spawnEggDotColor, true));
+        FileIO.writeImageToPNGFile(ImageUtils.toBufferedImage(spawnEgg.getImage()), spawnEggTextureFile);
     }
 
     @Override public @Nullable IAdditionalTemplateDataProvider getAdditionalTemplateData() {

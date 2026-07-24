@@ -5,6 +5,7 @@ import net.mcreator.ui.component.entries.JSimpleEntriesList;
 import net.mcreator.ui.help.IHelpContext;
 import net.mcreator.ui.init.L10N;
 import net.mcreator.ui.validation.AggregatedValidationResult;
+import net.mcreator.ui.validation.ValidationResult;
 import net.nerdypuzzle.geckolib.element.types.AnimatedBlock;
 
 import javax.swing.*;

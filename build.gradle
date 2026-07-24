@@ -14,7 +14,14 @@ repositories {
 group = 'net.nerdypuzzle.geckolib'
 version = new JsonSlurper().parse(file('src/main/resources/plugin.json'))['info']['version']
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+// MCreator 2026.2 requires Java 25 (use MCreator-bundled JBR via org.gradle.java.home)
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
 
 compileJava {
     options.compilerArgs += ['-Xlint:deprecation', '-Xlint:unchecked']
@@ -27,7 +34,7 @@ dependencies {
 }
 
 tasks.jar {
-    archiveFileName.set("Nerdys_Geckolib_Plugin.zip")
+    archiveFileName.set("GeckoLib_Reborn_Plugin.zip")
     manifest {
         attributes 'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' ')
     }

@@ -1,401 +1,43 @@
 package net.nerdypuzzle.geckolib.parts;
 
-import com.google.gson.Gson;
-import java.io.ByteArrayOutputStream;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
-
-import javafx.application.Platform;
-import net.mcreator.blockly.data.BlocklyLoader;
-import net.mcreator.blockly.data.Dependency;
-import net.mcreator.blockly.data.ExternalTrigger;
-import net.mcreator.ui.blockly.BlocklyEditorType;
-import net.mcreator.blockly.java.BlocklyVariables;
-import net.mcreator.element.ModElementType;
-import net.mcreator.element.types.LivingEntity;
-import net.mcreator.element.types.Procedure;
-import net.mcreator.minecraft.DataListEntry;
-import net.mcreator.minecraft.DataListLoader;
-import net.mcreator.minecraft.ElementUtil;
-import net.mcreator.minecraft.MCItem;
-import net.mcreator.minecraft.MinecraftImageGenerator;
-import net.mcreator.ui.MCreator;
-import net.mcreator.ui.dialogs.AIConditionEditor;
-import net.mcreator.ui.dialogs.DataListSelectorDialog;
-import net.mcreator.ui.dialogs.MCItemSelectorDialog;
-import net.mcreator.ui.dialogs.StringSelectorDialog;
-import net.mcreator.ui.init.L10N;
 import net.mcreator.ui.minecraft.states.PropertyData;
-import net.mcreator.util.image.ImageUtils;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.elements.ModElement;
-import net.mcreator.workspace.elements.VariableType;
-import net.mcreator.workspace.elements.VariableTypeLoader;
 import net.nerdypuzzle.geckolib.element.types.AnimatedEntity;
-import netscape.javascript.JSObject;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.mcreator.element.types.LivingEntity;
 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Utility helpers formerly used by the JavaFX Blockly bridge.
+ * MCreator 2026.2 uses CEF + {@code BlocklyJavascriptBridge}; this class only
+ * retains animated-entity data list helpers for potential future bridge hooks.
+ */
 public final class JavabridgeReplacement {
 
-    private static final Logger LOG = LogManager.getLogger("Blockly JS Bridge");
+	private JavabridgeReplacement() {
+	}
 
-    private final Runnable blocklyEvent;
-    private final MCreator mcreator;
-    private final Object NESTED_LOOP_KEY = new Object();
+	public static List<String> loadEntityDataListFromCustomEntity(Workspace workspace, String entityName,
+			Class<? extends PropertyData<?>> type) {
+		if (entityName == null)
+			return new ArrayList<>();
 
-    public JavabridgeReplacement(@Nonnull MCreator mcreator, @Nonnull Runnable blocklyEvent) {
-        this.blocklyEvent = blocklyEvent;
-        this.mcreator = mcreator;
-        List<ExternalTrigger> ar10000 = BlocklyLoader.INSTANCE.getExternalTriggerLoader(BlocklyEditorType.PROCEDURE).getExternalTriggers();
-        ar10000.forEach(this::addExternalTrigger);
-    }
+		ModElement me = workspace.getModElementByName(entityName.replace("CUSTOM:", ""));
+		if (me == null)
+			return new ArrayList<>();
 
-    // these methods are called from JavaScript so we suppress warnings
-    @SuppressWarnings("unused") public void triggerEvent() {
-        blocklyEvent.run();
-    }
-
-    @SuppressWarnings("unused") public String getMCItemURI(String name) {
-        ImageIcon base = new ImageIcon(ImageUtils.resize(MinecraftImageGenerator.generateItemSlot(), 36, 36));
-        ImageIcon image;
-        if (name != null && !name.isEmpty() && !name.equals("null"))
-            image = ImageUtils.drawOver(base, MCItem.getBlockIconBasedOnName(mcreator.getWorkspace(), name), 2, 2, 32,
-                    32);
-        else
-            image = base;
-
-        try {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            ImageIO.write(ImageUtils.toBufferedImage(image.getImage()), "PNG", os);
-            return "data:image/png;base64," + Base64.getMimeEncoder().encodeToString(os.toByteArray());
-        } catch (Exception ioe) {
-            LOG.error(ioe.getMessage(), ioe);
-            return "";
-        }
-    }
-
-    @SuppressWarnings("unused") public void openMCItemSelector(String type, JSObject callback) {
-        SwingUtilities.invokeLater(() -> {
-            MCItem selected = MCItemSelectorDialog.openSelectorDialog(mcreator,
-                    "allblocks".equals(type) ? ElementUtil::loadBlocks : ElementUtil::loadBlocksAndItems);
-            Platform.runLater(
-                    () -> Platform.exitNestedEventLoop(NESTED_LOOP_KEY, selected != null ? selected.getName() : null));
-        });
-
-        String retval = (String) Platform.enterNestedEventLoop(NESTED_LOOP_KEY);
-        callback.call("callback", retval);
-    }
-
-    @SuppressWarnings("unused") public void openAIConditionEditor(String data, JSObject callback) {
-        SwingUtilities.invokeLater(() -> {
-            List<String> retval = AIConditionEditor.open(mcreator, data.split(","));
-            Platform.runLater(() -> Platform.exitNestedEventLoop(NESTED_LOOP_KEY, StringUtils.join(retval, ',')));
-        });
-
-        String retval = (String) Platform.enterNestedEventLoop(NESTED_LOOP_KEY);
-        callback.call("callback", retval);
-    }
-
-    /**
-     * Opens a data list selector window for the searchable Blockly selectors
-     *
-     * @param entryProvider The function that provides the entries from a given workspace
-     * @param type          The type of the data list, used for the selector title and message
-     * @return A {"value", "readable name"} pair, or the default entry if no entry was selected
-     */
-    private String[] openDataListEntrySelector(Function<Workspace, List<DataListEntry>> entryProvider, String type) {
-        SwingUtilities.invokeLater(() -> {
-            String[] retval = new String[] { "", L10N.t("blockly.extension.data_list_selector.no_entry") };
-            DataListEntry selected = DataListSelectorDialog.openSelectorDialog(mcreator, entryProvider,
-                    L10N.t("dialog.selector.title"), L10N.t("dialog.selector." + type + ".message"));
-            if (selected != null) {
-                retval[0] = selected.getName();
-                retval[1] = selected.getReadableName();
-            }
-            Platform.runLater(() -> Platform.exitNestedEventLoop(NESTED_LOOP_KEY, retval));
-        });
-
-        return (String[]) Platform.enterNestedEventLoop(NESTED_LOOP_KEY);
-    }
-
-    /**
-     * Opens a string selector window for the searchable Blockly selectors
-     *
-     * @param entryProvider The function that provides the strings from a given workspace
-     * @param type          The type of the data list, used for the selector title and message
-     * @return A {"value", "value"} pair (strings don't have readable names!), or the default entry if no string was selected
-     */
-    private String[] openStringEntrySelector(Function<Workspace, String[]> entryProvider, String type) {
-        SwingUtilities.invokeLater(() -> {
-            String[] retval = new String[] { "", L10N.t("blockly.extension.data_list_selector.no_entry") };
-            String selected = StringSelectorDialog.openSelectorDialog(mcreator, entryProvider,
-                    L10N.t("dialog.selector.title"), L10N.t("dialog.selector." + type + ".message"));
-            if (selected != null) {
-                retval[0] = selected;
-                retval[1] = selected;
-                Platform.runLater(() -> Platform.exitNestedEventLoop(NESTED_LOOP_KEY, retval));
-            }
-        });
-
-        return (String[]) Platform.enterNestedEventLoop(NESTED_LOOP_KEY);
-    }
-
-    public static List<String> loadEntityDataListFromCustomEntity(Workspace workspace, String entityName, Class<? extends PropertyData<?>> type) {
-        if (entityName != null) {
-            Object ent = workspace.getModElementByName(entityName.replace("CUSTOM:", "")).getGeneratableElement();
-            if (ent instanceof LivingEntity entity) {
-                if (entity != null) {
-                    return entity.entityDataEntries.stream().filter((e) -> {
-                        return e.property().getClass().equals(type);
-                    }).map((e) -> {
-                        return e.property().getName();
-                    }).toList();
-                }
-            }
-            else if (ent instanceof AnimatedEntity entity) {
-                if (entity != null) {
-                    return entity.entityDataEntries.stream().filter((e) -> {
-                        return e.property().getClass().equals(type);
-                    }).map((e) -> {
-                        return e.property().getName();
-                    }).toList();
-                }
-            }
-        }
-
-        return new ArrayList();
-    }
-
-    /**
-     * Common method to open an entry selector of either data list entries or strings
-     *
-     * @param type                 The type of selector to open
-     * @param typeFilter           If present, only entries whose type matches this parameter are loaded
-     * @param customEntryProviders If present, the types of the mod elements that provide custom entries
-     * @param callback             The Javascript object that passes the {"value", "readable name"} pair to the Blockly editor
-     */
-    @SuppressWarnings("unused") public void openEntrySelector(@Nonnull String type, @Nullable String typeFilter,
-                                                              @Nullable String customEntryProviders, JSObject callback) {
-        String[] retval = switch (type) {
-            case "entity" -> openDataListEntrySelector(
-                    w -> ElementUtil.loadAllEntities(w).stream().filter(e -> e.isSupportedInWorkspace(w)).toList(),
-                    "entity");
-            case "spawnableEntity" -> openDataListEntrySelector(
-                    w -> ElementUtil.loadAllSpawnableEntities(w).stream().filter(e -> e.isSupportedInWorkspace(w))
-                            .toList(), "entity");
-            case "customEntity" -> openDataListEntrySelector(ElementUtil::loadCustomEntities, "entity");
-            case "entitydata_logic" -> openStringEntrySelector(
-                    w -> loadEntityDataListFromCustomEntity(w, customEntryProviders,
-                            PropertyData.LogicType.class).toArray(String[]::new), "entity_data");
-            case "entitydata_integer" -> openStringEntrySelector(
-                    w -> loadEntityDataListFromCustomEntity(w, customEntryProviders,
-                            PropertyData.IntegerType.class).toArray(String[]::new), "entity_data");
-            case "entitydata_string" -> openStringEntrySelector(
-                    w -> loadEntityDataListFromCustomEntity(w, customEntryProviders,
-                            PropertyData.StringType.class).toArray(String[]::new), "entity_data");
-            case "gui" -> openStringEntrySelector(w -> ElementUtil.loadBasicGUIs(w).toArray(String[]::new), "gui");
-            case "biome" -> openDataListEntrySelector(
-                    w -> ElementUtil.loadAllBiomes(w).stream().filter(e -> e.isSupportedInWorkspace(w)).toList(),
-                    "biome");
-            case "dimensionCustom" -> openStringEntrySelector(
-                    w -> w.getModElements().stream().filter(m -> m.getType() == ModElementType.DIMENSION)
-                            .map(m -> "CUSTOM:" + m.getName()).toArray(String[]::new), "dimension");
-            case "fluid" -> openDataListEntrySelector(
-                    w -> ElementUtil.loadAllFluids(w).stream().filter(e -> e.isSupportedInWorkspace(w)).toList(),
-                    "fluids");
-            case "gamerulesboolean" -> openDataListEntrySelector(
-                    w -> ElementUtil.getAllBooleanGameRules(w).stream().filter(e -> e.isSupportedInWorkspace(w))
-                            .toList(), "gamerules");
-            case "gamerulesnumber" -> openDataListEntrySelector(
-                    w -> ElementUtil.getAllNumberGameRules(w).stream().filter(e -> e.isSupportedInWorkspace(w))
-                            .toList(), "gamerules");
-            case "sound" -> openStringEntrySelector(ElementUtil::getAllSounds, "sound");
-            case "structure" ->
-                    openStringEntrySelector(w -> w.getFolderManager().getStructureList().toArray(String[]::new),
-                            "structures");
-            case "procedure" -> openStringEntrySelector(
-                    w -> w.getModElements().stream().filter(mel -> mel.getType() == ModElementType.PROCEDURE)
-                            .map(ModElement::getName).toArray(String[]::new), "procedure");
-            case "arrowProjectile" -> openDataListEntrySelector(
-                    w -> ElementUtil.loadArrowProjectiles(w).stream().filter(e -> e.isSupportedInWorkspace(w)).toList(),
-                    "projectiles");
-            case "configuredfeature" -> openDataListEntrySelector(
-                    w -> ElementUtil.loadAllConfiguredFeatures(w).stream().filter(e -> e.isSupportedInWorkspace(w))
-                            .toList(), "configured_features");
-            case "global_triggers" -> {
-                String[] selectedEntry = openDataListEntrySelector(
-                        w -> ext_triggers.entrySet().stream().map(entry ->
-                                (DataListEntry) new DataListEntry.Dummy(entry.getKey()) {{ setReadableName(entry.getValue()); }}).toList(),
-                        "global_trigger");
-                // Legacy: for global triggers, "no_ext_trigger" is used to indicate no selected value, whereas normally it is ""
-                if (selectedEntry[0].isEmpty()) {
-                    selectedEntry = new String[] { "no_ext_trigger", L10N.t("trigger.no_ext_trigger") };
-                }
-                yield selectedEntry;
-            }
-            default -> {
-                if (type.startsWith("procedure_retval_")) {
-                    var variableType = VariableTypeLoader.INSTANCE.fromName(
-                            StringUtils.removeStart(type, "procedure_retval_"));
-                    yield openStringEntrySelector(w -> ElementUtil.getProceduresOfType(w, variableType), "procedure");
-                }
-
-                if (!DataListLoader.loadDataList(type).isEmpty()) {
-                    yield openDataListEntrySelector(w -> ElementUtil.loadDataListAndElements(w, type, typeFilter,
-                            StringUtils.split(customEntryProviders, ',')), type);
-                }
-
-                yield new String[] { "", L10N.t("blockly.extension.data_list_selector.no_entry") };
-            }
-        };
-
-        callback.call("callback", retval[0], retval[1]);
-    }
-
-    private final Map<String, String> ext_triggers = new LinkedHashMap<>() {{
-        put("no_ext_trigger", L10N.t("trigger.no_ext_trigger"));
-    }};
-
-    void addExternalTrigger(ExternalTrigger external_trigger) {
-        ext_triggers.put(external_trigger.getID(), external_trigger.getName());
-    }
-
-    @SuppressWarnings("unused") public Dependency[] getDependencies(String procedureName) {
-        ModElement me = mcreator.getWorkspace().getModElementByName(procedureName);
-        return me != null && me.getGeneratableElement() instanceof Procedure procedure ?
-                procedure.getDependencies().toArray(Dependency[]::new) :
-                new Dependency[0];
-    }
-
-    @SuppressWarnings("unused") public String t(String key) {
-        return L10N.t(key);
-    }
-
-    @SuppressWarnings("unused") public String[] getListOf(String type) {
-        return getListOfForWorkspace(mcreator.getWorkspace(), type);
-    }
-
-    @SuppressWarnings("unused") public static String[] getListOfForWorkspace(Workspace workspace, String type) {
-        List<String> retval;
-        //We check for general cases
-        switch (type) {
-            case "procedure":
-                retval = workspace.getModElements().stream().filter(mel -> mel.getType() == ModElementType.PROCEDURE)
-                        .map(ModElement::getName).collect(Collectors.toList());
-                break;
-            case "entity":
-                return ElementUtil.loadAllEntities(workspace).stream().map(DataListEntry::getName).toArray(String[]::new);
-            case "spawnableEntity":
-                return ElementUtil.loadAllSpawnableEntities(workspace).stream().map(DataListEntry::getName)
-                        .toArray(String[]::new);
-            case "gui":
-                retval = ElementUtil.loadBasicGUIs(workspace);
-                break;
-            case "achievement":
-                return ElementUtil.loadAllAchievements(workspace).stream().map(DataListEntry::getName)
-                        .toArray(String[]::new);
-            case "effect":
-                return ElementUtil.loadAllPotionEffects(workspace).stream().map(DataListEntry::getName)
-                        .toArray(String[]::new);
-            case "potion":
-                return ElementUtil.loadAllPotions(workspace).stream().map(DataListEntry::getName).toArray(String[]::new);
-            case "gamerulesboolean":
-                return ElementUtil.getAllBooleanGameRules(workspace).stream().map(DataListEntry::getName)
-                        .toArray(String[]::new);
-            case "gamerulesnumber":
-                return ElementUtil.getAllNumberGameRules(workspace).stream().map(DataListEntry::getName)
-                        .toArray(String[]::new);
-            case "fluid":
-                return ElementUtil.loadAllFluids(workspace).stream().map(DataListEntry::getName).toArray(String[]::new);
-            case "sound":
-                return ElementUtil.getAllSounds(workspace);
-            case "particle":
-                return ElementUtil.loadAllParticles(workspace).stream().map(DataListEntry::getName).toArray(String[]::new);
-            case "direction":
-                return ElementUtil.loadDirections();
-            case "schematic":
-                retval = workspace.getFolderManager().getStructureList();
-                break;
-            case "enhancement":
-                return ElementUtil.loadAllEnchantments(workspace).stream().map(DataListEntry::getName)
-                        .toArray(String[]::new);
-            case "biome":
-                return ElementUtil.loadAllBiomes(workspace).stream().map(DataListEntry::getName).toArray(String[]::new);
-            case "dimension_custom":
-                retval = workspace.getModElements().stream().filter(mu -> mu.getType() == ModElementType.DIMENSION)
-                        .map(mu -> "CUSTOM:" + mu.getName()).collect(Collectors.toList());
-                break;
-            case "material":
-                // loadMaterialList() removed in newer MCreator - return empty list
-                retval = new ArrayList<>();
-                break;
-            case "villagerprofessions":
-                return ElementUtil.loadAllVillagerProfessions(workspace).stream().map(DataListEntry::getName)
-                        .toArray(String[]::new);
-            default:
-                retval = new ArrayList<>();
-        }
-
-        // check if the data list exists and returns it if true
-        if (!DataListLoader.loadDataList(type).isEmpty())
-            return ElementUtil.getDataListAsStringArray(type);
-
-        // check if type is "call procedure with return value"
-        if (type.contains("procedure_retval_")) {
-            retval = workspace.getModElements().stream().filter(mod -> {
-                if (mod.getType() == ModElementType.PROCEDURE) {
-                    VariableType returnTypeCurrent = mod.getMetadata("return_type") != null ?
-                            VariableTypeLoader.INSTANCE.fromName((String) mod.getMetadata("return_type")) :
-                            null;
-                    return returnTypeCurrent == VariableTypeLoader.INSTANCE.fromName(
-                            StringUtils.removeStart(type, "procedure_retval_"));
-                }
-                return false;
-            }).map(ModElement::getName).collect(Collectors.toList());
-        }
-
-        if (retval.isEmpty())
-            return new String[] { "" };
-
-        return retval.toArray(new String[0]);
-    }
-
-    @SuppressWarnings("unused") public boolean isPlayerVariable(String field) {
-        return BlocklyVariables.isPlayerVariableForWorkspace(mcreator.getWorkspace(), field);
-    }
-
-    /**
-     * Gets the readable name of a data list entry from the type of searchable selector
-     *
-     * @param value The value of the data list entry
-     * @param type  The type of the searchable selector
-     * @return The readable name of the passed entry, or an empty string if it can't find a readable name
-     */
-    @SuppressWarnings("unused") public String getReadableNameOf(String value, String type) {
-        if (value.startsWith("CUSTOM:"))
-            return value.substring(7);
-
-        String datalist;
-        switch (type) {
-            case "entity", "spawnableEntity" -> datalist = "entities";
-            case "biome" -> datalist = "biomes";
-            case "arrowProjectile", "projectiles" -> datalist = "projectiles";
-            case "global_triggers" -> {
-                return ext_triggers.get(value);
-            }
-            default -> { return ""; }
-        }
-        return DataListLoader.loadDataMap(datalist).containsKey(value) ?
-                DataListLoader.loadDataMap(datalist).get(value).getReadableName() :
-                "";
-    }
+		Object ent = me.getGeneratableElement();
+		if (ent instanceof LivingEntity entity) {
+			return entity.entityDataEntries.stream().filter(e -> e.property().getClass().equals(type))
+					.map(e -> e.property().getName()).toList();
+		}
+		if (ent instanceof AnimatedEntity entity) {
+			return entity.entityDataEntries.stream().filter(e -> e.property().getClass().equals(type))
+					.map(e -> e.property().getName()).toList();
+		}
+		return new ArrayList<>();
+	}
 
 }

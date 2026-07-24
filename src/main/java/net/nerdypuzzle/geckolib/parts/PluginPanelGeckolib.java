@@ -102,18 +102,29 @@ public class PluginPanelGeckolib extends JPanel implements IReloadableFilterable
 
     private void deleteCurrentlySelected() {
         Object file = this.modelList.getSelectedValue();
-        String file2 = ((File)file).getAbsolutePath().replace("\\geo\\", "\\animations\\").replace(".geo.", ".animation.");
-        if (file != null && file instanceof File model) {
-            int n = JOptionPane.showConfirmDialog(this.workspacePanel.getMCreator(), L10N.t("workspace.3dmodels.delete_confirm_message", new Object[0]), L10N.t("common.confirmation", new Object[0]), 0, 3, (Icon)null);
+        if (file instanceof File model) {
+            int n = JOptionPane.showConfirmDialog(this.workspacePanel.getMCreator(),
+                    L10N.t("workspace.3dmodels.delete_confirm_message"),
+                    L10N.t("common.confirmation"), 0, 3, null);
             if (n == 0) {
-                ((File) file).delete();
-                File file3 = new File(file2);
-                if (file3.exists())
-                    file3.delete();
+                model.delete();
+                // Pair animation for both GeckoLib 4 (geo/animations) and 5 (geckolib/models|animations) layouts
+                String path = model.getAbsolutePath();
+                List<String> candidates = List.of(
+                        path.replace("\\geo\\", "\\animations\\").replace("/geo/", "/animations/")
+                                .replace(".geo.", ".animation."),
+                        path.replace("\\geckolib\\models\\", "\\geckolib\\animations\\")
+                                .replace("/geckolib/models/", "/geckolib/animations/")
+                                .replace(".geo.", ".animation.")
+                );
+                for (String animPath : candidates) {
+                    File anim = new File(animPath);
+                    if (anim.exists())
+                        anim.delete();
+                }
                 this.reloadElements();
             }
         }
-
     }
 
     public void reloadElements() {

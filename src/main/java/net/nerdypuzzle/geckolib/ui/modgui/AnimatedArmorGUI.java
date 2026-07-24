@@ -27,7 +27,7 @@ import net.mcreator.ui.validation.ValidationResult;
 import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
-import net.mcreator.ui.validation.validators.ConditionalTextFieldValidator;
+import net.mcreator.ui.validation.validators.ConditionalValidator;
 import net.mcreator.ui.validation.validators.TextFieldValidator;
 import net.mcreator.ui.workspace.resources.TextureType;
 import net.mcreator.util.ListUtils;
@@ -459,18 +459,14 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
             }
         });
 
-        bootsName.setValidator(
-                new ConditionalTextFieldValidator(bootsName, L10N.t("elementgui.armor.boots_need_name"), enableBoots,
-                        true));
-        bodyName.setValidator(
-                new ConditionalTextFieldValidator(bodyName, L10N.t("elementgui.armor.chestplate_needs_name"), enableBody,
-                        true));
-        leggingsName.setValidator(
-                new ConditionalTextFieldValidator(leggingsName, L10N.t("elementgui.armor.leggings_need_name"),
-                        enableLeggings, true));
-        helmetName.setValidator(
-                new ConditionalTextFieldValidator(helmetName, L10N.t("elementgui.armor.helmet_needs_name"),
-                        enableHelmet, true));
+        bootsName.setValidator(new ConditionalValidator(enableBoots::isSelected,
+                new TextFieldValidator(bootsName, L10N.t("elementgui.armor.boots_need_name"))));
+        bodyName.setValidator(new ConditionalValidator(enableBody::isSelected,
+                new TextFieldValidator(bodyName, L10N.t("elementgui.armor.chestplate_needs_name"))));
+        leggingsName.setValidator(new ConditionalValidator(enableLeggings::isSelected,
+                new TextFieldValidator(leggingsName, L10N.t("elementgui.armor.leggings_need_name"))));
+        helmetName.setValidator(new ConditionalValidator(enableHelmet::isSelected,
+                new TextFieldValidator(helmetName, L10N.t("elementgui.armor.helmet_needs_name"))));
 
         bootsName.enableRealtimeValidation();
         bodyName.enableRealtimeValidation();

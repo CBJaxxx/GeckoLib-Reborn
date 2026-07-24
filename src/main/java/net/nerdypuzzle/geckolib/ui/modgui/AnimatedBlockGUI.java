@@ -222,7 +222,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         this.energyMaxReceive = new JSpinner(new SpinnerNumberModel(200, 0, Integer.MAX_VALUE, 1));
         this.energyMaxExtract = new JSpinner(new SpinnerNumberModel(200, 0, Integer.MAX_VALUE, 1));
         this.fluidCapacity = new JSpinner(new SpinnerNumberModel(8000, 0, Integer.MAX_VALUE, 1));
-        this.soundOnStep = new DataListComboBox(this.mcreator, ElementUtil.loadStepSounds());
+        this.soundOnStep = new DataListComboBox(this.mcreator, DataListLoader.loadDataList("stepsounds"));
         this.defaultSoundType = L10N.radiobutton("elementgui.common.default_sound_type", new Object[0]);
         this.customSoundType = L10N.radiobutton("elementgui.common.custom_sound_type", new Object[0]);
         this.breakSound = new SoundSelector(this.mcreator);
@@ -833,11 +833,16 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         this.name.setValidator(new TextFieldValidator(this.name, L10N.t("elementgui.block.error_block_must_have_name", new Object[0])));
         this.name.enableRealtimeValidation();
         this.page3group.addValidationElement(this.name);
-        this.breakSound.getVTextField().setValidator(new ConditionalTextFieldValidator(this.breakSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]), this.customSoundType, true));
-        this.fallSound.getVTextField().setValidator(new ConditionalTextFieldValidator(this.fallSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]), this.customSoundType, true));
-        this.hitSound.getVTextField().setValidator(new ConditionalTextFieldValidator(this.hitSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]), this.customSoundType, true));
-        this.placeSound.getVTextField().setValidator(new ConditionalTextFieldValidator(this.placeSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]), this.customSoundType, true));
-        this.stepSound.getVTextField().setValidator(new ConditionalTextFieldValidator(this.stepSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]), this.customSoundType, true));
+        this.breakSound.getVTextField().setValidator(new ConditionalValidator(this.customSoundType::isSelected,
+                new TextFieldValidator(this.breakSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]))));
+        this.fallSound.getVTextField().setValidator(new ConditionalValidator(this.customSoundType::isSelected,
+                new TextFieldValidator(this.fallSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]))));
+        this.hitSound.getVTextField().setValidator(new ConditionalValidator(this.customSoundType::isSelected,
+                new TextFieldValidator(this.hitSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]))));
+        this.placeSound.getVTextField().setValidator(new ConditionalValidator(this.customSoundType::isSelected,
+                new TextFieldValidator(this.placeSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]))));
+        this.stepSound.getVTextField().setValidator(new ConditionalValidator(this.customSoundType::isSelected,
+                new TextFieldValidator(this.stepSound.getVTextField(), L10N.t("elementgui.common.error_sound_empty_null", new Object[0]))));
         this.page3group.addValidationElement(this.breakSound.getVTextField());
         this.page3group.addValidationElement(this.fallSound.getVTextField());
         this.page3group.addValidationElement(this.hitSound.getVTextField());

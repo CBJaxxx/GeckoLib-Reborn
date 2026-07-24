@@ -1155,14 +1155,14 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         }).collect(Collectors.toList())), "");
     }
 
-    // MCreator 2025.x: validatePage removed, validation handled by field validators
+    // MCreator 2025.x: validatePage removed, validation handled by field validators / lazyValidate
     @SuppressWarnings("unused")
     private AggregatedValidationResult validatePage(int page) {
         if (page == 0) {
             return new AggregatedValidationResult(mobModelTexture, mobName, geoModel, animation1);
         } else if (page == 5) {
             if (hasErrors)
-                return new BlocklyAggregatedValidationResult(compileNotesPanel.getCompileNotesList());
+                return new AggregatedValidationResult.FAIL(L10N.t("elementgui.living_entity.ai_errors"));
         } else if (page == 6) {
             if ((int) minNumberOfMobsPerGroup.getValue() > (int) maxNumberOfMobsPerGroup.getValue()) {
                 return new AggregatedValidationResult.FAIL("Minimal mob group size can't be bigger than maximal size");
@@ -1209,7 +1209,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         visualScale.setSelectedProcedure(livingEntity.visualScale);
         boundingBoxScale.setSelectedProcedure(livingEntity.boundingBoxScale);
         solidBoundingBox.setSelectedProcedure(livingEntity.solidBoundingBox);
-        mobSpawningType.setSelectedItem(livingEntity.mobSpawningType);
+        mobSpawningType.setSelectedItem(livingEntity.mobSpawningType.getUnmappedValue());
         rangedItemType.setSelectedItem(livingEntity.rangedItemType);
         spawnEggBaseColor.setColor(livingEntity.spawnEggBaseColor);
         spawnEggDotColor.setColor(livingEntity.spawnEggDotColor);
@@ -1460,7 +1460,8 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         livingEntity.spawnThisMob = spawnThisMob.isSelected();
         livingEntity.doesDespawnWhenIdle = doesDespawnWhenIdle.isSelected();
         livingEntity.spawningProbability = (int) spawningProbability.getValue();
-        livingEntity.mobSpawningType = (String) mobSpawningType.getSelectedItem();
+        livingEntity.mobSpawningType = new net.mcreator.element.parts.MobSpawnType(modElement.getWorkspace(),
+                (String) mobSpawningType.getSelectedItem());
         livingEntity.rangedItemType = (String) rangedItemType.getSelectedItem();
         livingEntity.minNumberOfMobsPerGroup = (int) minNumberOfMobsPerGroup.getValue();
         livingEntity.maxNumberOfMobsPerGroup = (int) maxNumberOfMobsPerGroup.getValue();

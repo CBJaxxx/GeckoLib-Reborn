@@ -117,7 +117,7 @@ public class AnimatedBlock extends GeneratableElement implements IBlock, ITabCon
     public int energyMaxExtract;
     public boolean isFluidTank;
     public int fluidCapacity;
-    public List<Fluid> fluidRestrictions;
+    public List<FluidEntry> fluidRestrictions;
     public Procedure onRightClicked;
     public Procedure onBlockAdded;
     public Procedure onNeighbourBlockChanges;

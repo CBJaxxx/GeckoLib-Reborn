@@ -15,8 +15,8 @@ import net.mcreator.ui.minecraft.TextureSelectionButton;
 import net.mcreator.ui.minecraft.boundingboxes.JBoundingBoxList;
 import net.mcreator.ui.validation.IValidable;
 import net.mcreator.ui.validation.ValidationGroup;
-import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.ValidationResult;
+import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.workspace.resources.TextureType;
 import net.mcreator.util.ListUtils;
 import net.mcreator.workspace.Workspace;
@@ -83,12 +83,12 @@ public class JBlockstateListEntry extends JSimpleListEntry<AnimatedBlock.Blockst
 
         geoModel.setValidator(() -> {
             if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
-                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"), false);
-            return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+                return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("elementgui.animatedentity.modelname"));
+            return ValidationResult.PASSED;
         });
         this.page1group.addValidationElement(geoModel);
 
-        this.texture.setValidator(() -> new ValidationResult(ValidationResult.Type.PASSED, "", false));
+        this.texture.setValidator(() -> ValidationResult.PASSED);
         this.page1group.addValidationElement(this.texture);
     }
 
@@ -104,9 +104,9 @@ public class JBlockstateListEntry extends JSimpleListEntry<AnimatedBlock.Blockst
 
     @Override public ValidationResult getValidationStatus() {
         if (!page1group.validateIsErrorFree()) {
-            return new ValidationResult(ValidationResult.Type.ERROR, page1group.getValidationProblemMessages().get(0), false);
+            return new ValidationResult(ValidationResult.Type.ERROR, page1group.getValidationProblemMessages().get(0));
         }
-        return new ValidationResult(ValidationResult.Type.PASSED, "", false);
+        return ValidationResult.PASSED;
     }
 
     @Override public void setValidator(Validator validator) {

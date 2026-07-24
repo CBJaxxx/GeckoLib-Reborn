@@ -1,17 +1,14 @@
 {
-  "id": "geckolib_plugin",
+  "id": "geckolib_reborn_plugin",
   "weight": 3001,
   "javaplugin": "net.nerdypuzzle.geckolib.Launcher",
   "supportedversions": [
-    2024004,
-    2025003
+    2026002
   ],
   "info": {
-    "name": "GeckoLib Plugin",
-    "version": "6.1.0",
-    "description": "Adds GeckoLib support for Forge 1.20.1 and NeoForged 1.21.8",
-    "author": "NerdyPuzzle",
-    "pluginPageID": 91484,
-    "updateJSONURL": "https://raw.githubusercontent.com/NerdyPuzzle/MCreator-Nerdys_Geckolib_Plugin/main/update.json"
+    "name": "GeckoLib Reborn Plugin",
+    "version": "7.2.7",
+    "description": "Adds GeckoLib support for NeoForge 1.21.1 (GeckoLib 4.9.2) and NeoForge 26.1.2 (GeckoLib 5.5.2) on MCreator 2026.2",
+    "author": "CBJaxx"
   }
 }

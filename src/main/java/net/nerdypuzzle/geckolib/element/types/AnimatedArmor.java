@@ -2,6 +2,7 @@ package net.nerdypuzzle.geckolib.element.types;
 
 import net.mcreator.element.GeneratableElement;
 import net.mcreator.element.parts.MItemBlock;
+import net.mcreator.generator.mapping.MappableElement;
 import net.mcreator.element.parts.Sound;
 import net.mcreator.element.parts.TabEntry;
 import net.mcreator.element.parts.TextureHolder;
@@ -21,6 +22,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public class AnimatedArmor extends GeneratableElement implements IItem, ITabContainedElement {
@@ -283,6 +285,15 @@ public class AnimatedArmor extends GeneratableElement implements IItem, ITabCont
 
     @Override public List<MCItem> getCreativeTabItems() {
         return providedMCItems();
+    }
+
+    /**
+     * Used by NeoForge 26.1 generator tags for ArmorMaterial repair ingredient TagKey.
+     */
+    public List<String> getRepairItemsAsStringList() {
+        if (this.repairItems == null || this.repairItems.isEmpty())
+            return List.of();
+        return this.repairItems.stream().map(MappableElement::getUnmappedValue).collect(Collectors.toList());
     }
 
 }
