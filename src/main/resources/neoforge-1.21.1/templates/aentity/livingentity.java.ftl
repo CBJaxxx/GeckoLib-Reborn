@@ -32,6 +32,15 @@
 <#include "../mcitems.ftl">
 <#include "../procedures.java.ftl">
 
+<#--
+ # Water AI detection:
+ # RandomSwimmingGoal ("swim" block) only works with WaterBoundPathNavigation.
+ # If the user adds Swim AI but forgets the "Is water mob" checkbox, ground
+ # pathfinding is used and goals silently fail (no path → no movement).
+ # Enable the full water stack whenever waterMob is set OR swim AI is present.
+-->
+<#assign needsWaterAI = data.waterMob || (aiblocks?? && (aiblocks?seq_contains("swim") || aiblocks?seq_contains("swim_in_water")))>
+
 package ${package}.entity;
 
 import net.minecraft.nbt.Tag;
@@ -130,42 +139,46 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 
 		<#if data.flyingMob>
 		this.moveControl = new FlyingMoveControl(this, 10, true);
-		<#elseif data.waterMob>
+		<#elseif needsWaterAI>
+		// Aquatic stack modeled on AbstractFish (FishMoveControl + custom travel):
+		// LivingEntity.travel() ignores getSpeed() in water unless WATER_MOVEMENT_EFFICIENCY > 0,
+		// so AI goal speed factors (3 vs 50) had no visible effect with SmoothSwimming alone.
 		this.setPathfindingMalus(PathType.WATER, 0);
 		this.moveControl = new MoveControl(this) {
 			@Override public void tick() {
-			    if (${name}Entity.this.isInWater())
-                    ${name}Entity.this.setDeltaMovement(${name}Entity.this.getDeltaMovement().add(0, 0.005, 0));
-
-				if (this.operation == MoveControl.Operation.MOVE_TO && !${name}Entity.this.getNavigation().isDone()) {
-					double dx = this.wantedX - ${name}Entity.this.getX();
-					double dy = this.wantedY - ${name}Entity.this.getY();
-					double dz = this.wantedZ - ${name}Entity.this.getZ();
-
-					float f = (float) (Mth.atan2(dz, dx) * (double) (180 / Math.PI)) - 90;
-					float f1 = (float) (this.speedModifier * ${name}Entity.this.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
-
-					${name}Entity.this.setYRot(this.rotlerp(${name}Entity.this.getYRot(), f, 10));
-					${name}Entity.this.yBodyRot = ${name}Entity.this.getYRot();
-					${name}Entity.this.yHeadRot = ${name}Entity.this.getYRot();
-
-					if (${name}Entity.this.isInWater()) {
-						${name}Entity.this.setSpeed((float) ${name}Entity.this.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
-
-						float f2 = - (float) (Mth.atan2(dy, (float) Math.sqrt(dx * dx + dz * dz)) * (180 / Math.PI));
-						f2 = Mth.clamp(Mth.wrapDegrees(f2), -85, 85);
-						${name}Entity.this.setXRot(this.rotlerp(${name}Entity.this.getXRot(), f2, 5));
-						float f3 = Mth.cos(${name}Entity.this.getXRot() * (float) (Math.PI / 180.0));
-
-						${name}Entity.this.setZza(f3 * f1);
-						${name}Entity.this.setYya((float) (f1 * dy));
-					} else {
-						${name}Entity.this.setSpeed(f1 * 0.05F);
+				Mob mob = ${name}Entity.this;
+				if (this.operation == MoveControl.Operation.MOVE_TO && !mob.getNavigation().isDone()) {
+					// Buoyancy only while actively pathing (vanilla FishMoveControl always
+					// adds +0.005, but pairs it with -0.005 in travel when idle). Without that
+					// cancel, idle fish slowly float to the surface.
+					if (mob.isInWater()) {
+						mob.setDeltaMovement(mob.getDeltaMovement().add(0.0, 0.005, 0.0));
 					}
+					double dx = this.wantedX - mob.getX();
+					double dy = this.wantedY - mob.getY();
+					double dz = this.wantedZ - mob.getZ();
+					double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+					if (dist < 1.0E-5) {
+						mob.setSpeed(0.0F);
+						mob.setZza(0.0F);
+						return;
+					}
+					// speedModifier is the AI goal speed field (Melee/Swim/Panic)
+					float speed = (float) (this.speedModifier * mob.getAttributeValue(Attributes.MOVEMENT_SPEED));
+					mob.setSpeed(Mth.lerp(0.125F, mob.getSpeed(), speed));
+					// vertical component toward path target (prevents endless sinking)
+					mob.setDeltaMovement(mob.getDeltaMovement().add(0.0, mob.getSpeed() * (dy / dist) * 0.1, 0.0));
+					if (dx != 0.0 || dz != 0.0) {
+						float yaw = (float) (Mth.atan2(dz, dx) * (180.0F / (float) Math.PI)) - 90.0F;
+						mob.setYRot(this.rotlerp(mob.getYRot(), yaw, 90.0F));
+						mob.yBodyRot = mob.getYRot();
+						mob.yHeadRot = mob.getYRot();
+					}
+					// forward thrust used by travel()
+					mob.setZza(mob.getSpeed());
 				} else {
-					${name}Entity.this.setSpeed(0);
-					${name}Entity.this.setYya(0);
-					${name}Entity.this.setZza(0);
+					mob.setSpeed(0.0F);
+					mob.setZza(0.0F);
 				}
 			}
 		};
@@ -214,7 +227,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 	@Override protected PathNavigation createNavigation(Level world) {
 		return new FlyingPathNavigation(this, world);
 	}
-	<#elseif data.waterMob>
+	<#elseif needsWaterAI>
 	@Override protected PathNavigation createNavigation(Level world) {
 		return new WaterBoundPathNavigation(this, world);
 	}
@@ -224,7 +237,50 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 	@Override protected void registerGoals() {
 		super.registerGoals();
 
+		<#-- Panic must outrank Swim (vanilla fish put Panic at 0). Blockly order swim→panic puts panic too low.
+		     Vanilla PanicGoal uses DefaultRandomPos.getPos (random), so fish often flee toward/past the attacker.
+		     Override findRandomPosition to prefer getPosAway from last attacker / damage source. -->
+		<#if aiblocks?? && aiblocks?seq_contains("panic_when_attacked")>
+		this.goalSelector.addGoal(0, new PanicGoal(this, 1.5) {
+			@Override protected boolean findRandomPosition() {
+				Vec3 avoid = null;
+				LivingEntity attacker = this.mob.getLastHurtByMob();
+				if (attacker != null) {
+					avoid = attacker.position();
+				} else if (this.mob.getLastDamageSource() != null) {
+					Entity src = this.mob.getLastDamageSource().getEntity();
+					if (src != null) {
+						avoid = src.position();
+					} else if (this.mob.getLastDamageSource().getSourcePosition() != null) {
+						avoid = this.mob.getLastDamageSource().getSourcePosition();
+					}
+				}
+				Vec3 pos = null;
+				if (avoid != null) {
+					pos = net.minecraft.world.entity.ai.util.DefaultRandomPos.getPosAway(this.mob, 10, 4, avoid);
+				}
+				if (pos == null) {
+					pos = net.minecraft.world.entity.ai.util.DefaultRandomPos.getPos(this.mob, 10, 4);
+				}
+				if (pos == null) {
+					return false;
+				}
+				this.posX = pos.x;
+				this.posY = pos.y;
+				this.posZ = pos.z;
+				return true;
+			}
+		});
+		</#if>
+		<#if needsWaterAI>
+		// Low priority: only matters on land; must not outrank panic
+		this.goalSelector.addGoal(8, new TryFindWaterGoal(this));
+		</#if>
+
 		<#if aicode??>
+			<#if aiblocks?? && (aiblocks?seq_contains("doors_open") || aiblocks?seq_contains("doors_close"))>
+				this.getNavigation().getNodeEvaluator().setCanOpenDoors(true);
+			</#if>
             ${aicode}
         </#if>
 
@@ -796,7 +852,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		}
     </#if>
 
-	<#if data.waterMob>
+	<#if needsWaterAI>
 	@Override public boolean canDrownInFluidType(FluidType type) {
     	return false;
     }
@@ -839,50 +895,55 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 	}
 	</#if>
 
-    <#if data.ridable && (data.canControlForward || data.canControlStrafe)>
-        @Override public void travel(Vec3 dir) {
-        	<#if data.canControlForward || data.canControlStrafe>
-			Entity entity = this.getPassengers().isEmpty() ? null : (Entity) this.getPassengers().get(0);
-			if (this.isVehicle()) {
-				this.setYRot(entity.getYRot());
-				this.yRotO = this.getYRot();
-				this.setXRot(entity.getXRot() * 0.5F);
-				this.setRot(this.getYRot(), this.getXRot());
-				this.yBodyRot = entity.getYRot();
-				this.yHeadRot = entity.getYRot();
-
-				if (entity instanceof LivingEntity passenger) {
-					this.setSpeed((float) this.getAttributeValue(Attributes.MOVEMENT_SPEED));
-
-					<#if data.canControlForward>
-						float forward = passenger.zza;
-					<#else>
-						float forward = 0;
-					</#if>
-
-					<#if data.canControlStrafe>
-						float strafe = passenger.xxa;
-					<#else>
-						float strafe = 0;
-					</#if>
-
-					super.travel(new Vec3(strafe, 0, forward));
-				}
-
-				double d1 = this.getX() - this.xo;
-				double d0 = this.getZ() - this.zo;
-				float f1 = (float) Math.sqrt(d1 * d1 + d0 * d0) * 4;
-				if (f1 > 1.0F) f1 = 1.0F;
-				this.walkAnimation.setSpeed(this.walkAnimation.speed() + (f1 - this.walkAnimation.speed()) * 0.4F);
-				this.walkAnimation.position(this.walkAnimation.position() + this.walkAnimation.speed());
-				this.calculateEntityAnimation(true);
-				return;
+	<#-- Single travel() for ridable and/or water AI (cannot define twice) -->
+	<#if needsWaterAI || (data.ridable && (data.canControlForward || data.canControlStrafe))>
+	@Override public void travel(Vec3 travelVector) {
+		<#if data.ridable && (data.canControlForward || data.canControlStrafe)>
+		Entity rider = this.getPassengers().isEmpty() ? null : this.getPassengers().get(0);
+		if (this.isVehicle() && rider != null) {
+			this.setYRot(rider.getYRot());
+			this.yRotO = this.getYRot();
+			this.setXRot(rider.getXRot() * 0.5F);
+			this.setRot(this.getYRot(), this.getXRot());
+			this.yBodyRot = rider.getYRot();
+			this.yHeadRot = rider.getYRot();
+			if (rider instanceof LivingEntity passenger) {
+				this.setSpeed((float) this.getAttributeValue(Attributes.MOVEMENT_SPEED));
+				<#if data.canControlForward>
+				float forward = passenger.zza;
+				<#else>
+				float forward = 0;
+				</#if>
+				<#if data.canControlStrafe>
+				float strafe = passenger.xxa;
+				<#else>
+				float strafe = 0;
+				</#if>
+				super.travel(new Vec3(strafe, 0, forward));
 			}
-			</#if>
-
-			super.travel(dir);
+			double d1 = this.getX() - this.xo;
+			double d0 = this.getZ() - this.zo;
+			float f1 = (float) Math.sqrt(d1 * d1 + d0 * d0) * 4;
+			if (f1 > 1.0F) f1 = 1.0F;
+			this.walkAnimation.setSpeed(this.walkAnimation.speed() + (f1 - this.walkAnimation.speed()) * 0.4F);
+			this.walkAnimation.position(this.walkAnimation.position() + this.walkAnimation.speed());
+			this.calculateEntityAnimation(true);
+			return;
 		}
-    </#if>
+		</#if>
+		<#if needsWaterAI>
+		// Fish-style travel: default water physics ignore getSpeed() unless WATER_MOVEMENT_EFFICIENCY > 0
+		if (this.isEffectiveAi() && this.isInWater()) {
+			float amount = Mth.clamp(this.getSpeed() * 0.1F, 0.01F, 1.0F);
+			this.moveRelative(amount, travelVector);
+			this.move(MoverType.SELF, this.getDeltaMovement());
+			this.setDeltaMovement(this.getDeltaMovement().scale(0.9));
+			return;
+		}
+		</#if>
+		super.travel(travelVector);
+	}
+	</#if>
 
 	<#if data.flyingMob>
 	@Override protected void checkFallDamage(double y, boolean onGroundIn, BlockState state, BlockPos pos) {
@@ -1025,8 +1086,10 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		builder = builder.add(Attributes.FLYING_SPEED, ${data.movementSpeed});
 		</#if>
 
-		<#if data.waterMob>
+		<#if needsWaterAI>
 		builder = builder.add(NeoForgeMod.SWIM_SPEED, ${data.movementSpeed});
+		// So default water travel (if used) actually respects getSpeed() from AI goals
+		builder = builder.add(Attributes.WATER_MOVEMENT_EFFICIENCY, 1.0);
 		</#if>
 
 		<#if data.aiBase == "Zombie">

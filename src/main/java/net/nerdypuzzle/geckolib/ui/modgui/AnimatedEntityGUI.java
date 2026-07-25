@@ -1,6 +1,7 @@
 package net.nerdypuzzle.geckolib.ui.modgui;
 
 import net.mcreator.blockly.BlocklyCompileNote;
+import net.mcreator.blockly.InternalBlocksLoader;
 import net.mcreator.blockly.data.*;
 import net.mcreator.blockly.java.BlocklyToJava;
 import net.mcreator.element.GeneratableElement;
@@ -8,6 +9,7 @@ import net.mcreator.element.ModElementType;
 import net.mcreator.element.types.GUI;
 import net.mcreator.element.util.AnnotationUtils;
 import net.mcreator.generator.blockly.BlocklyBlockCodeGenerator;
+import net.mcreator.generator.blockly.OutputBlockCodeGenerator;
 import net.mcreator.generator.blockly.ProceduralBlockCodeGenerator;
 import net.mcreator.generator.template.TemplateGeneratorException;
 import net.mcreator.minecraft.ElementUtil;
@@ -263,10 +265,37 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         blocklyChangedListeners.add(listener);
     }
 
+    /**
+     * Compile AI Blockly workspace and refresh notes/listeners.
+     * Must match {@code LivingEntityGUI#regenerateBlockAssemblies} — including
+     * {@link OutputBlockCodeGenerator} so advanced/internal blocks validate correctly.
+     */
     @Override
-    public java.util.List<BlocklyCompileNote> regenerateBlockAssemblies(boolean reset) {
-        // Implemented for IBlocklyPanelHolder compatibility
-        return new ArrayList<>();
+    public synchronized java.util.List<BlocklyCompileNote> regenerateBlockAssemblies(boolean reset) {
+        BlocklyBlockCodeGenerator blocklyBlockCodeGenerator = new BlocklyBlockCodeGenerator(externalBlocks,
+                mcreator.getGeneratorStats().getBlocklyBlocks(BlocklyEditorType.AI_TASK));
+
+        BlocklyToJava blocklyToJava;
+        try {
+            blocklyToJava = new BlocklyToJava(mcreator.getWorkspace(), this.modElement, BlocklyEditorType.AI_TASK,
+                    blocklyPanel.getXML(), null,
+                    new ProceduralBlockCodeGenerator(blocklyBlockCodeGenerator),
+                    new OutputBlockCodeGenerator(blocklyBlockCodeGenerator));
+        } catch (TemplateGeneratorException e) {
+            return List.of();
+        }
+
+        List<BlocklyCompileNote> compileNotesArrayList = new ArrayList<>(blocklyToJava.getCompileNotes());
+
+        if (unmodifiableAIBases != null && unmodifiableAIBases.contains(aiBase.getSelectedItem()))
+            compileNotesArrayList.add(aiUnmodifiableCompileNote);
+
+        List<BlocklyCompileNote> finalCompileNotesArrayList = compileNotesArrayList;
+        SwingUtilities.invokeLater(() -> {
+            compileNotesPanel.updateCompileNotes(finalCompileNotesArrayList);
+            blocklyChangedListeners.forEach(l -> l.blocklyChanged(blocklyPanel, reset));
+        });
+        return compileNotesArrayList;
     }
 
     /**
@@ -281,30 +310,6 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         if (stored != null && !stored.isBlank() && stored.contains("aitasks_container"))
             return stored;
         return AnnotationUtils.getBlocklyXMLDefaultValue(AnimatedEntity.class, "aixml");
-    }
-
-    private synchronized void regenerateAITasks() {
-        BlocklyBlockCodeGenerator blocklyBlockCodeGenerator = new BlocklyBlockCodeGenerator(externalBlocks,
-                mcreator.getGeneratorStats().getBlocklyBlocks(BlocklyEditorType.AI_TASK));
-
-        BlocklyToJava blocklyToJava;
-        try {
-            blocklyToJava = new BlocklyToJava(mcreator.getWorkspace(), this.modElement, BlocklyEditorType.AI_TASK,
-                    blocklyPanel.getXML(), null, new ProceduralBlockCodeGenerator(blocklyBlockCodeGenerator));
-        } catch (TemplateGeneratorException e) {
-            return;
-        }
-
-        List<BlocklyCompileNote> compileNotesArrayList = blocklyToJava.getCompileNotes();
-
-        if (unmodifiableAIBases != null && unmodifiableAIBases.contains(aiBase.getSelectedItem()))
-            compileNotesArrayList = List.of(aiUnmodifiableCompileNote);
-
-        List<BlocklyCompileNote> finalCompileNotesArrayList = compileNotesArrayList;
-        SwingUtilities.invokeLater(() -> {
-            compileNotesPanel.updateCompileNotes(finalCompileNotesArrayList);
-            blocklyChangedListeners.forEach(l -> l.blocklyChanged(blocklyPanel, false));
-        });
     }
 
     @Override protected void initGUI() {
@@ -670,7 +675,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
                         L10N.label("elementgui.living_entity.mob_base")), aiBase));
 
         aiBase.setPreferredSize(new Dimension(250, 32));
-        aiBase.addActionListener(e -> regenerateAITasks());
+        aiBase.addActionListener(e -> regenerateBlockAssemblies(false));
 
         JPanel aitopoveral = new JPanel(new BorderLayout(5, 0));
         aitopoveral.setOpaque(false);
@@ -715,11 +720,15 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         externalBlocks = BlocklyLoader.INSTANCE.getBlockLoader(BlocklyEditorType.AI_TASK).getDefinedBlocks();
 
         blocklyPanel = new BlocklyPanel(mcreator, BlocklyEditorType.AI_TASK);
+        // Match LivingEntityGUI: internal (java_code, …) + dynamic (mcitem, …) + external AI tasks.
+        // Skipping Internal/Dynamic leaves Advanced empty and breaks Blockly flyouts after a few opens.
         blocklyPanel.addTaskToRunAfterLoaded(() -> {
+            InternalBlocksLoader.loadBlocksAndCategoriesInPanel(blocklyPanel);
+            DynamicBlockLoader.loadBlocksAndCategoriesInPanel(blocklyPanel);
             BlocklyLoader.INSTANCE.getBlockLoader(BlocklyEditorType.AI_TASK)
                     .loadBlocksAndCategoriesInPanel(blocklyPanel, ToolboxType.AI_BUILDER);
-            blocklyPanel.addChangeListener(
-                    changeEvent -> new Thread(AnimatedEntityGUI.this::regenerateAITasks, "AITasksRegenerate").start());
+            blocklyPanel.addChangeListener(changeEvent -> new Thread(
+                    () -> regenerateBlockAssemblies(true), "AITasksRegenerate").start());
         });
         // New elements need the non-deletable AI starter (aitasks_container) + default goals.
         // Matches LivingEntityGUI — setInitialXML works even before the WebView finishes loading.

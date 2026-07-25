@@ -1,4 +1,10 @@
 rootProject.name = 'GeckoLib'
 
-include ":MCreator"
-project(":MCreator").projectDir = file(mcreator_path)
+// Only attach the full MCreator source project when explicitly requested.
+// Normal plugin builds use libs/mcreator-api.jar + installed MCreator/lib jars
+// (compiling MCreator from source fails without the JCEF/Chromium toolchain).
+if (settings.hasProperty('mcreatorFromSource') ||
+        startParameter.projectProperties.containsKey('mcreatorFromSource')) {
+    include ":MCreator"
+    project(":MCreator").projectDir = file(mcreator_path)
+}

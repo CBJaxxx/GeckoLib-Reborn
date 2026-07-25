@@ -1,15 +1,9 @@
 {
   "geckolib_reborn_plugin": {
-    "latest": "7.0.2",
+    "latest": "7.2.9",
     "changes": [
-      "(7.0.2) Fixed NeoForge 26.1.2 Gradle resolve: GeckoLib 5.5.2 groupId is com.geckolib (cache/build failure)",
-      "(7.0.1) Fixed import GeckoLib model dialog (compound .geo.json extension rejected by MCreator 2026.2)",
-      "(7.0.1) Fixed NeoForge 26.1.2 refactor/build: removed invalid # comments from injected mcreator.gradle",
-      "(7.0.0) MCreator 2026.2: NeoForge 1.21.1 + GeckoLib 4.9.2, NeoForge 26.1.2 + GeckoLib 5.5.2",
-      "(7.0.0) Removed Forge 1.21.8 and NeoForge 1.21.8 generators",
-      "(6.2.2) Fixed animated block display names (item.<modid>.<name> lang key for 1.21.8)",
-      "(6.2.1) Fixed Forge 1.21.8 creative tabs not showing GeckoLib items/blocks (MOD bus)",
-      "(6.2.0) Updated Forge support to Forge 1.21.8 with GeckoLib 5.2.2"
+      "(7.2.9) Fixed issues with AI and Goals not properly being set for Animated Entities, also fixed AI and Goals UI breaking.",
+      "(7.2.8) Fixed issues with AI Started Goals not spawning when creating Animated Entities for NeoForge 1.21.1 & 26.1.2."
     ]
   }
 }

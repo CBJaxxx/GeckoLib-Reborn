@@ -9,6 +9,7 @@ repositories {
     maven { url "https://repo.gradle.org/gradle/libs-releases" } // for gradle-tooling-api
     flatDir { dirs mcreator_path + '/lib' }
     flatDir { dirs 'C:/Program Files/Pylo/MCreator/lib' }
+    flatDir { dirs 'libs' }
 }
 
 group = 'net.nerdypuzzle.geckolib'
@@ -28,42 +29,65 @@ compileJava {
     options.encoding = 'UTF-8'
 }
 
+/*
+ * Plugin compile classpath
+ * -------------------------
+ * Prefer the installed MCreator libs + a prebuilt API jar (libs/mcreator-api.jar).
+ * Do NOT use project(':MCreator') for normal builds: compiling MCreator from source
+ * pulls in JCEF/Chromium and fails with hundreds of "package org.cef does not exist"
+ * errors unless the full MCreator CEF toolchain is set up.
+ *
+ * Optional: set -PmcreatorFromSource=true to compile against local MCreator sources
+ * (only if that project builds cleanly on its own).
+ */
+def useMcreatorSource = project.hasProperty('mcreatorFromSource')
+def mcreatorInstallLib = file('C:/Program Files/Pylo/MCreator/lib')
+def mcreatorApiJar = file('libs/mcreator-api.jar')
+
 dependencies {
-    implementation project(':MCreator')
-    implementation fileTree(dir: 'C:/Program Files/Pylo/MCreator/lib', include: ['*.jar'])
+    if (useMcreatorSource) {
+        implementation project(':MCreator')
+    } else {
+        // Prebuilt MCreator classes (no CEF compile required)
+        if (mcreatorApiJar.exists()) {
+            compileOnly files(mcreatorApiJar)
+        }
+        // Transitive / UI deps shipped with the MCreator install
+        if (mcreatorInstallLib.exists()) {
+            compileOnly fileTree(dir: mcreatorInstallLib, include: ['*.jar'])
+        }
+        // Fallback: libs from the linked MCreator source checkout
+        def linkedLib = file("${mcreator_path}/lib")
+        if (linkedLib.exists()) {
+            compileOnly fileTree(dir: linkedLib, include: ['*.jar'])
+        }
+    }
 }
 
 tasks.jar {
     archiveFileName.set("GeckoLib_Reborn_Plugin.zip")
-    manifest {
-        attributes 'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' ')
-    }
+    // Plugin zip must only contain this plugin's classes + resources
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+// Optional: run MCreator with this plugin (requires a working :MCreator source project)
 tasks.register('runMCreatorWithPlugin', JavaExec) {
+    onlyIf {
+        useMcreatorSource || findProject(':MCreator') != null
+    }
     dependsOn jar
+    if (findProject(':MCreator') != null) {
+        dependsOn ':MCreator:jar'
+    }
 
     environment("MCREATOR_PLUGINS_FOLDER", file("./build/libs"))
     environment("MCREATOR_PLUGINS_DEV", "")
 
     jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
 
-    classpath = project(':MCreator').sourceSets.main.runtimeClasspath
-
-    main = 'net.mcreator.Launcher'
-
-    workingDir = mcreator_path
-}
-
-subprojects { subproject ->
-    subproject.plugins.withType(JavaPlugin) {
-        test {
-            dependsOn rootProject.jar
-
-            environment("MCREATOR_PLUGINS_FOLDER", new File(rootProject.projectDir, "/build/libs"))
-            environment("MCREATOR_PLUGINS_DEV", "")
-
-            workingDir = mcreator_path
-        }
+    if (findProject(':MCreator') != null) {
+        classpath = project(':MCreator').sourceSets.main.runtimeClasspath
+        mainClass = 'net.mcreator.Launcher'
+        workingDir = mcreator_path
     }
 }
