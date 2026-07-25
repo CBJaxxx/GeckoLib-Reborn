@@ -30,9 +30,9 @@ import java.util.Set;
 /**
  * UI hooks for GeckoLib on MCreator 2026.2.
  * <p>
- * Note: JavaFX Blockly interception is no longer needed — 2026.2 uses CEF WebView
- * and the built-in {@code BlocklyJavascriptBridge}. Animated-entity data selectors
- * for procedures remain a known limitation until a dedicated bridge extension is added.
+ * CEF Blockly does not need JavaFX bridge replacement. Animated-entity synced data
+ * selectors are installed via {@link net.nerdypuzzle.geckolib.parts.JavabridgeReplacement}
+ * (replaces {@code entitydata_*} providers so Animated Entity parameters appear).
  */
 public class PluginEventTriggers {
 

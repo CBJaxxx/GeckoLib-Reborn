@@ -26,7 +26,7 @@ public class PluginPanelGeckolib extends JPanel implements IReloadableFilterable
     private final JList<File> modelList;
     public PluginPanelGeckolib(final WorkspacePanel workspacePanel) {
         super(new BorderLayout());
-        this.modelList = new JList(this.listmodel);
+        this.modelList = new JList<>(this.listmodel);
         this.setOpaque(false);
         this.workspacePanel = workspacePanel;
         this.modelList.setOpaque(false);
@@ -146,8 +146,8 @@ public class PluginPanelGeckolib extends JPanel implements IReloadableFilterable
     }
 
     private class FilterModel extends DefaultListModel<File> {
-        java.util.List<File> items = new ArrayList();
-        List<File> filterItems = new ArrayList();
+        java.util.List<File> items = new ArrayList<>();
+        List<File> filterItems = new ArrayList<>();
 
         FilterModel() {
         }

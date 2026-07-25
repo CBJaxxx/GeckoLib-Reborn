@@ -1,7 +1,8 @@
 {
   "geckolib_reborn_plugin": {
-    "latest": "7.2.9",
+    "latest": "7.3.0",
     "changes": [
+      "(7.3.0) Fixed issues with 'synced data' procedure blocks not showing synced data parameters for Animated Entities for both NeoForge 1.21.1 and NeoForge 26.1.2.",
       "(7.2.9) Fixed issues with AI and Goals not properly being set for Animated Entities, also fixed AI and Goals UI breaking.",
       "(7.2.8) Fixed issues with AI Started Goals not spawning when creating Animated Entities for NeoForge 1.21.1 & 26.1.2."
     ]
