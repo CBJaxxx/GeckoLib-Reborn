@@ -7,7 +7,6 @@ Adds GeckoLib animated block/item/entity/armor elements for:
 | **NeoForge 1.21.1** | **4.9.2** | `geo/` + `animations/` |
 | **NeoForge 26.1.2** | **5.5.2** | `geckolib/models/` + `geckolib/animations/` |
 
-> **Note:** GeckoLib **5.2.2** is not published for NeoForge 26.1.2. The plugin uses **5.5.2**, the current GeckoLib 5.x release for that loader.
 
 ## Requirements
 
