@@ -50,6 +50,7 @@ import net.nerdypuzzle.geckolib.element.types.GeckolibElement;
 import net.nerdypuzzle.geckolib.parts.GeomodelRenderer;
 import net.nerdypuzzle.geckolib.parts.PluginModelActions;
 import net.nerdypuzzle.geckolib.parts.WTextureComboBoxRenderer;
+import net.nerdypuzzle.geckolib.parts.controller_list.JControllerList;
 import net.nerdypuzzle.geckolib.registry.PluginElementTypes;
 
 import javax.annotation.Nullable;
@@ -218,6 +219,8 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
     private final JCheckBox disableDeathRotation = L10N.checkbox("elementgui.common.enable", new Object[0]);
     private final JSpinner deathTime = new JSpinner(new SpinnerNumberModel(20, 0, 10000, 1));
     private final JSpinner lerp = new JSpinner(new SpinnerNumberModel(4, 0, 1000, 1));
+
+    private JControllerList animationControllers;
     private final JSpinner height = new JSpinner(new SpinnerNumberModel(1, 0.1, 100, 0.1));
 
     private final VTextField animation1 = new VTextField();
@@ -367,6 +370,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         breedTriggerItems = new MCItemListField(mcreator, ElementUtil::loadBlocksAndItems);
 
         entityDataList = new JEntityDataList(mcreator, this);
+        animationControllers = new JControllerList(mcreator, this);
 
         mobModelTexture.setRenderer(
                 new WTextureComboBoxRenderer.TypeTextures(mcreator.getWorkspace(), TextureType.ENTITY));
@@ -1036,7 +1040,10 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         animations_master.add(animations);
         animations_master.add(merged_extras);
 
-        pane8.add(PluginPanelUtils.totalCenterInPanel(animations_master));
+        // Built-in animation settings stay at the top at their natural size; the
+        // controller list takes the rest of the page (it scrolls internally).
+        pane8.add(PluginPanelUtils.northAndCenterElement(
+                PluginPanelUtils.totalCenterInPanel(animations_master), animationControllers));
 
         animations_master.setOpaque(false);
         animations_extras.setOpaque(false);
@@ -1177,6 +1184,33 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         }).collect(Collectors.toList())), "");
     }
 
+    /**
+     * Controller names become part of generated Java identifiers, and each has to
+     * map to exactly one AnimationController, so reject anything unusable before
+     * the element is saved. AnimatedEntity#getValidControllers also filters these
+     * out, so a bad entry can never break code generation - this only makes the
+     * problem visible instead of silently dropping the controller.
+     */
+    @Override protected AggregatedValidationResult getAdditionalValidationResult(AnimatedEntity element) {
+        Set<String> seen = new HashSet<>();
+        for (AnimatedEntity.ControllerEntry controller : element.animationControllers) {
+            String name = controller.name;
+            if (name == null || name.isBlank())
+                return new AggregatedValidationResult.FAIL(
+                        L10N.t("elementgui.animatedentity.controller_error_empty"));
+            if (AnimatedEntity.isReservedControllerName(name))
+                return new AggregatedValidationResult.FAIL(
+                        L10N.t("elementgui.animatedentity.controller_error_reserved", name));
+            if (!AnimatedEntity.isValidControllerName(name))
+                return new AggregatedValidationResult.FAIL(
+                        L10N.t("elementgui.animatedentity.controller_error_name", name));
+            if (!seen.add(name.toLowerCase(java.util.Locale.ENGLISH)))
+                return new AggregatedValidationResult.FAIL(
+                        L10N.t("elementgui.animatedentity.controller_error_duplicate", name));
+        }
+        return new AggregatedValidationResult.PASS();
+    }
+
     // MCreator 2025.x: validatePage removed, validation handled by field validators / lazyValidate
     @SuppressWarnings("unused")
     private AggregatedValidationResult validatePage(int page) {
@@ -1218,6 +1252,8 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         enable8.setSelected(livingEntity.enable8);
         enable9.setSelected(livingEntity.enable9);
         enable10.setSelected(livingEntity.enable10);
+        animationControllers.setEntries(
+                livingEntity.animationControllers == null ? List.of() : livingEntity.animationControllers);
         //
         finishedDying.setSelectedProcedure(livingEntity.finishedDying);
         headMovement.setSelected(livingEntity.headMovement);
@@ -1399,6 +1435,7 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         livingEntity.enable8 = enable8.isSelected();
         livingEntity.enable9 = enable9.isSelected();
         livingEntity.enable10 = enable10.isSelected();
+        livingEntity.animationControllers = animationControllers.getEntries();
         //
         livingEntity.finishedDying = finishedDying.getSelectedProcedure();
         livingEntity.headMovement = headMovement.isSelected();

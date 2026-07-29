@@ -10,6 +10,11 @@
   "type": "input_value",
   "name": "entity",
   "check": "Entity"
+    },
+    {
+      "type": "input_value",
+      "name": "controller",
+      "check": "String"
     }
   ],
   "inputsInline": true,
@@ -19,13 +24,15 @@
   "mcreator": {
     "toolbox_id": "geckolib",
     "toolbox_init": [
-      "<value name=\"entity\"><block type=\"entity_from_deps\"></block></value>"
+      "<value name=\"entity\"><block type=\"entity_from_deps\"></block></value>",
+      "<value name=\"controller\"><block type=\"text\"><field name=\"TEXT\">procedure</field></block></value>"
     ],
     "fields": [
     "name"
   ],
     "inputs": [
-     "entity"
+     "entity",
+     "controller"
     ]
   }
 }

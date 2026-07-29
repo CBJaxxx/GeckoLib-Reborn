@@ -1,3 +1,3 @@
 if (${input$entity} instanceof ${(field$name)?replace("CUSTOM:", "")}Entity) {
-((${(field$name)?replace("CUSTOM:", "")}Entity) ${input$entity}).setAnimation("empty");
+((${(field$name)?replace("CUSTOM:", "")}Entity) ${input$entity}).setControllerAnimation(${input$controller}, "empty");
 }

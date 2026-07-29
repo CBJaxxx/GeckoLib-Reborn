@@ -23,6 +23,7 @@ public class EntityAnimationFactory {
 				syncable.setAnimation("undefined");
 				syncable.animationprocedure = animation;
 			}
+			syncable.applySyncedControllerAnimations();
 		}
 		</#list>
 	}
