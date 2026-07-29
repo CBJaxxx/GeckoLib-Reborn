@@ -1,0 +1,127 @@
+--- a/net/minecraft/world/entity/EntityType.java
++++ b/net/minecraft/world/entity/EntityType.java
+@@ -887,6 +_,11 @@
+     private final float spawnDimensionsScale;
+     private final FeatureFlagSet requiredFeatures;
+ 
++    private final java.util.function.Predicate<EntityType<?>> velocityUpdateSupplier;
++    private final java.util.function.ToIntFunction<EntityType<?>> trackingRangeSupplier;
++    private final java.util.function.ToIntFunction<EntityType<?>> updateIntervalSupplier;
++    private final java.util.function.BiFunction<net.minecraftforge.network.packets.SpawnEntity, Level, T> customClientFactory;
++
+     private static <T extends Entity> EntityType<T> register(ResourceKey<EntityType<?>> p_368406_, EntityType.Builder<T> p_363129_) {
+         return Registry.register(BuiltInRegistries.ENTITY_TYPE, p_368406_, p_363129_.build(p_368406_));
+     }
+@@ -921,7 +_,8 @@
+         int p_273451_,
+         String p_367006_,
+         Optional<ResourceKey<LootTable>> p_364691_,
+-        FeatureFlagSet p_273518_
++        FeatureFlagSet p_273518_,
++        Builder builder
+     ) {
+         this.factory = p_273268_;
+         this.category = p_272918_;
+@@ -937,6 +_,10 @@
+         this.descriptionId = p_367006_;
+         this.lootTable = p_364691_;
+         this.requiredFeatures = p_273518_;
++        this.velocityUpdateSupplier = builder == null || builder.velocityUpdateSupplier == null ? EntityType::defaultVelocitySupplier : builder.velocityUpdateSupplier;
++        this.trackingRangeSupplier = builder == null || builder.trackingRangeSupplier == null ? EntityType::defaultTrackingRangeSupplier : builder.trackingRangeSupplier;
++        this.updateIntervalSupplier = builder == null || builder.updateIntervalSupplier == null ? EntityType::defaultUpdateIntervalSupplier : builder.updateIntervalSupplier;
++        this.customClientFactory = builder == null ? null : builder.customClientFactory;
+     }
+ 
+     @Nullable
+@@ -1197,14 +_,26 @@
+     }
+ 
+     public int clientTrackingRange() {
++        return trackingRangeSupplier.applyAsInt(this);
++    }
++
++    private int defaultTrackingRangeSupplier() {
+         return this.clientTrackingRange;
+     }
+ 
+     public int updateInterval() {
++        return updateIntervalSupplier.applyAsInt(this);
++    }
++
++    private int defaultUpdateIntervalSupplier() {
+         return this.updateInterval;
+     }
+ 
+     public boolean trackDeltas() {
++        return velocityUpdateSupplier.test(this);
++    }
++
++    private boolean defaultVelocitySupplier() {
+         return this != PLAYER
+             && this != LLAMA_SPIT
+             && this != WITHER
+@@ -1260,6 +_,12 @@
+         return OP_ONLY_CUSTOM_DATA.contains(this);
+     }
+ 
++    public T customClientSpawn(net.minecraftforge.network.packets.SpawnEntity packet, Level world) {
++        if (customClientFactory == null) return this.create(world, EntitySpawnReason.LOAD);
++        return customClientFactory.apply(packet, world);
++    }
++    public Stream<TagKey<EntityType<?>>> getTags() {return this.builtInRegistryHolder().tags();}
++
+     public static class Builder<T extends Entity> {
+         private final EntityType.EntityFactory<T> factory;
+         private final MobCategory category;
+@@ -1278,6 +_,10 @@
+             ResourceKey.create(Registries.LOOT_TABLE, p_358877_.location().withPrefix("entities/"))
+         );
+         private final DependantName<EntityType<?>, String> descriptionId = p_358878_ -> Util.makeDescriptionId("entity", p_358878_.location());
++        private java.util.function.Predicate<EntityType<?>> velocityUpdateSupplier = EntityType::defaultVelocitySupplier;
++        private java.util.function.ToIntFunction<EntityType<?>> trackingRangeSupplier = EntityType::defaultTrackingRangeSupplier;
++        private java.util.function.ToIntFunction<EntityType<?>> updateIntervalSupplier = EntityType::defaultUpdateIntervalSupplier;
++        private java.util.function.BiFunction<net.minecraftforge.network.packets.SpawnEntity, Level, T> customClientFactory;
+ 
+         private Builder(EntityType.EntityFactory<T> p_20696_, MobCategory p_20697_) {
+             this.factory = p_20696_;
+@@ -1391,6 +_,30 @@
+             return this;
+         }
+ 
++        public EntityType.Builder<T> setUpdateInterval(int interval) {
++            this.updateIntervalSupplier = t->interval;
++            return this;
++        }
++
++        public EntityType.Builder<T> setTrackingRange(int range) {
++            this.trackingRangeSupplier = t->range;
++            return this;
++        }
++
++        public EntityType.Builder<T> setShouldReceiveVelocityUpdates(boolean value) {
++            this.velocityUpdateSupplier = t->value;
++            return this;
++        }
++
++        /**
++         * By default, entities are spawned clientside via {@link EntityType#create(Level)}}.
++         * If you need finer control over the spawning process, use this to get read access to the spawn packet.
++         */
++        public EntityType.Builder<T> setCustomClientFactory(java.util.function.BiFunction<net.minecraftforge.network.packets.SpawnEntity, Level, T> customClientFactory) {
++            this.customClientFactory = customClientFactory;
++            return this;
++        }
++
+         public EntityType<T> build(ResourceKey<EntityType<?>> p_369693_) {
+             if (this.serialize) {
+                 Util.fetchChoiceType(References.ENTITY_TREE, p_369693_.location().toString());
+@@ -1410,7 +_,8 @@
+                 this.updateInterval,
+                 this.descriptionId.get(p_369693_),
+                 this.lootTable.get(p_369693_),
+-                this.requiredFeatures
++                this.requiredFeatures,
++                this
+             );
+         }
+     }

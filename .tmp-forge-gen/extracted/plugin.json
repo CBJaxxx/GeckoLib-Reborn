@@ -1,0 +1,14 @@
+{
+  "id": "generator-1.21.8-forge",
+  "weight": 5,
+  "supportedversions": [
+    202500399999,
+    2025003
+  ],
+  "info": {
+    "name": "Minecraft Forge 1.21.8 Generator",
+    "version": "1.0.2",
+    "description": "Minecraft Forge generator for 1.21.8 (MCreator 2025.3)",
+    "author": "CBJaxx"
+  }
+}

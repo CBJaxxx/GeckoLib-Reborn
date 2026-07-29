@@ -1,0 +1,51 @@
+--- a/net/minecraft/server/ReloadableServerResources.java
++++ b/net/minecraft/server/ReloadableServerResources.java
+@@ -26,6 +_,7 @@
+     private final ServerAdvancementManager advancements;
+     private final ServerFunctionLibrary functionLibrary;
+     private final List<Registry.PendingTags<?>> postponedTags;
++    private final net.minecraftforge.common.crafting.conditions.ICondition.IContext context;
+ 
+     private ReloadableServerResources(
+         LayeredRegistryAccess<RegistryLayer> p_368059_,
+@@ -37,9 +_,11 @@
+     ) {
+         this.fullRegistryHolder = new ReloadableServerRegistries.Holder(p_368059_.compositeAccess());
+         this.postponedTags = p_364269_;
+-        this.recipes = new RecipeManager(p_363207_);
+         this.commands = new Commands(p_206858_, CommandBuildContext.simple(p_363207_, p_250695_));
+-        this.advancements = new ServerAdvancementManager(p_363207_);
++        // Forge: Create context object and pass it to the recipe manager.
++        this.context = new net.minecraftforge.common.crafting.conditions.ConditionContext(this.postponedTags);
++        this.recipes = new RecipeManager(p_363207_, this.context);
++        this.advancements = new ServerAdvancementManager(p_363207_, this.context);
+         this.functionLibrary = new ServerFunctionLibrary(p_206859_, this.commands.getDispatcher());
+     }
+ 
+@@ -83,8 +_,10 @@
+                     ReloadableServerResources reloadableserverresources = new ReloadableServerResources(
+                         p_358539_.layers(), p_358539_.lookupWithUpdatedTags(), p_250212_, p_249301_, p_366334_, p_251126_
+                     );
++                    var listeners = new java.util.ArrayList<>(reloadableserverresources.listeners());
++                    listeners.addAll(net.minecraftforge.event.ForgeEventFactory.onResourceReload(reloadableserverresources, p_358539_.lookupWithUpdatedTags(), p_330376_.compositeAccess()));
+                     return SimpleReloadInstance.create(
+-                            p_248588_, reloadableserverresources.listeners(), p_249136_, p_249601_, DATA_RELOAD_INITIAL_TASK, LOGGER.isDebugEnabled()
++                            p_248588_, listeners, p_249136_, p_249601_, DATA_RELOAD_INITIAL_TASK, LOGGER.isDebugEnabled()
+                         )
+                         .done()
+                         .thenApply(p_214306_ -> reloadableserverresources);
+@@ -94,5 +_,14 @@
+ 
+     public void updateStaticRegistryTags() {
+         this.postponedTags.forEach(Registry.PendingTags::apply);
++    }
++
++    /**
++     * Exposes the current condition context for usage in other reload listeners.<br>
++     * This is not useful outside the reloading stage.
++     * @return The condition context for the currently active reload.
++     */
++    public net.minecraftforge.common.crafting.conditions.ICondition.IContext getConditionContext() {
++        return this.context;
+     }
+ }

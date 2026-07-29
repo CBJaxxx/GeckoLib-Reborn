@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Specification-Title: GeckoLib 5
+Specification-Vendor: Tslat
+Specification-Version: 5.5.2
+Implementation-Title: GeckoLib 5
+Implementation-Version: 5.5.2
+Implementation-Vendor: Tslat
+Built-On-Minecraft: {strictly [26.1.2,); prefer 26.1.2}
+MixinConfigs: geckolib.mixins.json
+

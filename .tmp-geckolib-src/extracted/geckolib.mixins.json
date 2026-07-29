@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "package": "software.bernie.geckolib.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "geckolib.refmap.json",
+  "minVersion": "0.8",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "client.EntityRendererMixin",
+    "common.AbstractContainerMenuMixin",
+    "common.HashedStackMixin",
+    "common.ItemStackMixin",
+    "common.SynchronizedRemoteSlotMixin"
+  ],
+  "client": [
+    "client.EntityRenderDispatcherMixin",
+    "client.EntityRenderStateMixin",
+    "client.HumanoidArmorLayerMixin",
+    "client.LivingEntityRendererMixin",
+    "client.SpecialModelRenderersMixin",
+    "client.SpecialModelWrapperMixin",
+    "client.TextureManagerMixin"
+  ]
+}

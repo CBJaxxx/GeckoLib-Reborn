@@ -1,16 +1,3 @@
-<#--
- # GeckoLib 4.9.2 item GeoModel (NeoForge 1.21.1)
- # Wiki: https://github.com/bernie-g/geckolib/wiki/Geckolib-Items-(Geckolib4)
- #
- # DefaultedItemGeoModel (subtype "item") expects:
- #   geo/item/<name>.geo.json
- #   animations/item/<name>.animation.json
- #   textures/item/<name>.png
- #
- # Plugin model import currently places files under geo/entity/ and animations/entity/
- # (shared with animated entities). Resolve in order: item/ → entity/ → flat.
- # GeckoLibCache keys are full resource paths including .geo.json / .animation.json.
--->
 package ${package}.item.model;
 
 <#assign geomodel = data.normal>

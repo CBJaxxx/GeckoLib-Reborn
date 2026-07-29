@@ -1,0 +1,20 @@
+--- a/net/minecraft/world/entity/npc/Villager.java
++++ b/net/minecraft/world/entity/npc/Villager.java
+@@ -320,7 +_,7 @@
+     @Override
+     public InteractionResult mobInteract(Player p_35472_, InteractionHand p_35473_) {
+         ItemStack itemstack = p_35472_.getItemInHand(p_35473_);
+-        if (itemstack.is(Items.VILLAGER_SPAWN_EGG) || !this.isAlive() || this.isTrading() || this.isSleeping()) {
++        if (itemstack.is(Items.VILLAGER_SPAWN_EGG) || !this.isAlive() || this.isTrading() || this.isSleeping() || p_35472_.isSecondaryUseActive()) {
+             return super.mobInteract(p_35472_, p_35473_);
+         } else if (this.isBaby()) {
+             this.setUnhappy();
+@@ -766,7 +_,7 @@
+ 
+     @Override
+     public void thunderHit(ServerLevel p_35409_, LightningBolt p_35410_) {
+-        if (p_35409_.getDifficulty() != Difficulty.PEACEFUL) {
++        if (p_35409_.getDifficulty() != Difficulty.PEACEFUL && net.minecraftforge.event.ForgeEventFactory.canLivingConvert(this, EntityType.WITCH, (timer) -> {})) {
+             LOGGER.info("Villager {} was struck by lightning {}.", this, p_35410_);
+             Witch witch = this.convertTo(EntityType.WITCH, ConversionParams.single(this, false, false), p_405546_ -> {
+                 p_405546_.finalizeSpawn(p_35409_, p_35409_.getCurrentDifficultyAt(p_405546_.blockPosition()), EntitySpawnReason.CONVERSION, null);

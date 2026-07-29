@@ -1,0 +1,42 @@
+--- a/net/minecraft/client/resources/model/WeightedVariants.java
++++ b/net/minecraft/client/resources/model/WeightedVariants.java
+@@ -13,12 +_,13 @@
+ @OnlyIn(Dist.CLIENT)
+ public class WeightedVariants implements BlockStateModel {
+     private final WeightedList<BlockStateModel> list;
++    private final BlockStateModel firstModel;
+     private final TextureAtlasSprite particleIcon;
+ 
+     public WeightedVariants(WeightedList<BlockStateModel> p_394939_) {
+         this.list = p_394939_;
+-        BlockStateModel blockstatemodel = p_394939_.unwrap().getFirst().value();
+-        this.particleIcon = blockstatemodel.particleIcon();
++        this.firstModel = p_394939_.unwrap().getFirst().value();
++        this.particleIcon = firstModel.particleIcon();
+     }
+ 
+     @Override
+@@ -27,8 +_,23 @@
+     }
+ 
+     @Override
++    public TextureAtlasSprite particleIcon(net.minecraftforge.client.model.data.ModelData data) {
++        return this.firstModel.particleIcon(data);
++    }
++
++    @Override
+     public void collectParts(RandomSource p_397916_, List<BlockModelPart> p_394308_) {
+         this.list.getRandomOrThrow(p_397916_).collectParts(p_397916_, p_394308_);
++    }
++
++    @Override
++    public void collectParts(RandomSource random, List<BlockModelPart> dest, net.minecraftforge.client.model.data.ModelData data, net.minecraft.client.renderer.chunk.ChunkSectionLayer renderType) {
++        this.list.getRandomOrThrow(random).collectParts(random, dest, data, renderType);
++    }
++
++    @Override
++    public java.util.Collection<net.minecraft.client.renderer.chunk.ChunkSectionLayer> getRenderTypes(net.minecraft.world.level.block.state.BlockState state, RandomSource random, net.minecraftforge.client.model.data.ModelData data) {
++        return this.list.getRandomOrThrow(random).getRenderTypes(state, random, data);
+     }
+ 
+     @OnlyIn(Dist.CLIENT)

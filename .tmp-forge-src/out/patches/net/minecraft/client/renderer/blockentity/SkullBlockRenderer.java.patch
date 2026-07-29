@@ -1,0 +1,21 @@
+--- a/net/minecraft/client/renderer/blockentity/SkullBlockRenderer.java
++++ b/net/minecraft/client/renderer/blockentity/SkullBlockRenderer.java
+@@ -34,6 +_,7 @@
+ 
+ @OnlyIn(Dist.CLIENT)
+ public class SkullBlockRenderer implements BlockEntityRenderer<SkullBlockEntity> {
++    private static Map<SkullBlock.Type, Function<EntityModelSet, SkullModelBase>> customModels;
+     private final Function<SkullBlock.Type, SkullModelBase> modelByType;
+     public static final Map<SkullBlock.Type, ResourceLocation> SKIN_BY_TYPE = Util.make(Maps.newHashMap(), p_340906_ -> {
+         p_340906_.put(SkullBlock.Types.SKELETON, ResourceLocation.withDefaultNamespace("textures/entity/skeleton/skeleton.png"));
+@@ -58,7 +_,9 @@
+                 case PIGLIN -> new PiglinHeadModel(p_376421_.bakeLayer(ModelLayers.PIGLIN_HEAD));
+             });
+         } else {
+-            return null;
++            if (customModels == null)
++                customModels = net.minecraftforge.client.event.ForgeEventFactoryClient.onCreateSkullModels();
++            return customModels.getOrDefault(p_377655_, k -> null).apply(p_376421_);
+         }
+     }
+ 

@@ -1,0 +1,34 @@
+--- a/com/mojang/blaze3d/opengl/GlDebug.java
++++ b/com/mojang/blaze3d/opengl/GlDebug.java
+@@ -23,6 +_,14 @@
+ 
+ @OnlyIn(Dist.CLIENT)
+ public class GlDebug {
++    /**
++     * TODO: [Forge][Rendering][VEN] Expose this in the configs
++     * <p>
++     * Will enable synchronous OpenGL debug logging, which means the message will be sent from the call that
++     * would have caused the error. Additionally, enables printing a stacktrace when and where this occurs.
++     */
++    private static final boolean PRINT_STACKTRACE_ON_ERROR = Boolean.getBoolean("forge.printGLStackOnError");
++
+     private static final Logger LOGGER = LogUtils.getLogger();
+     private static final int CIRCULAR_LOG_SIZE = 10;
+     private final Queue<GlDebug.LogEntry> MESSAGE_BUFFER = EvictingQueue.create(10);
+@@ -105,6 +_,8 @@
+         }
+ 
+         LOGGER.info("OpenGL debug message: {}", gldebug$logentry);
++        // TODO: [VEN] Trim the stack trace
++        if (PRINT_STACKTRACE_ON_ERROR) LOGGER.info("Trace: ", new Throwable("GlDebug"));
+     }
+ 
+     public List<String> getLastOpenGlDebugMessages() {
+@@ -121,6 +_,7 @@
+ 
+     @Nullable
+     public static GlDebug enableDebugCallback(int p_394351_, boolean p_393026_, Set<String> p_393339_) {
++        p_393026_ |= PRINT_STACKTRACE_ON_ERROR;
+         if (p_394351_ <= 0) {
+             return null;
+         } else {

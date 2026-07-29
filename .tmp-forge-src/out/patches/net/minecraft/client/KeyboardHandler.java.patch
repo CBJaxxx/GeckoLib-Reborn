@@ -1,0 +1,39 @@
+--- a/net/minecraft/client/KeyboardHandler.java
++++ b/net/minecraft/client/KeyboardHandler.java
+@@ -440,12 +_,12 @@
+             if (screen != null) {
+                 try {
+                     if (p_90897_ != 1 && p_90897_ != 2) {
+-                        if (p_90897_ == 0 && screen.keyReleased(p_90895_, p_90896_, p_90898_)) {
++                        if (p_90897_ == 0 && net.minecraftforge.client.ForgeHooksClient.onScreenKeyReleased(screen, p_90895_, p_90896_, p_90898_)) {
+                             return;
+                         }
+                     } else {
+                         screen.afterKeyboardAction();
+-                        if (screen.keyPressed(p_90895_, p_90896_, p_90898_)) {
++                        if (net.minecraftforge.client.ForgeHooksClient.onScreenKeyPressed(screen, p_90895_, p_90896_, p_90898_)) {
+                             return;
+                         }
+                     }
+@@ -504,6 +_,7 @@
+                     }
+                 }
+             }
++            net.minecraftforge.client.ForgeHooksClient.onKeyInput(p_90895_, p_90896_, p_90897_, p_90898_);
+         }
+     }
+ 
+@@ -513,10 +_,10 @@
+             if (screen != null && this.minecraft.getOverlay() == null) {
+                 try {
+                     if (Character.isBmpCodePoint(p_90891_)) {
+-                        screen.charTyped((char)p_90891_, p_90892_);
++                        net.minecraftforge.client.ForgeHooksClient.onScreenCharTyped(screen, (char)p_90891_, p_90892_);
+                     } else if (Character.isValidCodePoint(p_90891_)) {
+-                        screen.charTyped(Character.highSurrogate(p_90891_), p_90892_);
+-                        screen.charTyped(Character.lowSurrogate(p_90891_), p_90892_);
++                        net.minecraftforge.client.ForgeHooksClient.onScreenCharTyped(screen, Character.highSurrogate(p_90891_), p_90892_);
++                        net.minecraftforge.client.ForgeHooksClient.onScreenCharTyped(screen, Character.lowSurrogate(p_90891_), p_90892_);
+                     }
+                 } catch (Throwable throwable) {
+                     CrashReport crashreport = CrashReport.forThrowable(throwable, "charTyped event handler");

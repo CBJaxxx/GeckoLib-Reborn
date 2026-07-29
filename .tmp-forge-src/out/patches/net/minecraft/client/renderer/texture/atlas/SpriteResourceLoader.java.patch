@@ -1,0 +1,12 @@
+--- a/net/minecraft/client/renderer/texture/atlas/SpriteResourceLoader.java
++++ b/net/minecraft/client/renderer/texture/atlas/SpriteResourceLoader.java
+@@ -62,6 +_,9 @@
+                 framesize = new FrameSize(nativeimage.getWidth(), nativeimage.getHeight());
+             }
+ 
++            SpriteContents contents = net.minecraftforge.client.ForgeHooksClient.loadSpriteContents(p_374679_, p_374680_, framesize, nativeimage, resourcemetadata);
++            if (contents != null) return contents;
++
+             return new SpriteContents(p_374679_, framesize, nativeimage, resourcemetadata);
+         };
+     }

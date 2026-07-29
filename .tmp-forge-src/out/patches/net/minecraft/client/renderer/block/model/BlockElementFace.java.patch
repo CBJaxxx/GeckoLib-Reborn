@@ -1,0 +1,31 @@
+--- a/net/minecraft/client/renderer/block/model/BlockElementFace.java
++++ b/net/minecraft/client/renderer/block/model/BlockElementFace.java
+@@ -15,9 +_,18 @@
+ import net.minecraftforge.api.distmarker.OnlyIn;
+ 
+ @OnlyIn(Dist.CLIENT)
+-public record BlockElementFace(@Nullable Direction cullForDirection, int tintIndex, String texture, @Nullable BlockElementFace.UVs uvs, Quadrant rotation) {
++public record BlockElementFace(@Nullable Direction cullForDirection, int tintIndex, String texture, @Nullable BlockElementFace.UVs uvs, Quadrant rotation, @Nullable net.minecraftforge.client.model.ForgeFaceData data) {
+     public static final int NO_TINT = -1;
+ 
++    public BlockElementFace(@Nullable Direction cullForDirection, int tintIndex, String texture, @Nullable BlockElementFace.UVs uvs, Quadrant rotation) {
++        this(cullForDirection, tintIndex, texture, uvs, rotation, null);
++    }
++
++    @Override
++    public net.minecraftforge.client.model.ForgeFaceData data() {
++        return this.data == null ? net.minecraftforge.client.model.ForgeFaceData.DEFAULT : this.data;
++    }
++
+     public static float getU(BlockElementFace.UVs p_396140_, Quadrant p_396737_, int p_395337_) {
+         return p_396140_.getVertexU(p_396737_.rotateVertexIndex(p_395337_)) / 16.0F;
+     }
+@@ -38,7 +_,7 @@
+             String s = getTexture(jsonobject);
+             BlockElementFace.UVs blockelementface$uvs = getUVs(jsonobject);
+             Quadrant quadrant = getRotation(jsonobject);
+-            return new BlockElementFace(direction, i, s, blockelementface$uvs, quadrant);
++            return new BlockElementFace(direction, i, s, blockelementface$uvs, quadrant, net.minecraftforge.client.model.ForgeFaceData.read(jsonobject.get("forge_data"), null));
+         }
+ 
+         private static int getTintIndex(JsonObject p_111369_) {

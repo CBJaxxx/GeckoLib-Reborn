@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/renderer/special/SpecialModelRenderers.java
++++ b/net/minecraft/client/renderer/special/SpecialModelRenderers.java
+@@ -181,6 +_,8 @@
+             map.put(Blocks.TRAPPED_CHEST, GIFT_CHEST);
+         }
+ 
++        net.minecraftforge.client.event.ForgeEventFactoryClient.onCreateSpecialBlockRenderers(map);
++
+         Builder<Block, SpecialModelRenderer<?>> builder = ImmutableMap.builder();
+         map.forEach((p_377014_, p_376072_) -> {
+             SpecialModelRenderer<?> specialmodelrenderer = p_376072_.bake(p_378538_);

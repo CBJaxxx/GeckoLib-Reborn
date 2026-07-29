@@ -1,0 +1,13 @@
+--- a/net/minecraft/world/level/storage/DimensionDataStorage.java
++++ b/net/minecraft/world/level/storage/DimensionDataStorage.java
+@@ -119,6 +_,10 @@
+             }
+ 
+             int i = NbtUtils.getDataVersion(compoundtag, 1343);
++            // Forge: Allow the data fixer to be null, leaving the modder responsible for keeping track of their own data formats
++            if (p_301060_ == null)
++                compoundtag1 = compoundtag;
++            else
+             compoundtag1 = p_301060_.update(this.fixerUpper, compoundtag, i, p_78160_);
+         }
+ 

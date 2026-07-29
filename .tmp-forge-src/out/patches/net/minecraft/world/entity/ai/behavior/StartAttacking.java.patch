@@ -1,0 +1,15 @@
+--- a/net/minecraft/world/entity/ai/behavior/StartAttacking.java
++++ b/net/minecraft/world/entity/ai/behavior/StartAttacking.java
+@@ -28,7 +_,11 @@
+                             if (!p_359049_.canAttack(livingentity)) {
+                                 return false;
+                             } else {
+-                                p_258778_.set(livingentity);
++                                var changeTargetEvent = net.minecraftforge.event.ForgeEventFactory.onLivingChangeTargetBehavior(p_359049_, livingentity);
++                                if (changeTargetEvent == null)
++                                    return false;
++
++                                p_258778_.set(changeTargetEvent.getNewTarget());
+                                 p_258779_.erase();
+                                 return true;
+                             }

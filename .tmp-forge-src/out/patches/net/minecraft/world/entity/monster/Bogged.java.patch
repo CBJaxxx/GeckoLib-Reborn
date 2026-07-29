@@ -1,0 +1,29 @@
+--- a/net/minecraft/world/entity/monster/Bogged.java
++++ b/net/minecraft/world/entity/monster/Bogged.java
+@@ -72,7 +_,7 @@
+     @Override
+     protected InteractionResult mobInteract(Player p_335303_, InteractionHand p_335145_) {
+         ItemStack itemstack = p_335303_.getItemInHand(p_335145_);
+-        if (itemstack.is(Items.SHEARS) && this.readyForShearing()) {
++        if (false && itemstack.is(Items.SHEARS) && this.readyForShearing()) { // Forge: move to onSheared
+             if (this.level() instanceof ServerLevel serverlevel) {
+                 this.shear(serverlevel, SoundSource.PLAYERS, itemstack);
+                 this.gameEvent(GameEvent.SHEAR, p_335303_);
+@@ -139,5 +_,17 @@
+     @Override
+     public boolean readyForShearing() {
+         return !this.isSheared() && this.isAlive();
++    }
++
++    @Override
++    public java.util.List<ItemStack> onSheared(@org.jetbrains.annotations.Nullable Player player, @org.jetbrains.annotations.NotNull ItemStack item, Level world, net.minecraft.core.BlockPos pos, int fortune) {
++        if (world instanceof ServerLevel server) {
++            server.playSound(null, this, SoundEvents.BOGGED_SHEAR, SoundSource.PLAYERS, 1.0F, 1.0F);
++            this.setSheared(true);
++            var ret = new java.util.ArrayList<ItemStack>();
++            this.dropFromShearingLootTable(server, BuiltInLootTables.BOGGED_SHEAR, item, (slevel, stack) -> ret.add(stack));
++            return ret;
++        }
++        return java.util.Collections.emptyList();
+     }
+ }

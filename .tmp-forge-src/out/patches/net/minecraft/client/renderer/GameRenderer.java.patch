@@ -1,0 +1,55 @@
+--- a/net/minecraft/client/renderer/GameRenderer.java
++++ b/net/minecraft/client/renderer/GameRenderer.java
+@@ -194,6 +_,10 @@
+             this.setPostEffect(ResourceLocation.withDefaultNamespace("spider"));
+         } else if (p_109107_ instanceof EnderMan) {
+             this.setPostEffect(ResourceLocation.withDefaultNamespace("invert"));
++        } else if (p_109107_ != null) {
++            var rl = net.minecraftforge.client.EntitySpectatorShaderManager.get(p_109107_.getType());
++            if (rl != null)
++                this.setPostEffect(rl);
+         }
+     }
+ 
+@@ -205,7 +_,13 @@
+     public void processBlurEffect() {
+         PostChain postchain = this.minecraft.getShaderManager().getPostChain(BLUR_POST_CHAIN_ID, LevelTargetBundle.MAIN_TARGETS);
+         if (postchain != null) {
++            // TODO: [Forge][Rendering] Check if this blend management is needed anymnore with the new render pipeline changes
++            boolean wasBlendEnabled = com.mojang.blaze3d.opengl.GlStateManager._isBlendEnabled();
++            if (wasBlendEnabled)
++                com.mojang.blaze3d.opengl.GlStateManager._disableBlend();
+             postchain.process(this.minecraft.getMainRenderTarget(), this.resourcePool);
++            if (wasBlendEnabled)
++                com.mojang.blaze3d.opengl.GlStateManager._enableBlend();
+         }
+     }
+ 
+@@ -364,7 +_,7 @@
+                 f *= Mth.lerp(f2, 1.0F, 0.85714287F);
+             }
+ 
+-            return f;
++            return net.minecraftforge.client.event.ForgeEventFactoryClient.fireComputeFov(this, p_109142_, p_109143_, f, p_109144_).getFOV();
+         }
+     }
+ 
+@@ -512,7 +_,7 @@
+                 }
+             } else if (flag && this.minecraft.screen != null) {
+                 try {
+-                    this.minecraft.screen.renderWithTooltip(guigraphics, i, j, p_343467_.getGameTimeDeltaTicks());
++                    net.minecraftforge.client.ForgeHooksClient.drawScreen(this.minecraft.screen, guigraphics, i, j, p_343467_.getRealtimeDeltaTicks());
+                 } catch (Throwable throwable1) {
+                     CrashReport crashreport1 = CrashReport.forThrowable(throwable1, "Rendering screen");
+                     CrashReportCategory crashreportcategory1 = crashreport1.addCategory("Screen render details");
+@@ -646,6 +_,9 @@
+         if (this.minecraft.options.bobView().get()) {
+             this.bobView(posestack, camera.getPartialTickTime());
+         }
++
++        var cameraSetup = net.minecraftforge.client.event.ForgeEventFactoryClient.fireComputeCameraAngles(this, camera, f);
++        camera.setRotation(cameraSetup.getYaw(), cameraSetup.getPitch(), cameraSetup.getRoll());
+ 
+         matrix4f.mul(posestack.last().pose());
+         float f3 = this.minecraft.options.screenEffectScale().get().floatValue();

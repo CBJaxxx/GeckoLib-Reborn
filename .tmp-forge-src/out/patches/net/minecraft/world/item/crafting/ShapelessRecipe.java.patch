@@ -1,0 +1,42 @@
+--- a/net/minecraft/world/item/crafting/ShapelessRecipe.java
++++ b/net/minecraft/world/item/crafting/ShapelessRecipe.java
+@@ -24,12 +_,14 @@
+     final List<Ingredient> ingredients;
+     @Nullable
+     private PlacementInfo placementInfo;
++    private final boolean isSimple;
+ 
+     public ShapelessRecipe(String p_249640_, CraftingBookCategory p_249390_, ItemStack p_252071_, List<Ingredient> p_365863_) {
+         this.group = p_249640_;
+         this.category = p_249390_;
+         this.result = p_252071_;
+         this.ingredients = p_365863_;
++        this.isSimple = this.ingredients.stream().allMatch(Ingredient::isSimple);
+     }
+ 
+     @Override
+@@ -59,10 +_,12 @@
+     public boolean matches(CraftingInput p_345423_, Level p_44263_) {
+         if (p_345423_.ingredientCount() != this.ingredients.size()) {
+             return false;
++        } else if (p_345423_.size() == 1 && this.ingredients.size() == 1) {
++            return this.ingredients.getFirst().test(p_345423_.getItem(0));
++        } else if (!isSimple) {
++            return net.minecraftforge.common.util.RecipeMatcher.findMatches(p_345423_.items(),  this.ingredients) != null;
+         } else {
+-            return p_345423_.size() == 1 && this.ingredients.size() == 1
+-                ? this.ingredients.getFirst().test(p_345423_.getItem(0))
+-                : p_345423_.stackedContents().canCraft(this, null);
++            return p_345423_.stackedContents().canCraft(this, null);
+         }
+     }
+ 
+@@ -87,7 +_,7 @@
+                     Codec.STRING.optionalFieldOf("group", "").forGetter(p_299460_ -> p_299460_.group),
+                     CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter(p_297437_ -> p_297437_.category),
+                     ItemStack.STRICT_CODEC.fieldOf("result").forGetter(p_300770_ -> p_300770_.result),
+-                    Ingredient.CODEC.listOf(1, 9).fieldOf("ingredients").forGetter(p_359857_ -> p_359857_.ingredients)
++                    Ingredient.CODEC.listOf(/*1, 9 Forge: Make this usable for larger crafting windows*/).fieldOf("ingredients").forGetter(p_359857_ -> p_359857_.ingredients)
+                 )
+                 .apply(p_359856_, ShapelessRecipe::new)
+         );

@@ -1,17 +1,3 @@
-<#--
- # GeckoLib 4.9.2 GeoArmorRenderer (NeoForge 1.21.1)
- # Wiki: https://github.com/bernie-g/geckolib/wiki/Geckolib-Armor-(Geckolib4)
- #
- # Default bone names: armorHead, armorBody, armorRightArm, armorLeftArm,
- # armorRightLeg, armorLeftLeg, armorRightBoot, armorLeftBoot.
- #
- # Blockbench GeckoLib armor models nest those under bipedHead / bipedBody / etc.
- # Idle and procedure animations usually key the armor* children. GeckoLib applies
- # player limb poses in preRender, then runs animations which overwrite the same
- # bones — so keying armorHead.rotation to [0,0,0] cancels head look. Prefer the
- # biped* parents for limb poses when present so look/swing stay on the parent
- # while decorative motion stays on the armor* children.
--->
 package ${package}.client.renderer;
 
 import software.bernie.geckolib.cache.object.GeoBone;

@@ -1,0 +1,50 @@
+--- a/net/minecraft/gametest/framework/GameTestHelper.java
++++ b/net/minecraft/gametest/framework/GameTestHelper.java
+@@ -66,7 +_,7 @@
+ import net.minecraft.world.phys.BlockHitResult;
+ import net.minecraft.world.phys.Vec3;
+ 
+-public class GameTestHelper {
++public class GameTestHelper implements net.minecraftforge.common.extensions.IForgeGameTestHelper {
+     private final GameTestInfo testInfo;
+     private boolean finalCheckAdded;
+ 
+@@ -963,6 +_,12 @@
+         return this.testInfo.getTick();
+     }
+ 
++    /** Forge: same as {@link #getTick()} without implicit cast to long */
++    @Override
++    public int getTickAsInt() {
++        return this.testInfo.getTick();
++    }
++
+     public AABB getBounds() {
+         return this.testInfo.getStructureBounds();
+     }
+@@ -1005,5 +_,25 @@
+         if (either.right().isPresent()) {
+             throw this.assertionException("test.error.set_biome");
+         }
++    }
++
++    /**
++     * Adds a cleanup handler that will be called when the test is done, pass or fail.
++     */
++    public void addCleanup(Consumer<Boolean> handler) {
++        this.testInfo.addListener(new GameTestListener() {
++            @Override
++            public void testPassed(GameTestInfo info, GameTestRunner runner) {
++                handler.accept(true);
++            }
++
++            @Override
++            public void testFailed(GameTestInfo info, GameTestRunner runner) {
++                handler.accept(false);
++            }
++
++            @Override public void testStructureLoaded(GameTestInfo info) { }
++            @Override public void testAddedForRerun(GameTestInfo oldInfo, GameTestInfo newInfo, GameTestRunner runner) { }
++        });
+     }
+ }

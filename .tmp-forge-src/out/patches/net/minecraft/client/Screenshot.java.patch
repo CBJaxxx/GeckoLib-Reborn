@@ -1,0 +1,32 @@
+--- a/net/minecraft/client/Screenshot.java
++++ b/net/minecraft/client/Screenshot.java
+@@ -43,6 +_,13 @@
+                     file2 = new File(file1, p_92297_);
+                 }
+ 
++                var event = new net.minecraftforge.client.event.ScreenshotEvent(p_389141_, file2);
++                if (net.minecraftforge.client.event.ScreenshotEvent.BUS.post(event)) {
++                    p_92301_.accept(event.getCancelMessage());
++                    return;
++                }
++                final File target = event.getScreenshotFile();
++
+                 Util.ioPool()
+                     .execute(
+                         () -> {
+@@ -50,10 +_,13 @@
+                                 NativeImage $$4x = p_389141_;
+ 
+                                 try {
+-                                    p_389141_.writeToFile(file2);
+-                                    Component component = Component.literal(file2.getName())
++                                    p_389141_.writeToFile(target);
++                                    Component component = Component.literal(target.getName())
+                                         .withStyle(ChatFormatting.UNDERLINE)
+                                         .withStyle(p_389149_ -> p_389149_.withClickEvent(new ClickEvent.OpenFile(file2.getAbsoluteFile())));
++                                    if (event.getResultMessage() != null)
++                                        p_92301_.accept(event.getResultMessage());
++                                    else
+                                     p_92301_.accept(Component.translatable("screenshot.success", component));
+                                 } catch (Throwable throwable1) {
+                                     if (p_389141_ != null) {

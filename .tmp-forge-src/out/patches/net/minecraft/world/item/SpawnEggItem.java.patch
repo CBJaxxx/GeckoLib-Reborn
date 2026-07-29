@@ -1,0 +1,13 @@
+--- a/net/minecraft/world/item/SpawnEggItem.java
++++ b/net/minecraft/world/item/SpawnEggItem.java
+@@ -143,6 +_,10 @@
+         return this.defaultType;
+     }
+ 
++    public EntityType<?> getDefaultType() {
++        return this.defaultType;
++    }
++
+     @Override
+     public FeatureFlagSet requiredFeatures() {
+         return this.defaultType.requiredFeatures();

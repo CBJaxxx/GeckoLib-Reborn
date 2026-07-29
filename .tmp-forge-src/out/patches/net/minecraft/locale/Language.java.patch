@@ -1,0 +1,33 @@
+--- a/net/minecraft/locale/Language.java
++++ b/net/minecraft/locale/Language.java
+@@ -38,7 +_,8 @@
+         BiConsumer<String, String> biconsumer = map::put;
+         parseTranslations(biconsumer, "/assets/minecraft/lang/en_us.json");
+         deprecatedtranslationsinfo.applyToMap(map);
+-        final Map<String, String> map1 = Map.copyOf(map);
++        net.minecraftforge.server.LanguageHook.captureLanguageMap(map);
++        final Map<String, String> map1 = map;
+         return new Language() {
+             @Override
+             public String getOrDefault(String p_128127_, String p_265421_) {
+@@ -63,6 +_,11 @@
+                     )
+                     .isPresent();
+             }
++
++            @Override
++            public Map<String, String> getLanguageData() {
++                return map;
++            }
+         };
+     }
+ 
+@@ -90,6 +_,8 @@
+     public static void inject(Language p_128115_) {
+         instance = p_128115_;
+     }
++
++    public Map<String, String> getLanguageData() { return Map.of(); }
+ 
+     public String getOrDefault(String p_128111_) {
+         return this.getOrDefault(p_128111_, p_128111_);

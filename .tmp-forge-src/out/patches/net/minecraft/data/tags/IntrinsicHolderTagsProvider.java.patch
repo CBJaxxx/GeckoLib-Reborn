@@ -1,0 +1,51 @@
+--- a/net/minecraft/data/tags/IntrinsicHolderTagsProvider.java
++++ b/net/minecraft/data/tags/IntrinsicHolderTagsProvider.java
+@@ -12,14 +_,26 @@
+ public abstract class IntrinsicHolderTagsProvider<T> extends TagsProvider<T> {
+     private final Function<T, ResourceKey<T>> keyExtractor;
+ 
++    public IntrinsicHolderTagsProvider(PackOutput p_256164_, ResourceKey<? extends Registry<T>> p_256155_, CompletableFuture<HolderLookup.Provider> p_256488_, Function<T, ResourceKey<T>> p_256168_) {
++        super(p_256164_, p_256155_, p_256488_);
++        this.keyExtractor = p_256168_;
++    }
++
+     public IntrinsicHolderTagsProvider(
+         PackOutput p_256164_,
+         ResourceKey<? extends Registry<T>> p_256155_,
+         CompletableFuture<HolderLookup.Provider> p_256488_,
+-        Function<T, ResourceKey<T>> p_256168_
++        Function<T, ResourceKey<T>> p_256168_,
++        String modid,
++        @org.jetbrains.annotations.Nullable net.minecraftforge.common.data.ExistingFileHelper existingFileHelper
+     ) {
+-        super(p_256164_, p_256155_, p_256488_);
++        super(p_256164_, p_256155_, p_256488_, modid, existingFileHelper);
+         this.keyExtractor = p_256168_;
++    }
++
++    public IntrinsicHolderTagsProvider(PackOutput p_275304_, ResourceKey<? extends Registry<T>> p_275709_, CompletableFuture<HolderLookup.Provider> p_275227_, CompletableFuture<TagsProvider.TagLookup<T>> p_275311_, Function<T, ResourceKey<T>> p_275566_) {
++        super(p_275304_, p_275709_, p_275227_, p_275311_);
++        this.keyExtractor = p_275566_;
+     }
+ 
+     public IntrinsicHolderTagsProvider(
+@@ -27,14 +_,16 @@
+         ResourceKey<? extends Registry<T>> p_275709_,
+         CompletableFuture<HolderLookup.Provider> p_275227_,
+         CompletableFuture<TagsProvider.TagLookup<T>> p_275311_,
+-        Function<T, ResourceKey<T>> p_275566_
++        Function<T, ResourceKey<T>> p_275566_,
++        String modid,
++        @org.jetbrains.annotations.Nullable net.minecraftforge.common.data.ExistingFileHelper existingFileHelper
+     ) {
+-        super(p_275304_, p_275709_, p_275227_, p_275311_);
++        super(p_275304_, p_275709_, p_275227_, p_275311_, modid, existingFileHelper);
+         this.keyExtractor = p_275566_;
+     }
+ 
+     protected TagAppender<T, T> tag(TagKey<T> p_255793_) {
+         TagBuilder tagbuilder = this.getOrCreateRawBuilder(p_255793_);
+-        return TagAppender.<T>forBuilder(tagbuilder).map(this.keyExtractor);
++        return TagAppender.<T>forBuilder(tagbuilder, this.modId).map(this.keyExtractor);
+     }
+ }

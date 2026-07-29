@@ -1,0 +1,101 @@
+--- a/net/minecraft/resources/RegistryDataLoader.java
++++ b/net/minecraft/resources/RegistryDataLoader.java
+@@ -89,7 +_,7 @@
+         Lifecycle lifecycle = p_326161_.map(KnownPack::isVanilla).map(p_326166_ -> Lifecycle.stable()).orElse(Lifecycle.experimental());
+         return new RegistrationInfo(p_326161_, lifecycle);
+     });
+-    public static final List<RegistryDataLoader.RegistryData<?>> WORLDGEN_REGISTRIES = List.of(
++    public static final List<RegistryDataLoader.RegistryData<?>> WORLDGEN_REGISTRIES = net.minecraftforge.registries.DataPackRegistriesHooks.grabWorldgenRegistries(
+         new RegistryDataLoader.RegistryData<>(Registries.DIMENSION_TYPE, DimensionType.DIRECT_CODEC),
+         new RegistryDataLoader.RegistryData<>(Registries.BIOME, Biome.DIRECT_CODEC),
+         new RegistryDataLoader.RegistryData<>(Registries.CHAT_TYPE, ChatType.DIRECT_CODEC),
+@@ -130,7 +_,7 @@
+     public static final List<RegistryDataLoader.RegistryData<?>> DIMENSION_REGISTRIES = List.of(
+         new RegistryDataLoader.RegistryData<>(Registries.LEVEL_STEM, LevelStem.CODEC)
+     );
+-    public static final List<RegistryDataLoader.RegistryData<?>> SYNCHRONIZED_REGISTRIES = List.of(
++    public static final List<RegistryDataLoader.RegistryData<?>> SYNCHRONIZED_REGISTRIES = net.minecraftforge.registries.DataPackRegistriesHooks.grabSynchronizedRegistries(
+         new RegistryDataLoader.RegistryData<>(Registries.BIOME, Biome.NETWORK_CODEC),
+         new RegistryDataLoader.RegistryData<>(Registries.CHAT_TYPE, ChatType.DIRECT_CODEC),
+         new RegistryDataLoader.RegistryData<>(Registries.TRIM_PATTERN, TrimPattern.DIRECT_CODEC),
+@@ -154,6 +_,10 @@
+         new RegistryDataLoader.RegistryData<>(Registries.DIALOG, Dialog.DIRECT_CODEC)
+     );
+ 
++    public static java.util.stream.Stream<RegistryDataLoader.RegistryData<?>> getWorldGenAndDimensionStream() {
++        return java.util.stream.Stream.concat(RegistryDataLoader.WORLDGEN_REGISTRIES.stream(), RegistryDataLoader.DIMENSION_REGISTRIES.stream());
++    }
++
+     public static RegistryAccess.Frozen load(
+         ResourceManager p_252046_, List<HolderLookup.RegistryLookup<?>> p_250344_, List<RegistryDataLoader.RegistryData<?>> p_366741_
+     ) {
+@@ -270,7 +_,7 @@
+ 
+     private static <E> void loadElementFromResource(
+         WritableRegistry<E> p_330991_,
+-        Decoder<E> p_333909_,
++        Decoder<Optional<E>> p_333909_,
+         RegistryOps<JsonElement> p_332135_,
+         ResourceKey<E> p_332850_,
+         Resource p_335244_,
+@@ -278,7 +_,23 @@
+     ) throws IOException {
+         try (Reader reader = p_335244_.openAsReader()) {
+             JsonElement jsonelement = StrictJsonParser.parse(reader);
+-            DataResult<E> dataresult = p_333909_.parse(p_332135_, jsonelement);
++
++            var result = p_333909_.decode(p_332135_, jsonelement);
++
++            if (result.isError()) {
++                LOGGER.error("Couldn't parse data file {}: {}", p_332850_, result.error().get().message());
++                throw new IllegalStateException("Couldn't parse data file " + p_332850_ + ": " + result.error().get().message());
++            }
++
++            var mappedResult = result.result().map(a -> a.getFirst());
++
++            if (mappedResult.get().isEmpty()) {
++                LOGGER.debug("Skipping {} conditions not met", p_332850_);
++                return;
++            }
++
++            DataResult<E> dataresult = result.map(p -> p.mapFirst(Optional::get)).map(p -> p.getFirst());
++
+             E e = dataresult.getOrThrow();
+             p_330991_.register(p_332850_, e, p_332222_);
+         }
+@@ -293,6 +_,7 @@
+     ) {
+         FileToIdConverter filetoidconverter = FileToIdConverter.registry(p_331358_.key());
+         RegistryOps<JsonElement> registryops = RegistryOps.create(JsonOps.INSTANCE, p_333035_);
++        Decoder<Optional<E>> conditional = net.minecraftforge.common.crafting.conditions.ConditionCodec.wrap(p_329404_);
+ 
+         for (Entry<ResourceLocation, Resource> entry : filetoidconverter.listMatchingResources(p_335634_).entrySet()) {
+             ResourceLocation resourcelocation = entry.getKey();
+@@ -301,7 +_,7 @@
+             RegistrationInfo registrationinfo = REGISTRATION_INFO_CACHE.apply(resource.knownPackInfo());
+ 
+             try {
+-                loadElementFromResource(p_331358_, p_329404_, registryops, resourcekey, resource, registrationinfo);
++                loadElementFromResource(p_331358_, conditional, registryops, resourcekey, resource, registrationinfo);
+             } catch (Exception exception) {
+                 p_335074_.put(
+                     resourcekey,
+@@ -324,7 +_,8 @@
+         RegistryDataLoader.NetworkedRegistryData registrydataloader$networkedregistrydata = p_331925_.get(p_332518_.key());
+         if (registrydataloader$networkedregistrydata != null) {
+             RegistryOps<Tag> registryops = RegistryOps.create(NbtOps.INSTANCE, p_329253_);
+-            RegistryOps<JsonElement> registryops1 = RegistryOps.create(JsonOps.INSTANCE, p_329253_);
++            RegistryOps<JsonElement> registryops1 = net.minecraftforge.common.crafting.conditions.ICondition.IContext.TAGS_INVALID.wrap(RegistryOps.create(JsonOps.INSTANCE, p_329253_));
++            Decoder<Optional<E>> conditional = net.minecraftforge.common.crafting.conditions.ConditionCodec.wrap(p_328898_);
+             FileToIdConverter filetoidconverter = FileToIdConverter.registry(p_332518_.key());
+ 
+             for (RegistrySynchronization.PackedRegistryEntry registrysynchronization$packedregistryentry : registrydataloader$networkedregistrydata.elements) {
+@@ -346,7 +_,7 @@
+ 
+                     try {
+                         Resource resource = p_332010_.getResourceOrThrow(resourcelocation);
+-                        loadElementFromResource(p_332518_, p_328898_, registryops1, resourcekey, resource, NETWORK_REGISTRATION_INFO);
++                        loadElementFromResource(p_332518_, conditional, registryops1, resourcekey, resource, NETWORK_REGISTRATION_INFO);
+                     } catch (Exception exception1) {
+                         p_335768_.put(resourcekey, new IllegalStateException("Failed to parse local data", exception1));
+                     }

@@ -1,0 +1,64 @@
+--- a/net/minecraft/data/recipes/RecipeProvider.java
++++ b/net/minecraft/data/recipes/RecipeProvider.java
+@@ -759,7 +_,7 @@
+         RecipeBuilder create(RecipeProvider p_363045_, ItemLike p_362746_, ItemLike p_364674_);
+     }
+ 
+-    protected abstract static class Runner implements DataProvider {
++    public abstract static class Runner implements DataProvider {
+         private final PackOutput packOutput;
+         private final CompletableFuture<HolderLookup.Provider> registries;
+ 
+@@ -779,13 +_,13 @@
+                         final List<CompletableFuture<?>> list = new ArrayList<>();
+                         RecipeOutput recipeoutput = new RecipeOutput() {
+                             @Override
+-                            public void accept(ResourceKey<Recipe<?>> p_361204_, Recipe<?> p_363495_, @Nullable AdvancementHolder p_364191_) {
++                            public void accept(ResourceKey<Recipe<?>> p_361204_, Recipe<?> p_363495_, @Nullable net.minecraft.resources.ResourceLocation advancementId, @Nullable com.google.gson.JsonElement advancement) {
+                                 if (!set.add(p_361204_)) {
+                                     throw new IllegalStateException("Duplicate recipe " + p_361204_.location());
+                                 } else {
+                                     this.saveRecipe(p_361204_, p_363495_);
+-                                    if (p_364191_ != null) {
+-                                        this.saveAdvancement(p_364191_);
++                                    if (advancement != null && advancementId != null) {
++                                        this.saveAdvancement(advancementId, advancement);
+                                     }
+                                 }
+                             }
+@@ -800,7 +_,9 @@
+                                 AdvancementHolder advancementholder = Advancement.Builder.recipeAdvancement()
+                                     .addCriterion("impossible", CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
+                                     .build(RecipeBuilder.ROOT_RECIPE_ADVANCEMENT);
+-                                this.saveAdvancement(advancementholder);
++                                var ops = registry().createSerializationContext(com.mojang.serialization.JsonOps.INSTANCE);
++                                var json = Advancement.CODEC.encodeStart(ops, advancementholder.value()).getOrThrow(IllegalStateException::new);
++                                this.saveAdvancement(advancementholder.id(), json);
+                             }
+ 
+                             private void saveRecipe(ResourceKey<Recipe<?>> p_368864_, Recipe<?> p_368184_) {
+@@ -811,16 +_,19 @@
+                                 );
+                             }
+ 
+-                            private void saveAdvancement(AdvancementHolder p_361824_) {
++                            private void saveAdvancement(net.minecraft.resources.ResourceLocation id, com.google.gson.JsonElement advancement) {
+                                 list.add(
+                                     DataProvider.saveStable(
+                                         p_363906_,
+-                                        p_362805_,
+-                                        Advancement.CODEC,
+-                                        p_361824_.value(),
+-                                        packoutput$pathprovider1.json(p_361824_.id())
++                                        advancement,
++                                        packoutput$pathprovider1.json(id)
+                                     )
+                                 );
++                            }
++
++                            @Override
++                            public HolderLookup.Provider registry() {
++                                return p_362805_;
+                             }
+                         };
+                         this.createRecipeProvider(p_362805_, recipeoutput).buildRecipes();

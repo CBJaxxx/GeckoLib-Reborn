@@ -1,0 +1,57 @@
+--- a/net/minecraft/world/entity/animal/SnowGolem.java
++++ b/net/minecraft/world/entity/animal/SnowGolem.java
+@@ -42,7 +_,7 @@
+ import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+ import net.minecraft.world.phys.Vec3;
+ 
+-public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackMob {
++public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackMob, net.minecraftforge.common.IForgeShearable {
+     private static final EntityDataAccessor<Byte> DATA_PUMPKIN_ID = SynchedEntityData.defineId(SnowGolem.class, EntityDataSerializers.BYTE);
+     private static final byte PUMPKIN_FLAG = 16;
+     private static final boolean DEFAULT_PUMPKIN = true;
+@@ -95,7 +_,7 @@
+                 this.hurtServer(serverlevel, this.damageSources().onFire(), 1.0F);
+             }
+ 
+-            if (!serverlevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
++            if (!net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(serverlevel, this)) {
+                 return;
+             }
+ 
+@@ -106,7 +_,7 @@
+                 int k = Mth.floor(this.getY());
+                 int l = Mth.floor(this.getZ() + (i / 2 % 2 * 2 - 1) * 0.25F);
+                 BlockPos blockpos = new BlockPos(j, k, l);
+-                if (this.level().getBlockState(blockpos).isAir() && blockstate.canSurvive(this.level(), blockpos)) {
++                if (this.level().isEmptyBlock(blockpos) && blockstate.canSurvive(this.level(), blockpos)) {
+                     this.level().setBlockAndUpdate(blockpos, blockstate);
+                     this.level().gameEvent(GameEvent.BLOCK_PLACE, blockpos, GameEvent.Context.of(this, blockstate));
+                 }
+@@ -136,7 +_,7 @@
+     @Override
+     protected InteractionResult mobInteract(Player p_29920_, InteractionHand p_29921_) {
+         ItemStack itemstack = p_29920_.getItemInHand(p_29921_);
+-        if (itemstack.is(Items.SHEARS) && this.readyForShearing()) {
++        if (false && itemstack.is(Items.SHEARS) && this.readyForShearing()) { //Forge: Moved to onSheared
+             if (this.level() instanceof ServerLevel serverlevel) {
+                 this.shear(serverlevel, SoundSource.PLAYERS, itemstack);
+                 this.gameEvent(GameEvent.SHEAR, p_29920_);
+@@ -196,4 +_,18 @@
+     public Vec3 getLeashOffset() {
+         return new Vec3(0.0, 0.75F * this.getEyeHeight(), this.getBbWidth() * 0.4F);
+     }
++
++    @org.jetbrains.annotations.NotNull
++    @Override
++    public java.util.List<ItemStack> onSheared(@Nullable Player player, @org.jetbrains.annotations.NotNull ItemStack item, Level world, BlockPos pos, int fortune) {
++        world.playSound(null, this, SoundEvents.SNOW_GOLEM_SHEAR, player == null ? SoundSource.BLOCKS : SoundSource.PLAYERS, 1.0F, 1.0F);
++        this.gameEvent(GameEvent.SHEAR, player);
++        if (!world.isClientSide() && world instanceof ServerLevel server) {
++            setPumpkin(false);
++            var ret = new java.util.ArrayList<ItemStack>();
++            this.dropFromShearingLootTable(server, BuiltInLootTables.SHEAR_SNOW_GOLEM, item, (slevel, stack) -> ret.add(stack));
++            return ret;
++        }
++        return java.util.Collections.emptyList();
++     }
+ }

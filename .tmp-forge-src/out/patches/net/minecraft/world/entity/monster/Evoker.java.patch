@@ -1,0 +1,11 @@
+--- a/net/minecraft/world/entity/monster/Evoker.java
++++ b/net/minecraft/world/entity/monster/Evoker.java
+@@ -283,7 +_,7 @@
+                 return false;
+             } else {
+                 ServerLevel serverlevel = getServerLevel(Evoker.this.level());
+-                if (!serverlevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
++                if (!net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(serverlevel, Evoker.this)) {
+                     return false;
+                 } else {
+                     List<Sheep> list = serverlevel.getNearbyEntities(Sheep.class, this.wololoTargeting, Evoker.this, Evoker.this.getBoundingBox().inflate(16.0, 4.0, 16.0));

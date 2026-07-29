@@ -1,0 +1,31 @@
+--- a/net/minecraft/client/renderer/entity/EntityRenderer.java
++++ b/net/minecraft/client/renderer/entity/EntityRenderer.java
+@@ -113,8 +_,9 @@
+             }
+         }
+ 
+-        if (p_370221_.nameTag != null) {
+-            this.renderNameTag(p_370221_, p_370221_.nameTag, p_114488_, p_114489_, p_114490_);
++        var event = net.minecraftforge.client.event.ForgeEventFactoryClient.fireRenderNameTagEvent(p_370221_, p_370221_.nameTag, this, p_114488_, p_114489_, p_114490_);
++        if (!event.getResult().isDenied() && (event.getResult().isAllowed() || p_370221_.nameTag != null)) {
++           this.renderNameTag(p_370221_, event.getContent(), p_114488_, p_114489_, p_114490_);
+         }
+     }
+ 
+@@ -252,7 +_,7 @@
+         }
+ 
+         p_367427_.distanceToCameraSq = this.entityRenderDispatcher.distanceToSqr(p_367571_);
+-        boolean flag1 = p_367427_.distanceToCameraSq < 4096.0 && this.shouldShowName(p_367571_, p_367427_.distanceToCameraSq);
++        boolean flag1 = net.minecraftforge.client.ForgeHooksClient.isNameplateInRenderDistance(p_367571_, p_367427_.distanceToCameraSq) && this.shouldShowName(p_367571_, p_367427_.distanceToCameraSq);
+         if (flag1) {
+             p_367427_.nameTag = this.getNameTag(p_367571_);
+             p_367427_.nameTagAttachment = p_367571_.getAttachments().getNullable(EntityAttachment.NAME_TAG, 0, p_367571_.getYRot(p_363243_));
+@@ -387,6 +_,7 @@
+     }
+ 
+     protected void extractAdditionalHitboxes(T p_392955_, Builder<HitboxRenderState> p_395671_, float p_395030_) {
++        net.minecraft.client.renderer.entity.EnderDragonRenderer.extractAdditionalHitboxexGeneric(p_392955_, p_395671_, p_395030_); // Forge: Extract for our generic multi-part entity system
+     }
+ 
+     @Nullable

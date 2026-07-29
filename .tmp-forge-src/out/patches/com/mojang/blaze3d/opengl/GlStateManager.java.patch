@@ -1,0 +1,32 @@
+--- a/com/mojang/blaze3d/opengl/GlStateManager.java
++++ b/com/mojang/blaze3d/opengl/GlStateManager.java
+@@ -89,6 +_,11 @@
+         }
+     }
+ 
++    public static boolean _isBlendEnabled() {
++        RenderSystem.assertOnRenderThread();
++        return BLEND.mode.enabled;
++    }
++
+     public static void _disableBlend() {
+         RenderSystem.assertOnRenderThread();
+         BLEND.mode.disable();
+@@ -404,9 +_,17 @@
+         }
+     }
+ 
++    /* Stores the last values sent into glMultiTexCoord2f */
++    public static float lastBrightnessX = 0.0f;
++    public static float lastBrightnessY = 0.0f;
++
+     public static void _texParameter(int p_393876_, int p_397998_, int p_396741_) {
+         RenderSystem.assertOnRenderThread();
+         GL11.glTexParameteri(p_393876_, p_397998_, p_396741_);
++        if (p_393876_ == GL13.GL_TEXTURE1) {
++            lastBrightnessX = p_397998_;
++            lastBrightnessY = p_396741_;
++        }
+     }
+ 
+     public static int _getTexLevelParameter(int p_393352_, int p_397204_, int p_396319_) {

@@ -1,9 +1,3 @@
-<#--
- # Optional emissive overlay for a dedicated glow texture (not the main texture).
- # Prefer a separate glow map; do not assign the main body texture here.
- # Official auto-glow alternative: AutoGlowingGeoLayer + textures named *_glowing.png
- # https://github.com/bernie-g/geckolib/wiki/Emissive-Textures-Glow-Layer
--->
 package ${package}.entity.layer;
 
 <#assign glowTex = data.mobModelGlowTexture?replace(".png", "")>

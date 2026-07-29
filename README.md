@@ -25,7 +25,7 @@ Adds GeckoLib animated block/item/entity/armor elements for:
 
 ```properties
 # gradle.properties
-mcreator_path=C:/Users/CBJaxx/IdeaProjects/MCreator
+mcreator_path=C:/Users/YourUserHere/IdeaProjects/MCreator
 org.gradle.java.home=C:/Program Files/Pylo/MCreator/jdk
 ```
 

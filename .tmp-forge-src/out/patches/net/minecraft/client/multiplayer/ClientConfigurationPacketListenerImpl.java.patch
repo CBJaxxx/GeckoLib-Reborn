@@ -1,0 +1,10 @@
+--- a/net/minecraft/client/multiplayer/ClientConfigurationPacketListenerImpl.java
++++ b/net/minecraft/client/multiplayer/ClientConfigurationPacketListenerImpl.java
+@@ -157,6 +_,7 @@
+                 return true;
+             }
+         }));
++        net.minecraftforge.common.ForgeHooks.handleClientConfigurationComplete(this.connection);
+     }
+ 
+     @Override

@@ -1,11 +1,3 @@
-<#--
- # GeckoLib 4.9.2 armor GeoModel (NeoForge 1.21.1)
- # Wiki: https://github.com/bernie-g/geckolib/wiki/Geckolib-Armor-(Geckolib4)
- #
- # Preferred: geo/item/<model>.geo.json + animations/item/<model>.animation.json
- # Plugin import also uses geo/entity/ + animations/entity/
- # Flat geo/ + animations/ as last fallback.
--->
 package ${package}.item.model;
 
 <#assign modelFile = data.model>

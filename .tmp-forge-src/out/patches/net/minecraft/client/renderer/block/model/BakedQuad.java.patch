@@ -1,0 +1,15 @@
+--- a/net/minecraft/client/renderer/block/model/BakedQuad.java
++++ b/net/minecraft/client/renderer/block/model/BakedQuad.java
+@@ -6,7 +_,11 @@
+ import net.minecraftforge.api.distmarker.OnlyIn;
+ 
+ @OnlyIn(Dist.CLIENT)
+-public record BakedQuad(int[] vertices, int tintIndex, Direction direction, TextureAtlasSprite sprite, boolean shade, int lightEmission) {
++public record BakedQuad(int[] vertices, int tintIndex, Direction direction, TextureAtlasSprite sprite, boolean shade, int lightEmission, boolean ambientOcclusion) {
++    public BakedQuad(int[] vertices, int tintIndex, Direction direction, TextureAtlasSprite sprite, boolean shade, int lightEmission) {
++        this(vertices, tintIndex, direction, sprite, shade, lightEmission, true);
++    }
++
+     public boolean isTinted() {
+         return this.tintIndex != -1;
+     }

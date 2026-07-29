@@ -1,0 +1,32 @@
+--- a/net/minecraft/world/level/biome/BiomeGenerationSettings.java
++++ b/net/minecraft/world/level/biome/BiomeGenerationSettings.java
+@@ -99,6 +_,17 @@
+         protected final List<Holder<ConfiguredWorldCarver<?>>> carvers = new ArrayList<>();
+         protected final List<List<Holder<PlacedFeature>>> features = new ArrayList<>();
+ 
++        public BiomeGenerationSettings.PlainBuilder addFrom(BiomeGenerationSettings other) {
++            for (var carver : other.getCarvers())
++                addCarver(carver);
++            var stages = other.features();
++            for (int x = 0; x < stages.size(); x++) {
++                for (var feature : stages.get(x))
++                    addFeature(x, feature);
++            }
++            return this;
++        }
++
+         public BiomeGenerationSettings.PlainBuilder addFeature(GenerationStep.Decoration p_256360_, Holder<PlacedFeature> p_256577_) {
+             return this.addFeature(p_256360_.ordinal(), p_256577_);
+         }
+@@ -107,6 +_,11 @@
+             this.addFeatureStepsUpTo(p_256305_);
+             this.features.get(p_256305_).add(p_255636_);
+             return this;
++        }
++
++        public List<Holder<PlacedFeature>> getFeatures(GenerationStep.Decoration stage) {
++            this.addFeatureStepsUpTo(stage.ordinal());
++            return this.features.get(stage.ordinal());
+         }
+ 
+         public BiomeGenerationSettings.PlainBuilder addCarver(Holder<ConfiguredWorldCarver<?>> p_256082_) {

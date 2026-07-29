@@ -1,0 +1,33 @@
+--- a/net/minecraft/world/level/material/Fluid.java
++++ b/net/minecraft/world/level/material/Fluid.java
+@@ -24,7 +_,7 @@
+ import net.minecraft.world.phys.Vec3;
+ import net.minecraft.world.phys.shapes.VoxelShape;
+ 
+-public abstract class Fluid {
++public abstract class Fluid implements net.minecraftforge.common.extensions.IForgeFluid {
+     public static final IdMapper<FluidState> FLUID_STATE_REGISTRY = new IdMapper<>();
+     protected final StateDefinition<Fluid, FluidState> stateDefinition;
+     private FluidState defaultFluidState;
+@@ -64,6 +_,8 @@
+     }
+ 
+     protected void entityInside(Level p_394813_, BlockPos p_394655_, Entity p_396881_, InsideBlockEffectApplier p_395108_) {
++        if (p_396881_.canFluidExtinguish(getFluidType()))
++            p_395108_.apply(net.minecraft.world.entity.InsideBlockEffectType.EXTINGUISH);
+     }
+ 
+     @Nullable
+@@ -132,5 +_,12 @@
+     @Deprecated
+     public Holder.Reference<Fluid> builtInRegistryHolder() {
+         return this.builtInRegistryHolder;
++    }
++
++    private net.minecraftforge.fluids.FluidType forgeFluidType;
++    @Override
++    public net.minecraftforge.fluids.FluidType getFluidType() {
++       if (forgeFluidType == null) forgeFluidType = net.minecraftforge.common.ForgeHooks.getVanillaFluidType(this);
++       return forgeFluidType;
+     }
+ }

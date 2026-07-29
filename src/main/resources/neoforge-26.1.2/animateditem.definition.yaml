@@ -1,0 +1,38 @@
+global_templates:
+  # Only when an animated item uses first-person arm bones (unused by default G5 renderer)
+  - template: aitem/firstperson/anim_utils.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/utils/AnimUtils.java"
+    condition: "${w.getGElementsOfType('animateditem')?filter(e -> e.firstPersonArms)?size != 0}"
+  - template: aitem/animation_sync_factory.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/init/ItemAnimationFactory.java"
+
+templates:
+  - template: aitem/item.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/item/@NAMEItem.java"
+  - template: aitem/item_container.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/item/inventory/@NAMEInventoryCapability.java"
+    condition: hasInventory()
+  - template: aitem/item_model.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/item/model/@NAMEItemModel.java"
+  - template: aitem/item_renderer.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/item/renderer/@NAMEItemRenderer.java"
+  # NeoForge 26.1: RegisterClientExtensionsEvent (arm pose / disable swing)
+  - template: aitem/item_client.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/client/renderer/item/@NAMEItemClient.java"
+    condition: "${data.enableArmPose || data.disableSwing}"
+
+  - template: ajson/item.json.ftl
+    writer: json
+    name: "@MODASSETSROOT/models/item/@registryname.json"
+  # NeoForge 26.1 client item definition → GeckoLib special renderer
+  - template: ajson/model_item_geckolib.json.ftl
+    writer: json
+    name: "@MODASSETSROOT/items/@registryname.json"
+
+localizationkeys:
+  - key: item.@modid.@registryname
+    mapto: name
+
+tags:
+  - tag: ITEMS:minecraft:wolf_food
+    condition: "${data.isFood && data.isMeat}"

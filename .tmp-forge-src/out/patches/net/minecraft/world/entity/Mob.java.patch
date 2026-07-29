@@ -1,0 +1,167 @@
+--- a/net/minecraft/world/entity/Mob.java
++++ b/net/minecraft/world/entity/Mob.java
+@@ -127,6 +_,9 @@
+     private Leashable.LeashData leashData;
+     private BlockPos homePosition = BlockPos.ZERO;
+     private int homeRadius = -1;
++    @Nullable
++    private EntitySpawnReason spawnReason;
++    private boolean spawnCancelled = false;
+ 
+     protected Mob(EntityType<? extends Mob> p_21368_, Level p_21369_) {
+         super(p_21368_, p_21369_);
+@@ -223,7 +_,10 @@
+     }
+ 
+     public void setTarget(@Nullable LivingEntity p_21544_) {
+-        this.target = p_21544_;
++        var event = net.minecraftforge.event.ForgeEventFactory.onLivingChangeTargetMob(this, p_21544_);
++        if (event != null) {
++            this.target = event.getNewTarget();
++        }
+     }
+ 
+     @Override
+@@ -363,6 +_,10 @@
+         if (this.isNoAi()) {
+             p_409238_.putBoolean("NoAI", this.isNoAi());
+         }
++
++        if (this.spawnReason != null) {
++            p_409238_.putString("forge:spawn_type", this.spawnReason.name());
++        }
+     }
+ 
+     @Override
+@@ -381,6 +_,13 @@
+         this.lootTable = p_408489_.read("DeathLootTable", LootTable.KEY_CODEC);
+         this.lootTableSeed = p_408489_.getLongOr("DeathLootTableSeed", 0L);
+         this.setNoAi(p_408489_.getBooleanOr("NoAI", false));
++
++        p_408489_.getString("forge:spawn_type").ifPresent(type -> {
++            try {
++                this.spawnReason = EntitySpawnReason.valueOf(type);
++            } catch (Exception ex) {
++            }
++        });
+     }
+ 
+     @Override
+@@ -435,7 +_,7 @@
+             && this.canPickUpLoot()
+             && this.isAlive()
+             && !this.dead
+-            && serverlevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
++            && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(serverlevel, this)) {
+             Vec3i vec3i = this.getPickupReach();
+ 
+             for (ItemEntity itementity : this.level()
+@@ -600,6 +_,14 @@
+             this.discard();
+         } else if (!this.isPersistenceRequired() && !this.requiresCustomPersistence()) {
+             Entity entity = this.level().getNearestPlayer(this, -1.0);
++            var result = net.minecraftforge.event.ForgeEventFactory.canEntityDespawn(this, (ServerLevel)this.level());
++            if (result.isDenied()) {
++                noActionTime = 0;
++                entity = null;
++            } else if (result.isAllowed()) {
++                this.discard();
++                entity = null;
++            }
+             if (entity != null) {
+                 double d0 = entity.distanceToSqr(this);
+                 int i = this.getType().getCategory().getDespawnDistance();
+@@ -994,6 +_,16 @@
+         }
+     }
+ 
++    /**
++     * Forge: Override-Only, call via ForgeEventFactory.onFinalizeSpawn.<br>
++     * Overrides are allowed. Do not wrap super calls within override (as that will cause stack overflows).<br>
++     * Vanilla calls are replaced with a transformer, and are not visible in source.<br>
++     * <p>
++     * Be certain to either call super.finalizeSpawn or set the {@link #spawnReason} field from within your override.
++     * @see {@link net.minecraftforge.event.ForgeEventFactory#onFinalizeSpawn onFinalizeSpawn} for additional documentation.
++     */
++    @Deprecated
++    @org.jetbrains.annotations.ApiStatus.OverrideOnly
+     @Nullable
+     public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_21434_, DifficultyInstance p_21435_, EntitySpawnReason p_369316_, @Nullable SpawnGroupData p_21437_) {
+         RandomSource randomsource = p_21434_.getRandom();
+@@ -1005,6 +_,7 @@
+         }
+ 
+         this.setLeftHanded(randomsource.nextFloat() < 0.05F);
++        this.spawnReason = p_369316_;
+         return p_21437_;
+     }
+ 
+@@ -1314,15 +_,25 @@
+         return false;
+     }
+ 
++    @Deprecated // FORGE: use jumpInFluid instead
+     @Override
+     protected void jumpInLiquid(TagKey<Fluid> p_204045_) {
++        this.jumpInLiquidInternal(() -> super.jumpInLiquid(p_204045_));
++    }
++
++    private void jumpInLiquidInternal(Runnable onSuper) {
+         if (this.getNavigation().canFloat()) {
+-            super.jumpInLiquid(p_204045_);
++            onSuper.run();
+         } else {
+             this.setDeltaMovement(this.getDeltaMovement().add(0.0, 0.3, 0.0));
+         }
+     }
+ 
++    @Override
++    public void jumpInFluid(net.minecraftforge.fluids.FluidType type) {
++       this.jumpInLiquidInternal(() -> super.jumpInFluid(type));
++    }
++
+     @VisibleForTesting
+     public void removeFreeWill() {
+         this.removeAllGoals(p_341273_ -> true);
+@@ -1350,6 +_,41 @@
+     public ItemStack getPickResult() {
+         SpawnEggItem spawneggitem = SpawnEggItem.byId(this.getType());
+         return spawneggitem == null ? null : new ItemStack(spawneggitem);
++    }
++
++    /**
++    * Returns the type of spawn that created this mob, if applicable.
++    * If it could not be determined, this will return null.
++    * <p>
++    * This is set via {@link Mob#finalizeSpawn}, so you should not call this from within that method, instead using the parameter.
++    */
++    @Nullable
++    public final EntitySpawnReason getSpawnReason() {
++        return this.spawnReason;
++    }
++
++    /**
++     * This method exists so that spawns can be cancelled from the {@link net.minecraftforge.event.entity.living.MobSpawnEvent.FinalizeSpawn FinalizeSpawnEvent}
++     * without needing to hook up an additional handler for the {@link net.minecraftforge.event.entity.EntityJoinLevelEvent EntityJoinLevelEvent}.
++     * @return if this mob will be blocked from spawning during {@link Level#addFreshEntity(Entity)}
++     * @apiNote Not public-facing API.
++     */
++    @org.jetbrains.annotations.ApiStatus.Internal
++    public final boolean isSpawnCancelled() {
++        return this.spawnCancelled;
++    }
++
++    /**
++     * Marks this mob as being disallowed to spawn during {@link Level#addFreshEntity(Entity)}.<p>
++     * @throws UnsupportedOperationException if this entity has already been {@link Entity#isAddedToWorld() added to the world}.
++     * @apiNote Not public-facing API.
++     */
++    @org.jetbrains.annotations.ApiStatus.Internal
++    public final void setSpawnCancelled(boolean cancel) {
++        if (this.isAddedToWorld()) {
++            throw new UnsupportedOperationException("Late invocations of Mob#setSpawnCancelled are not permitted.");
++        }
++        this.spawnCancelled = cancel;
+     }
+ 
+     @Override

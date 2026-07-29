@@ -1,0 +1,148 @@
+--- a/net/minecraft/client/particle/ParticleEngine.java
++++ b/net/minecraft/client/particle/ParticleEngine.java
+@@ -72,10 +_,10 @@
+     private static final int MAX_PARTICLES_PER_LAYER = 16384;
+     private static final List<ParticleRenderType> RENDER_ORDER = List.of(ParticleRenderType.TERRAIN_SHEET, ParticleRenderType.PARTICLE_SHEET_OPAQUE, ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT);
+     protected ClientLevel level;
+-    private final Map<ParticleRenderType, Queue<Particle>> particles = Maps.newIdentityHashMap();
++    private final Map<ParticleRenderType, Queue<Particle>> particles = Maps.newTreeMap(net.minecraftforge.client.ForgeHooksClient.makeParticleRenderTypeComparator(RENDER_ORDER));
+     private final Queue<TrackingEmitter> trackingEmitters = Queues.newArrayDeque();
+     private final RandomSource random = RandomSource.create();
+-    private final Int2ObjectMap<ParticleProvider<?>> providers = new Int2ObjectOpenHashMap<>();
++    private final Map<ResourceLocation, ParticleProvider<?>> providers = new java.util.HashMap<>();
+     private final Queue<Particle> particlesToAdd = Queues.newArrayDeque();
+     private final Map<ResourceLocation, ParticleEngine.MutableSpriteSet> spriteSets = Maps.newHashMap();
+     private final TextureAtlas textureAtlas;
+@@ -205,10 +_,14 @@
+         this.register(ParticleTypes.FIREFLY, FireflyParticle.FireflyProvider::new);
+     }
+ 
++    /** @deprecated Register via {@link net.minecraftforge.client.event.RegisterParticleProvidersEvent} */
++    @Deprecated
+     public <T extends ParticleOptions> void register(ParticleType<T> p_107382_, ParticleProvider<T> p_107383_) {
+-        this.providers.put(BuiltInRegistries.PARTICLE_TYPE.getId(p_107382_), p_107383_);
++        this.providers.put(BuiltInRegistries.PARTICLE_TYPE.getKey(p_107382_), p_107383_);
+     }
+ 
++    /** @deprecated Register via {@link net.minecraftforge.client.event.RegisterParticleProvidersEvent} */
++    @Deprecated
+     public <T extends ParticleOptions> void register(ParticleType<T> p_273423_, ParticleProvider.Sprite<T> p_273134_) {
+         this.register(
+             p_273423_,
+@@ -225,10 +_,12 @@
+         );
+     }
+ 
++    /** @deprecated Register via {@link net.minecraftforge.client.event.RegisterParticleProvidersEvent} */
++    @Deprecated
+     public <T extends ParticleOptions> void register(ParticleType<T> p_107379_, ParticleEngine.SpriteParticleRegistration<T> p_107380_) {
+         ParticleEngine.MutableSpriteSet particleengine$mutablespriteset = new ParticleEngine.MutableSpriteSet();
+         this.spriteSets.put(BuiltInRegistries.PARTICLE_TYPE.getKey(p_107379_), particleengine$mutablespriteset);
+-        this.providers.put(BuiltInRegistries.PARTICLE_TYPE.getId(p_107379_), p_107380_.create(particleengine$mutablespriteset));
++        this.providers.put(BuiltInRegistries.PARTICLE_TYPE.getKey(p_107379_), p_107380_.create(particleengine$mutablespriteset));
+     }
+ 
+     @Override
+@@ -348,7 +_,7 @@
+     private <T extends ParticleOptions> Particle makeParticle(
+         T p_107396_, double p_107397_, double p_107398_, double p_107399_, double p_107400_, double p_107401_, double p_107402_
+     ) {
+-        ParticleProvider<T> particleprovider = (ParticleProvider<T>)this.providers.get(BuiltInRegistries.PARTICLE_TYPE.getId(p_107396_.getType()));
++        ParticleProvider<T> particleprovider = (ParticleProvider<T>)this.providers.get(BuiltInRegistries.PARTICLE_TYPE.getKey(p_107396_.getType()));
+         return particleprovider == null
+             ? null
+             : particleprovider.createParticle(p_107396_, this.level, p_107397_, p_107398_, p_107399_, p_107400_, p_107401_, p_107402_);
+@@ -424,28 +_,36 @@
+         }
+     }
+ 
++    /**@deprecated Forge: use {@link #render(Camera, float, net.minecraft.client.renderer.culling.Frustum)} with Frustum as additional parameter*/
++    @Deprecated
+     public void render(Camera p_107340_, float p_107341_, MultiBufferSource.BufferSource p_377798_) {
+-        for (ParticleRenderType particlerendertype : RENDER_ORDER) {
++        render(p_107340_, p_107341_, p_377798_, null);
++    }
++
++    public void render(Camera p_107340_, float p_107341_, MultiBufferSource.BufferSource p_377798_, @Nullable net.minecraft.client.renderer.culling.Frustum frustum) {
++        for (ParticleRenderType particlerendertype : this.particles.keySet()) { // Forge: allow custom IParticleRenderType's
++            if (particlerendertype.renderType() == null) continue;
+             Queue<Particle> queue = this.particles.get(particlerendertype);
+             if (queue != null && !queue.isEmpty()) {
+-                renderParticleType(p_107340_, p_107341_, p_377798_, particlerendertype, queue);
++                renderParticleType(p_107340_, p_107341_, p_377798_, particlerendertype, queue, frustum);
+             }
+         }
+ 
+         Queue<Particle> queue1 = this.particles.get(ParticleRenderType.CUSTOM);
+         if (queue1 != null && !queue1.isEmpty()) {
+-            renderCustomParticles(p_107340_, p_107341_, p_377798_, queue1);
++            renderCustomParticles(p_107340_, p_107341_, p_377798_, queue1, frustum);
+         }
+ 
+         p_377798_.endBatch();
+     }
+ 
+     private static void renderParticleType(
+-        Camera p_376120_, float p_375470_, MultiBufferSource.BufferSource p_377543_, ParticleRenderType p_378369_, Queue<Particle> p_376283_
++        Camera p_376120_, float p_375470_, MultiBufferSource.BufferSource p_377543_, ParticleRenderType p_378369_, Queue<Particle> p_376283_, @Nullable net.minecraft.client.renderer.culling.Frustum frustum
+     ) {
+         VertexConsumer vertexconsumer = p_377543_.getBuffer(Objects.requireNonNull(p_378369_.renderType()));
+ 
+         for (Particle particle : p_376283_) {
++            if (frustum != null && particle.shouldCull() && !frustum.isVisible(particle.getBoundingBox())) continue;
+             try {
+                 particle.render(vertexconsumer, p_376120_, p_375470_);
+             } catch (Throwable throwable) {
+@@ -458,10 +_,11 @@
+         }
+     }
+ 
+-    private static void renderCustomParticles(Camera p_377913_, float p_376893_, MultiBufferSource.BufferSource p_376978_, Queue<Particle> p_375784_) {
++    private static void renderCustomParticles(Camera p_377913_, float p_376893_, MultiBufferSource.BufferSource p_376978_, Queue<Particle> p_375784_, @Nullable net.minecraft.client.renderer.culling.Frustum frustum) {
+         PoseStack posestack = new PoseStack();
+ 
+         for (Particle particle : p_375784_) {
++            if (frustum != null && particle.shouldCull() && !frustum.isVisible(particle.getBoundingBox())) continue;
+             try {
+                 particle.renderCustom(posestack, p_376978_, p_377913_, p_376893_);
+             } catch (Throwable throwable) {
+@@ -481,7 +_,7 @@
+     }
+ 
+     public void destroy(BlockPos p_107356_, BlockState p_107357_) {
+-        if (!p_107357_.isAir() && p_107357_.shouldSpawnTerrainParticles()) {
++        if (!p_107357_.isAir() && !net.minecraftforge.client.extensions.common.IClientBlockExtensions.of(p_107357_).addDestroyEffects(p_107357_, this.level, p_107356_, this)) {
+             VoxelShape voxelshape = p_107357_.getShape(this.level, p_107356_);
+             double d0 = 0.25;
+             voxelshape.forAllBoxes(
+@@ -514,6 +_,7 @@
+                                         p_107357_,
+                                         p_107356_
+                                     )
++                                    .updateSprite(p_107357_, p_107356_)
+                                 );
+                             }
+                         }
+@@ -523,6 +_,13 @@
+         }
+     }
+ 
++    public void addBlockHitEffects(BlockPos pos, net.minecraft.world.phys.BlockHitResult target) {
++        var state = level.getBlockState(pos);
++        if (!net.minecraftforge.client.extensions.common.IClientBlockExtensions.of(state).addHitEffects(state, level, target, this))
++            crack(pos, target.getDirection());
++    }
++
++    @Deprecated // Forge - Use addBlockHitEffects as it has more context and gives more control to modders
+     public void crack(BlockPos p_107368_, Direction p_107369_) {
+         BlockState blockstate = this.level.getBlockState(p_107368_);
+         if (blockstate.getRenderShape() != RenderShape.INVISIBLE && blockstate.shouldSpawnTerrainParticles()) {
+@@ -558,7 +_,7 @@
+                 d0 = i + aabb.maxX + 0.1F;
+             }
+ 
+-            this.add(new TerrainParticle(this.level, d0, d1, d2, 0.0, 0.0, 0.0, blockstate, p_107368_).setPower(0.2F).scale(0.6F));
++            this.add(new TerrainParticle(this.level, d0, d1, d2, 0.0, 0.0, 0.0, blockstate, p_107368_).updateSprite(blockstate, p_107368_).setPower(0.2F).scale(0.6F));
+         }
+     }
+ 

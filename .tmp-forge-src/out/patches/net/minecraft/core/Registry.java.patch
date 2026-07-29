@@ -1,0 +1,10 @@
+--- a/net/minecraft/core/Registry.java
++++ b/net/minecraft/core/Registry.java
+@@ -180,5 +_,7 @@
+         void apply();
+ 
+         int size();
++
++        List<Holder<T>> getPending(TagKey<T> key);
+     }
+ }

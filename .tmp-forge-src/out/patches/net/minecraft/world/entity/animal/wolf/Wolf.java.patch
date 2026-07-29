@@ -1,0 +1,11 @@
+--- a/net/minecraft/world/entity/animal/wolf/Wolf.java
++++ b/net/minecraft/world/entity/animal/wolf/Wolf.java
+@@ -503,7 +_,7 @@
+     }
+ 
+     private void tryToTame(Player p_397321_) {
+-        if (this.random.nextInt(3) == 0) {
++        if (this.random.nextInt(3) == 0 && !net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, p_397321_)) {
+             this.tame(p_397321_);
+             this.navigation.stop();
+             this.setTarget(null);

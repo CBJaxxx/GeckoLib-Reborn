@@ -1,0 +1,31 @@
+--- a/net/minecraft/server/level/ServerChunkCache.java
++++ b/net/minecraft/server/level/ServerChunkCache.java
+@@ -205,6 +_,10 @@
+             if (chunkholder == null) {
+                 return null;
+             } else {
++                // Forge: If the requested chunk is loading, bypass the future chain to prevent a deadlock.
++                if (chunkholder.currentlyLoading != null) {
++                    return chunkholder.currentlyLoading;
++                }
+                 ChunkAccess chunkaccess1 = chunkholder.getChunkIfPresent(ChunkStatus.FULL);
+                 if (chunkaccess1 != null) {
+                     this.storeInCache(i, chunkaccess1, ChunkStatus.FULL);
+@@ -624,5 +_,17 @@
+                 return super.pollTask();
+             }
+         }
++    }
++
++    /** @deprecated Use {@link #addTicketWithRadius(TicketType, ChunkPos, int)} with {@link TicketType#FORCED} */
++    @Deprecated(forRemoval = true, since = "1.21.5")
++    public void addRegionTicket(TicketType type, ChunkPos pos, int ticketLevel, boolean forceTicks) {
++        this.addTicketWithRadius(forceTicks ? TicketType.FORCED : type, pos, ticketLevel);
++    }
++
++    /** @deprecated Use {@link #removeTicketWithRadius(TicketType, ChunkPos, int)} with {@link TicketType#FORCED} */
++    @Deprecated(forRemoval = true, since = "1.21.5")
++    public void removeRegionTicket(TicketType type, ChunkPos pos, int ticketLevel, boolean forceTicks) {
++        this.removeTicketWithRadius(forceTicks ? TicketType.FORCED : type, pos, ticketLevel);
+     }
+ }

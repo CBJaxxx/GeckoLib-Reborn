@@ -1,0 +1,21 @@
+--- a/net/minecraft/world/entity/EntityEquipment.java
++++ b/net/minecraft/world/entity/EntityEquipment.java
+@@ -50,7 +_,7 @@
+         for (Entry<EquipmentSlot, ItemStack> entry : this.items.entrySet()) {
+             ItemStack itemstack = entry.getValue();
+             if (!itemstack.isEmpty()) {
+-                itemstack.inventoryTick(p_394224_.level(), p_394224_, entry.getKey());
++                itemstack.inventoryTick(p_394224_.level(), p_394224_, entry.getKey(), -1);
+             }
+         }
+     }
+@@ -70,5 +_,9 @@
+ 
+     public void clear() {
+         this.items.replaceAll((p_393205_, p_394162_) -> ItemStack.EMPTY);
++    }
++
++    public int size() {
++        return this.items.size();
+     }
+ }

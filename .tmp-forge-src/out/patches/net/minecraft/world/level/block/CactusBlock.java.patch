@@ -1,0 +1,60 @@
+--- a/net/minecraft/world/level/block/CactusBlock.java
++++ b/net/minecraft/world/level/block/CactusBlock.java
+@@ -22,7 +_,7 @@
+ import net.minecraft.world.phys.shapes.CollisionContext;
+ import net.minecraft.world.phys.shapes.VoxelShape;
+ 
+-public class CactusBlock extends Block {
++public class CactusBlock extends Block implements net.minecraftforge.common.IPlantable {
+     public static final MapCodec<CactusBlock> CODEC = simpleCodec(CactusBlock::new);
+     public static final IntegerProperty AGE = BlockStateProperties.AGE_15;
+     public static final int MAX_AGE = 15;
+@@ -45,6 +_,7 @@
+ 
+     @Override
+     protected void tick(BlockState p_220908_, ServerLevel p_220909_, BlockPos p_220910_, RandomSource p_220911_) {
++        if (!p_220909_.isAreaLoaded(p_220910_, 1)) return; // Forge: prevent growing cactus from loading unloaded chunks with block update
+         if (!p_220908_.canSurvive(p_220909_, p_220910_)) {
+             p_220909_.destroyBlock(p_220910_, true);
+         }
+@@ -63,6 +_,7 @@
+                 }
+             }
+ 
++            if (!net.minecraftforge.common.ForgeHooks.onCropsGrowPre(p_220914_, blockpos, p_220913_, true)) return;
+             if (j == 8 && this.canSurvive(this.defaultBlockState(), p_220914_, p_220915_.above())) {
+                 double d0 = i >= 3 ? 0.25 : 0.1;
+                 if (p_220916_.nextDouble() <= d0) {
+@@ -78,6 +_,7 @@
+             if (j < 15) {
+                 p_220914_.setBlock(p_220915_, p_220913_.setValue(AGE, j + 1), 260);
+             }
++            net.minecraftforge.common.ForgeHooks.onCropsGrowPost(p_220914_, p_220915_, p_220913_);
+         }
+     }
+ 
+@@ -119,7 +_,7 @@
+         }
+ 
+         BlockState blockstate1 = p_51154_.getBlockState(p_51155_.below());
+-        return (blockstate1.is(Blocks.CACTUS) || blockstate1.is(BlockTags.SAND)) && !p_51154_.getBlockState(p_51155_.above()).liquid();
++        return blockstate1.canSustainPlant(p_51154_, p_51155_, Direction.UP, this) && !p_51154_.getBlockState(p_51155_.above()).liquid();
+     }
+ 
+     @Override
+@@ -135,5 +_,15 @@
+     @Override
+     protected boolean isPathfindable(BlockState p_51143_, PathComputationType p_51146_) {
+         return false;
++    }
++
++    @Override
++    public net.minecraftforge.common.PlantType getPlantType(BlockGetter world, BlockPos pos) {
++        return net.minecraftforge.common.PlantType.DESERT;
++    }
++
++    @Override
++    public BlockState getPlant(BlockGetter world, BlockPos pos) {
++        return defaultBlockState();
+     }
+ }

@@ -1,0 +1,10 @@
+--- a/net/minecraft/client/model/geom/LayerDefinitions.java
++++ b/net/minecraft/client/model/geom/LayerDefinitions.java
+@@ -505,6 +_,7 @@
+                 builder.put(ModelLayers.createHangingSignModelName(p_374591_, hangingsignrenderer$attachmenttype), layerdefinition60);
+             }
+         });
++        net.minecraftforge.client.ForgeHooksClient.loadLayerDefinitions(builder);
+         ImmutableMap<ModelLayerLocation, LayerDefinition> immutablemap = builder.build();
+         List<ModelLayerLocation> list = ModelLayers.getKnownLocations().filter(p_171117_ -> !immutablemap.containsKey(p_171117_)).collect(Collectors.toList());
+         if (!list.isEmpty()) {

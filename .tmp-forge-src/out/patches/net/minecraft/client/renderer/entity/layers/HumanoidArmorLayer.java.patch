@@ -1,0 +1,45 @@
+--- a/net/minecraft/client/renderer/entity/layers/HumanoidArmorLayer.java
++++ b/net/minecraft/client/renderer/entity/layers/HumanoidArmorLayer.java
+@@ -44,22 +_,23 @@
+     }
+ 
+     public void render(PoseStack p_117085_, MultiBufferSource p_117086_, int p_117087_, S p_364101_, float p_117089_, float p_117090_) {
+-        this.renderArmorPiece(p_117085_, p_117086_, p_364101_.chestEquipment, EquipmentSlot.CHEST, p_117087_, this.getArmorModel(p_364101_, EquipmentSlot.CHEST));
+-        this.renderArmorPiece(p_117085_, p_117086_, p_364101_.legsEquipment, EquipmentSlot.LEGS, p_117087_, this.getArmorModel(p_364101_, EquipmentSlot.LEGS));
+-        this.renderArmorPiece(p_117085_, p_117086_, p_364101_.feetEquipment, EquipmentSlot.FEET, p_117087_, this.getArmorModel(p_364101_, EquipmentSlot.FEET));
+-        this.renderArmorPiece(p_117085_, p_117086_, p_364101_.headEquipment, EquipmentSlot.HEAD, p_117087_, this.getArmorModel(p_364101_, EquipmentSlot.HEAD));
++        this.renderArmorPiece(p_117085_, p_117086_, p_364101_.chestEquipment, EquipmentSlot.CHEST, p_117087_, this.getArmorModel(p_364101_, EquipmentSlot.CHEST), p_364101_);
++        this.renderArmorPiece(p_117085_, p_117086_, p_364101_.legsEquipment, EquipmentSlot.LEGS, p_117087_, this.getArmorModel(p_364101_, EquipmentSlot.LEGS), p_364101_);
++        this.renderArmorPiece(p_117085_, p_117086_, p_364101_.feetEquipment, EquipmentSlot.FEET, p_117087_, this.getArmorModel(p_364101_, EquipmentSlot.FEET), p_364101_);
++        this.renderArmorPiece(p_117085_, p_117086_, p_364101_.headEquipment, EquipmentSlot.HEAD, p_117087_, this.getArmorModel(p_364101_, EquipmentSlot.HEAD), p_364101_);
+     }
+ 
+-    private void renderArmorPiece(PoseStack p_117119_, MultiBufferSource p_117120_, ItemStack p_366444_, EquipmentSlot p_117122_, int p_117123_, A p_117124_) {
++    private void renderArmorPiece(PoseStack p_117119_, MultiBufferSource p_117120_, ItemStack p_366444_, EquipmentSlot p_117122_, int p_117123_, A p_117124_, S state) {
+         Equippable equippable = p_366444_.get(DataComponents.EQUIPPABLE);
+         if (equippable != null && shouldRender(equippable, p_117122_)) {
+             this.getParentModel().copyPropertiesTo(p_117124_);
+             this.setPartVisibility(p_117124_, p_117122_);
++            var model = this.getArmorModel(state, p_117122_, p_366444_, p_117124_);
+             EquipmentClientInfo.LayerType equipmentclientinfo$layertype = this.usesInnerModel(p_117122_)
+                 ? EquipmentClientInfo.LayerType.HUMANOID_LEGGINGS
+                 : EquipmentClientInfo.LayerType.HUMANOID;
+             this.equipmentRenderer
+-                .renderLayers(equipmentclientinfo$layertype, equippable.assetId().orElseThrow(), p_117124_, p_366444_, p_117119_, p_117120_, p_117123_);
++                .renderLayers(equipmentclientinfo$layertype, equippable.assetId().orElseThrow(), model, p_366444_, p_117119_, p_117120_, p_117123_);
+         }
+     }
+ 
+@@ -96,5 +_,12 @@
+ 
+     private boolean usesInnerModel(EquipmentSlot p_117129_) {
+         return p_117129_ == EquipmentSlot.LEGS;
++    }
++
++    /**
++     * Hook to allow item-sensitive armor model. for HumanoidArmorLayer.
++     */
++    protected net.minecraft.client.model.Model getArmorModel(S state, EquipmentSlot slot, ItemStack itemStack, A _default) {
++       return net.minecraftforge.client.ForgeHooksClient.getArmorModel(state, itemStack, slot, _default);
+     }
+ }

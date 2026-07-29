@@ -1,0 +1,11 @@
+--- a/net/minecraft/core/DefaultedMappedRegistry.java
++++ b/net/minecraft/core/DefaultedMappedRegistry.java
+@@ -44,7 +_,7 @@
+     @Override
+     public T getValue(@Nullable ResourceLocation p_365640_) {
+         T t = super.getValue(p_365640_);
+-        return t == null ? this.defaultValue.value() : t;
++        return t == null && this.defaultValue != null ? this.defaultValue.value() : t; // Add null check as it errors out in validation
+     }
+ 
+     @Override

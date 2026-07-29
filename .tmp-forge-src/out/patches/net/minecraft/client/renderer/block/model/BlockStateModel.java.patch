@@ -1,0 +1,26 @@
+--- a/net/minecraft/client/renderer/block/model/BlockStateModel.java
++++ b/net/minecraft/client/renderer/block/model/BlockStateModel.java
+@@ -22,15 +_,21 @@
+ import net.minecraftforge.api.distmarker.OnlyIn;
+ 
+ @OnlyIn(Dist.CLIENT)
+-public interface BlockStateModel {
++public interface BlockStateModel extends net.minecraftforge.client.extensions.IForgeBlockStateModel {
++    /**@deprecated Forge: Use {@link net.minecraftforge.client.extensions.IForgeBlockStateModel#collectParts(RandomSource, List<BlockModelPart>, net.minecraftforge.client.model.data.ModelData, net.minecraft.client.renderer.RenderType)}*/
++    @Deprecated
+     void collectParts(RandomSource p_397689_, List<BlockModelPart> p_394710_);
+ 
++    /**@deprecated Forge: Use {@link net.minecraftforge.client.extensions.IForgeBlockStateModel#collectParts(RandomSource, net.minecraftforge.client.model.data.ModelData, net.minecraft.client.renderer.RenderType)}*/
++    @Deprecated
+     default List<BlockModelPart> collectParts(RandomSource p_392713_) {
+         List<BlockModelPart> list = new ObjectArrayList<>();
+-        this.collectParts(p_392713_, list);
++        this.collectParts(p_392713_, list, net.minecraftforge.client.model.data.ModelData.EMPTY, null);
+         return list;
+     }
+ 
++    /**@deprecated Forge: Use {@link net.minecraftforge.client.extensions.IForgeBlockStateModel#particleIcon(net.minecraftforge.client.model.data.ModelData)}*/
++    @Deprecated
+     TextureAtlasSprite particleIcon();
+ 
+     @OnlyIn(Dist.CLIENT)

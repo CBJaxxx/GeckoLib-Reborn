@@ -1,10 +1,3 @@
-<#--
- # GeckoLib 4.9.2 GeoItemRenderer (NeoForge 1.21.1)
- # Wiki: https://github.com/bernie-g/geckolib/wiki/Geckolib-Items-(Geckolib4)
- #
- # Register via GeoItem#createGeoRenderer → BlockEntityWithoutLevelRenderer.
- # Optional first-person arm overlay when firstPersonArms is enabled.
--->
 package ${package}.item.renderer;
 
 import software.bernie.geckolib.renderer.GeoItemRenderer;

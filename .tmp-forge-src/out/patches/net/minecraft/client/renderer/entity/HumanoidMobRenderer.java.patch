@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/renderer/entity/HumanoidMobRenderer.java
++++ b/net/minecraft/client/renderer/entity/HumanoidMobRenderer.java
+@@ -51,7 +_,7 @@
+         p_369040_.isCrouching = p_362179_.isCrouching();
+         p_369040_.isFallFlying = p_362179_.isFallFlying();
+         p_369040_.isVisuallySwimming = p_362179_.isVisuallySwimming();
+-        p_369040_.isPassenger = p_362179_.isPassenger();
++        p_369040_.isPassenger = p_362179_.isPassenger() && (p_362179_.getVehicle() != null && p_362179_.getVehicle().shouldRiderSit());;
+         p_369040_.speedValue = 1.0F;
+         if (p_369040_.isFallFlying) {
+             p_369040_.speedValue = (float)p_362179_.getDeltaMovement().lengthSqr();

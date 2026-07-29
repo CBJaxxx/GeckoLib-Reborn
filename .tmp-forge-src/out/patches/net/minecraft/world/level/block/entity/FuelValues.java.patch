@@ -1,0 +1,33 @@
+--- a/net/minecraft/world/level/block/entity/FuelValues.java
++++ b/net/minecraft/world/level/block/entity/FuelValues.java
+@@ -25,7 +_,11 @@
+     }
+ 
+     public boolean isFuel(ItemStack p_369912_) {
+-        return this.values.containsKey(p_369912_.getItem());
++        return isFuel(p_369912_, null);
++    }
++
++    public boolean isFuel(ItemStack stack, @org.jetbrains.annotations.Nullable net.minecraft.world.item.crafting.RecipeType<?> type) {
++        return burnDuration(stack, type) > 0;
+     }
+ 
+     public SequencedSet<Item> fuelItems() {
+@@ -33,7 +_,16 @@
+     }
+ 
+     public int burnDuration(ItemStack p_368393_) {
+-        return p_368393_.isEmpty() ? 0 : this.values.getInt(p_368393_.getItem());
++        return burnDuration(p_368393_, null);
++    }
++
++    public int burnDuration(ItemStack stack, @org.jetbrains.annotations.Nullable net.minecraft.world.item.crafting.RecipeType<?> type) {
++        if (stack.isEmpty())
++            return 0;
++        int ret = stack.getBurnTime(type);
++        if (ret == -1)
++            ret = this.values.getInt(stack.getItem());
++        return net.minecraftforge.event.ForgeEventFactory.getItemBurnTime(stack, ret, type);
+     }
+ 
+     public static FuelValues vanillaBurnTimes(HolderLookup.Provider p_363816_, FeatureFlagSet p_367705_) {

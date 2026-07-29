@@ -1,0 +1,30 @@
+--- a/net/minecraft/server/packs/resources/SimpleJsonResourceReloadListener.java
++++ b/net/minecraft/server/packs/resources/SimpleJsonResourceReloadListener.java
+@@ -31,6 +_,10 @@
+         this(p_378826_.createSerializationContext(JsonOps.INSTANCE), p_361980_, FileToIdConverter.registry(p_376437_));
+     }
+ 
++    protected SimpleJsonResourceReloadListener(HolderLookup.Provider p_378826_, Codec<T> p_361980_, ResourceKey<? extends Registry<T>> p_376437_, net.minecraftforge.common.crafting.conditions.ICondition.IContext context) {
++        this(context.wrap(p_378826_.createSerializationContext(JsonOps.INSTANCE)), p_361980_, FileToIdConverter.registry(p_376437_));
++    }
++
+     protected SimpleJsonResourceReloadListener(Codec<T> p_370137_, FileToIdConverter p_375758_) {
+         this(JsonOps.INSTANCE, p_370137_, p_375758_);
+     }
+@@ -65,7 +_,15 @@
+             ResourceLocation resourcelocation1 = p_377980_.fileToId(resourcelocation);
+ 
+             try (Reader reader = entry.getValue().openAsReader()) {
+-                p_376362_.parse(p_378080_, StrictJsonParser.parse(reader)).ifSuccess(p_370131_ -> {
++                var json = StrictJsonParser.parse(reader);
++                json = net.minecraftforge.common.ForgeHooks.readConditional(p_378080_, json);
++                if (json == null) {
++                    LOGGER.debug("Skipping loading {} as its conditions were not met", resourcelocation);
++                    continue;
++                }
++                p_376362_.parse(p_378080_, json).ifSuccess(p_370131_ -> {
++                    p_370131_ = net.minecraftforge.common.ForgeHooks.onJsonDataParsed(p_376362_, resourcelocation1, p_370131_);
++                    if (p_370131_ == null) return;
+                     if (p_377922_.putIfAbsent(resourcelocation1, (T)p_370131_) != null) {
+                         throw new IllegalStateException("Duplicate data file ignored with ID " + resourcelocation1);
+                     }

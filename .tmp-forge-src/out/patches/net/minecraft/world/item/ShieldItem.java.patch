@@ -1,0 +1,13 @@
+--- a/net/minecraft/world/item/ShieldItem.java
++++ b/net/minecraft/world/item/ShieldItem.java
+@@ -13,4 +_,10 @@
+         DyeColor dyecolor = p_360971_.get(DataComponents.BASE_COLOR);
+         return (Component)(dyecolor != null ? Component.translatable(this.descriptionId + "." + dyecolor.getName()) : super.getName(p_360971_));
+     }
++
++    @Override
++    @Deprecated(forRemoval = true, since = "1.21.5")
++    public boolean canPerformAction(ItemStack stack, net.minecraftforge.common.ToolAction toolAction) {
++        return net.minecraftforge.common.ToolActions.DEFAULT_SHIELD_ACTIONS.contains(toolAction);
++    }
+ }

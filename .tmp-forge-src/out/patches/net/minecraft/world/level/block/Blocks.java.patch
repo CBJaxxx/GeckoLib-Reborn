@@ -1,0 +1,26 @@
+--- a/net/minecraft/world/level/block/Blocks.java
++++ b/net/minecraft/world/level/block/Blocks.java
+@@ -769,7 +_,7 @@
+     public static final Block RED_BED = registerBed("red_bed", DyeColor.RED);
+     public static final Block BLACK_BED = registerBed("black_bed", DyeColor.BLACK);
+     public static final Block POWERED_RAIL = register(
+-        "powered_rail", PoweredRailBlock::new, BlockBehaviour.Properties.of().noCollission().strength(0.7F).sound(SoundType.METAL)
++        "powered_rail", prop -> new PoweredRailBlock(prop, true), BlockBehaviour.Properties.of().noCollission().strength(0.7F).sound(SoundType.METAL)
+     );
+     public static final Block DETECTOR_RAIL = register(
+         "detector_rail", DetectorRailBlock::new, BlockBehaviour.Properties.of().noCollission().strength(0.7F).sound(SoundType.METAL)
+@@ -6685,14 +_,5 @@
+ 
+     private static Block register(String p_50796_, BlockBehaviour.Properties p_362760_) {
+         return register(p_50796_, Block::new, p_362760_);
+-    }
+-
+-    static {
+-        for (Block block : BuiltInRegistries.BLOCK) {
+-            for (BlockState blockstate : block.getStateDefinition().getPossibleStates()) {
+-                Block.BLOCK_STATE_REGISTRY.add(blockstate);
+-                blockstate.initCache();
+-            }
+-        }
+     }
+ }

@@ -1,0 +1,37 @@
+--- a/net/minecraft/client/renderer/block/ModelBlockRenderer.java
++++ b/net/minecraft/client/renderer/block/ModelBlockRenderer.java
+@@ -48,7 +_,7 @@
+         int p_234389_
+     ) {
+         if (!p_393688_.isEmpty()) {
+-            boolean flag = Minecraft.useAmbientOcclusion() && p_234382_.getLightEmission() == 0 && p_393688_.getFirst().useAmbientOcclusion();
++            boolean flag = Minecraft.useAmbientOcclusion() && p_234382_.getLightEmission(p_234380_, p_234383_) == 0 && p_393688_.getFirst().useAmbientOcclusion();
+             p_234384_.translate(p_234382_.getOffset(p_234383_));
+ 
+             try {
+@@ -322,6 +_,11 @@
+         }
+     }
+ 
++    @Deprecated //Forge: Model data and render type parameter
++    public static void renderModel(PoseStack.Pose p_111068_, VertexConsumer p_111069_, BlockStateModel p_111070_, float p_111072_, float p_111073_, float p_111074_, int p_111075_, int p_111076_) {
++        renderModel(p_111068_, p_111069_, p_111070_, p_111072_, p_111073_, p_111074_, p_111075_, p_111076_, net.minecraftforge.client.model.data.ModelData.EMPTY, null);
++    }
++
+     public static void renderModel(
+         PoseStack.Pose p_111068_,
+         VertexConsumer p_111069_,
+@@ -330,9 +_,11 @@
+         float p_111073_,
+         float p_111074_,
+         int p_111075_,
+-        int p_111076_
++        int p_111076_,
++        net.minecraftforge.client.model.data.ModelData modelData,
++        @org.jetbrains.annotations.Nullable net.minecraft.client.renderer.chunk.ChunkSectionLayer renderType
+     ) {
+-        for (BlockModelPart blockmodelpart : p_397754_.collectParts(RandomSource.create(42L))) {
++        for (BlockModelPart blockmodelpart : p_397754_.collectParts(RandomSource.create(42L), modelData, renderType)) {
+             for (Direction direction : DIRECTIONS) {
+                 renderQuadList(p_111068_, p_111069_, p_111072_, p_111073_, p_111074_, blockmodelpart.getQuads(direction), p_111075_, p_111076_);
+             }

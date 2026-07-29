@@ -1,0 +1,18 @@
+--- a/net/minecraft/client/renderer/entity/ItemFrameRenderer.java
++++ b/net/minecraft/client/renderer/entity/ItemFrameRenderer.java
+@@ -94,6 +_,7 @@
+         if (p_361692_.mapId != null) {
+             int j = p_361692_.rotation % 4 * 2;
+             p_115061_.mulPose(Axis.ZP.rotationDegrees(j * 360.0F / 8.0F));
++            if (!net.minecraftforge.client.event.ForgeEventFactoryClient.onRenderItemInFrame(p_361692_, this, p_115061_, p_115062_, p_115063_)) {
+             p_115061_.mulPose(Axis.ZP.rotationDegrees(180.0F));
+             float f2 = 0.0078125F;
+             p_115061_.scale(0.0078125F, 0.0078125F, 0.0078125F);
+@@ -101,6 +_,7 @@
+             p_115061_.translate(0.0F, 0.0F, -1.0F);
+             int i = this.getLightCoords(p_361692_.isGlowFrame, 15728850, p_115063_);
+             this.mapRenderer.render(p_361692_.mapRenderState, p_115061_, p_115062_, true, i);
++            }
+         } else if (!p_361692_.item.isEmpty()) {
+             p_115061_.mulPose(Axis.ZP.rotationDegrees(p_361692_.rotation * 360.0F / 8.0F));
+             int k = this.getLightCoords(p_361692_.isGlowFrame, 15728880, p_115063_);

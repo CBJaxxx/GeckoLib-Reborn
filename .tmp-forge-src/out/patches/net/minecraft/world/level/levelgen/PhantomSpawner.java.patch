@@ -1,0 +1,32 @@
+--- a/net/minecraft/world/level/levelgen/PhantomSpawner.java
++++ b/net/minecraft/world/level/levelgen/PhantomSpawner.java
+@@ -33,13 +_,18 @@
+                         for (ServerPlayer serverplayer : p_64576_.players()) {
+                             if (!serverplayer.isSpectator()) {
+                                 BlockPos blockpos = serverplayer.blockPosition();
+-                                if (!p_64576_.dimensionType().hasSkyLight() || blockpos.getY() >= p_64576_.getSeaLevel() && p_64576_.canSeeSky(blockpos)) {
+                                     DifficultyInstance difficultyinstance = p_64576_.getCurrentDifficultyAt(blockpos);
++                                var vanillaPosition = (!p_64576_.dimensionType().hasSkyLight() || blockpos.getY() >= p_64576_.getSeaLevel() && p_64576_.canSeeSky(blockpos));
++                                var count = 1 + randomsource.nextInt(difficultyinstance.getDifficulty().getId() + 1);
++                                var event = net.minecraftforge.event.ForgeEventFactory.onPlayerSpawnPhantom(serverplayer, count);
++                                var eventResult = event.getResult();
++                                if (eventResult.isDenied()) continue;
++                                if (vanillaPosition || eventResult.isAllowed()) {
+                                     if (difficultyinstance.isHarderThan(randomsource.nextFloat() * 3.0F)) {
+                                         ServerStatsCounter serverstatscounter = serverplayer.getStats();
+                                         int i = Mth.clamp(serverstatscounter.getValue(Stats.CUSTOM.get(Stats.TIME_SINCE_REST)), 1, Integer.MAX_VALUE);
+                                         int j = 24000;
+-                                        if (randomsource.nextInt(i) >= 72000) {
++                                        if (eventResult.isAllowed() || randomsource.nextInt(i) >= 72000) {
+                                             BlockPos blockpos1 = blockpos.above(20 + randomsource.nextInt(15))
+                                                 .east(-10 + randomsource.nextInt(21))
+                                                 .south(-10 + randomsource.nextInt(21));
+@@ -47,7 +_,7 @@
+                                             FluidState fluidstate = p_64576_.getFluidState(blockpos1);
+                                             if (NaturalSpawner.isValidEmptySpawnBlock(p_64576_, blockpos1, blockstate, fluidstate, EntityType.PHANTOM)) {
+                                                 SpawnGroupData spawngroupdata = null;
+-                                                int k = 1 + randomsource.nextInt(difficultyinstance.getDifficulty().getId() + 1);
++                                                int k = event.getPhantomsToSpawn();
+ 
+                                                 for (int l = 0; l < k; l++) {
+                                                     Phantom phantom = EntityType.PHANTOM.create(p_64576_, EntitySpawnReason.NATURAL);

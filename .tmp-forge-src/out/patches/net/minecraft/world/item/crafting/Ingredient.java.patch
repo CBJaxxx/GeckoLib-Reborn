@@ -1,0 +1,86 @@
+--- a/net/minecraft/world/item/crafting/Ingredient.java
++++ b/net/minecraft/world/item/crafting/Ingredient.java
+@@ -23,18 +_,26 @@
+ import net.minecraft.world.level.ItemLike;
+ 
+ public class Ingredient implements StackedContents.IngredientInfo<Holder<Item>>, Predicate<ItemStack> {
+-    public static final StreamCodec<RegistryFriendlyByteBuf, Ingredient> CONTENTS_STREAM_CODEC = ByteBufCodecs.holderSet(Registries.ITEM)
++    private static final StreamCodec<RegistryFriendlyByteBuf, Ingredient> VANILLA_CONTENTS_STREAM_CODEC = ByteBufCodecs.holderSet(Registries.ITEM)
+         .map(Ingredient::new, p_359816_ -> p_359816_.values);
+-    public static final StreamCodec<RegistryFriendlyByteBuf, Optional<Ingredient>> OPTIONAL_CONTENTS_STREAM_CODEC = ByteBufCodecs.holderSet(Registries.ITEM)
++    public static final StreamCodec<RegistryFriendlyByteBuf, Ingredient> CONTENTS_STREAM_CODEC = net.minecraftforge.common.ForgeHooks.ingredientStreamCodec();
++    public static final StreamCodec<RegistryFriendlyByteBuf, Optional<Ingredient>> OPTIONAL_CONTENTS_STREAM_CODEC = CONTENTS_STREAM_CODEC
+         .map(
+-            p_359814_ -> p_359814_.size() == 0 ? Optional.empty() : Optional.of(new Ingredient((HolderSet<Item>)p_359814_)),
+-            p_359815_ -> p_359815_.<HolderSet<Item>>map(p_359810_ -> p_359810_.values).orElse(HolderSet.direct())
++            ingredient -> ingredient.items().count() == 0 ? Optional.empty() : Optional.of(ingredient),
++            ingredient -> ingredient.orElseGet(() -> Ingredient.of())
+         );
+     public static final Codec<HolderSet<Item>> NON_AIR_HOLDER_SET_CODEC = HolderSetCodec.create(Registries.ITEM, Item.CODEC, false);
+-    public static final Codec<Ingredient> CODEC = ExtraCodecs.nonEmptyHolderSet(NON_AIR_HOLDER_SET_CODEC).xmap(Ingredient::new, p_359811_ -> p_359811_.values);
+-    private final HolderSet<Item> values;
++    private static final Codec<Ingredient> VANILLA_CODEC = ExtraCodecs.nonEmptyHolderSet(NON_AIR_HOLDER_SET_CODEC).xmap(Ingredient::new, p_359811_ -> p_359811_.values);
++    private static final com.mojang.serialization.MapCodec<Ingredient> VANILLA_MAP_CODEC = VANILLA_CODEC.fieldOf("value");
++    public static final Codec<Ingredient> CODEC = net.minecraftforge.common.ForgeHooks.ingredientBaseCodec(VANILLA_CODEC);
++    protected final HolderSet<Item> values;
+ 
+     protected Ingredient(HolderSet<Item> p_368516_) {
++        this(p_368516_, true);
++    }
++
++    protected Ingredient(HolderSet<Item> p_368516_, boolean validate) {
++        if (validate)
+         p_368516_.unwrap().ifRight(p_359817_ -> {
+             if (p_359817_.isEmpty()) {
+                 throw new UnsupportedOperationException("Ingredients can't be empty");
+@@ -106,5 +_,50 @@
+         } else {
+             return slotdisplay;
+         }
++    }
++
++    public boolean isSimple() {
++        return true;
++    }
++
++    private final boolean isVanilla = this.getClass() == Ingredient.class;
++    public final boolean isVanilla() {
++        return isVanilla;
++    }
++
++    public static final net.minecraftforge.common.crafting.ingredients.IIngredientSerializer<Ingredient> VANILLA_SERIALIZER =
++        new net.minecraftforge.common.crafting.ingredients.IIngredientSerializer<Ingredient>() {
++            @Override
++            public com.mojang.serialization.MapCodec<? extends Ingredient> codec() {
++                return VANILLA_MAP_CODEC;
++            }
++
++            @Override
++            public void write(RegistryFriendlyByteBuf buffer, Ingredient value) {
++                VANILLA_CONTENTS_STREAM_CODEC.encode(buffer, value);
++            }
++
++            @Override
++            public Ingredient read(RegistryFriendlyByteBuf buffer) {
++                return VANILLA_CONTENTS_STREAM_CODEC.decode(buffer);
++            }
++        };
++
++    public net.minecraftforge.common.crafting.ingredients.IIngredientSerializer<? extends Ingredient> serializer() {
++        if (!isVanilla()) throw new IllegalStateException("Modders must implement Ingredient.codec in their custom Ingredients: " + getClass());
++        return VANILLA_SERIALIZER;
++    }
++
++    @Override
++    public String toString() {
++        var buf = new StringBuilder();
++        buf.append("Ingredient[");
++        for (int x = 0; x < values.size(); x++) {
++            if (x != 0)
++                buf.append(", ");
++            buf.append(values.get(x));
++        }
++        buf.append(']');
++        return buf.toString();
+     }
+ }

@@ -1,0 +1,19 @@
+--- a/net/minecraft/client/renderer/entity/EnderDragonRenderer.java
++++ b/net/minecraft/client/renderer/entity/EnderDragonRenderer.java
+@@ -225,11 +_,15 @@
+ 
+     protected void extractAdditionalHitboxes(EnderDragon p_394570_, Builder<HitboxRenderState> p_396096_, float p_397646_) {
+         super.extractAdditionalHitboxes(p_394570_, p_396096_, p_397646_);
++    }
++
++    public static void extractAdditionalHitboxexGeneric(net.minecraft.world.entity.Entity p_394570_, Builder<HitboxRenderState> p_396096_, float p_397646_) {
++        if (!p_394570_.isMultipartEntity()) return;
+         double d0 = -Mth.lerp(p_397646_, p_394570_.xOld, p_394570_.getX());
+         double d1 = -Mth.lerp(p_397646_, p_394570_.yOld, p_394570_.getY());
+         double d2 = -Mth.lerp(p_397646_, p_394570_.zOld, p_394570_.getZ());
+ 
+-        for (EnderDragonPart enderdragonpart : p_394570_.getSubEntities()) {
++        for (var enderdragonpart : p_394570_.getParts()) {
+             AABB aabb = enderdragonpart.getBoundingBox();
+             HitboxRenderState hitboxrenderstate = new HitboxRenderState(
+                 aabb.minX - enderdragonpart.getX(),

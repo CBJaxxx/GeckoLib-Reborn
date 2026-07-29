@@ -1,14 +1,3 @@
-<#--
- # GeckoLib 4.9.2 GeoModel (NeoForge 1.21.1)
- #
- # Working Tanked mod (GeckoLib 4.9.2) uses DefaultedEntityGeoModel paths:
- #   geo/entity/<id>.geo.json
- #   animations/entity/<id>.animation.json
- #   textures/entity/<id>.png
- #
- # MCreator also uses textures/entities/ for entity texture imports.
- # This model tries entity/ subfolders first, then flat geo/ + animations/ (legacy imports).
--->
 package ${package}.entity.model;
 
 <#assign modelFile = data.model>

@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) Forge Development LLC and contributors
+ * SPDX-License-Identifier: LGPL-2.1-only
+ */
+
+package net.minecraftforge.event.entity;
+
+import java.util.Map;
+
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
+import net.minecraftforge.eventbus.api.bus.EventBus;
+import net.minecraftforge.fml.event.IModBusEvent;
+
+/**
+ * EntityAttributeCreationEvent.<br>
+ * Use this event to register attributes for your own EntityTypes.
+ * This event is fired after registration and before common setup.
+ * <br>
+ * Fired on the Mod bus {@link IModBusEvent}.<br>
+ **/
+public final class EntityAttributeCreationEvent implements IModBusEvent {
+    public static EventBus<EntityAttributeCreationEvent> getBus(BusGroup modBusGroup) {
+        return IModBusEvent.getBus(modBusGroup, EntityAttributeCreationEvent.class);
+    }
+
+    private final Map<EntityType<? extends LivingEntity>, AttributeSupplier> map;
+
+    public EntityAttributeCreationEvent(Map<EntityType<? extends LivingEntity>, AttributeSupplier> map) {
+        this.map = map;
+    }
+
+    public void put(EntityType<? extends LivingEntity> entity, AttributeSupplier map) {
+        if (DefaultAttributes.m_22301_(entity))
+            throw new IllegalStateException("Duplicate DefaultAttributes entry: " + entity);
+        this.map.put(entity, map);
+    }
+}

@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Specification-Title: GeckoLib 4
+Specification-Vendor: Gecko, Eliot, AzureDoom, DerToaster, Tslat, Witixi
+ n
+Specification-Version: 4.9.2
+Implementation-Title: GeckoLib 4
+Implementation-Version: 4.9.2
+Implementation-Vendor: Gecko, Eliot, AzureDoom, DerToaster, Tslat, Witix
+ in
+Built-On-Minecraft: 1.21.1
+MixinConfigs: geckolib.mixins.json
+

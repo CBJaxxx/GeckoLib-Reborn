@@ -1,0 +1,22 @@
+--- a/net/minecraft/client/data/Main.java
++++ b/net/minecraft/client/data/Main.java
+@@ -31,13 +_,18 @@
+         OptionSpec<Void> optionspec1 = optionparser.accepts("client", "Include client generators");
+         OptionSpec<Void> optionspec2 = optionparser.accepts("all", "Include all generators");
+         OptionSpec<String> optionspec3 = optionparser.accepts("output", "Output folder").withRequiredArg().defaultsTo("generated");
++        OptionSpec<String> inputSpec = optionparser.accepts("input", "Input folder").withRequiredArg();
++        var loader = net.minecraftforge.data.loading.DatagenModLoader.setup(optionparser, true);
+         OptionSet optionset = optionparser.parse(p_375526_);
+-        if (!optionset.has(optionspec) && optionset.hasOptions()) {
++        if (!optionset.has(optionspec) && optionset.hasOptions() && loader.hasArgs(optionset)) {
++            var input = optionset.valuesOf(inputSpec).stream().map(Paths::get).toList();
+             Path path = Paths.get(optionspec3.value(optionset));
+             boolean flag = optionset.has(optionspec2);
+             boolean flag1 = flag || optionset.has(optionspec1);
+             Bootstrap.bootStrap();
+             ClientBootstrap.bootstrap();
++            if (!loader.run(optionset, path, input, flag, flag1, flag, flag, true))
++                return;
+             DataGenerator datagenerator = new DataGenerator(path, SharedConstants.getCurrentVersion(), true);
+             addClientProviders(datagenerator, flag1);
+             datagenerator.run();

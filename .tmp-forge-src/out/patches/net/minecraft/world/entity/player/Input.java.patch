@@ -1,0 +1,11 @@
+--- a/net/minecraft/world/entity/player/Input.java
++++ b/net/minecraft/world/entity/player/Input.java
+@@ -37,4 +_,8 @@
+         }
+     };
+     public static Input EMPTY = new Input(false, false, false, false, false, false, false);
++
++    public Input jump(boolean value) {
++        return new Input(forward, backward, left, right, value, shift, sprint);
++    }
+ }

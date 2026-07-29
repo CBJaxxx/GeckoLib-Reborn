@@ -1,0 +1,21 @@
+--- a/net/minecraft/client/renderer/texture/TextureAtlas.java
++++ b/net/minecraft/client/renderer/texture/TextureAtlas.java
+@@ -91,6 +_,7 @@
+             this.sprites = List.copyOf(list);
+             this.animatedTextures = List.copyOf(list1);
+         }
++        net.minecraftforge.client.ForgeHooksClient.onTextureStitchedPost(this);
+     }
+ 
+     @Override
+@@ -168,5 +_,10 @@
+ 
+     int getHeight() {
+         return this.height;
++    }
++
++    /** {@return the set of sprites in this atlas} */
++    public java.util.Set<ResourceLocation> getTextureLocations() {
++        return java.util.Collections.unmodifiableSet(texturesByName.keySet());
+     }
+ }

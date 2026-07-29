@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/resources/model/UnbakedGeometry.java
++++ b/net/minecraft/client/resources/model/UnbakedGeometry.java
+@@ -10,4 +_,8 @@
+     UnbakedGeometry EMPTY = (p_396370_, p_395488_, p_393569_, p_397842_) -> QuadCollection.EMPTY;
+ 
+     QuadCollection bake(TextureSlots p_391189_, ModelBaker p_391275_, ModelState p_397070_, ModelDebugName p_391995_);
++
++    default QuadCollection bake(TextureSlots slots, ModelBaker baker, ModelState state, ModelDebugName name, net.minecraftforge.client.model.geometry.IGeometryBakingContext context) {
++        return bake(slots, baker, state, name);
++    }
+ }

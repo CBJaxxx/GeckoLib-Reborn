@@ -1,0 +1,29 @@
+--- a/net/minecraft/world/entity/vehicle/ChestBoat.java
++++ b/net/minecraft/world/entity/vehicle/ChestBoat.java
+@@ -15,4 +_,26 @@
+     protected double rideHeight(EntityDimensions p_362135_) {
+         return p_362135_.height() / 3.0F;
+     }
++
++    private net.minecraftforge.common.util.LazyOptional<?> itemHandler = net.minecraftforge.common.util.LazyOptional.of(() -> new net.minecraftforge.items.wrapper.InvWrapper(this));
++
++    @Override
++    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @org.jetbrains.annotations.Nullable net.minecraft.core.Direction facing) {
++        if (capability == net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER && this.isAlive()) {
++             return itemHandler.cast();
++        }
++        return super.getCapability(capability, facing);
++    }
++
++    @Override
++    public void invalidateCaps() {
++        super.invalidateCaps();
++        itemHandler.invalidate();
++    }
++
++    @Override
++    public void reviveCaps() {
++        super.reviveCaps();
++        itemHandler = net.minecraftforge.common.util.LazyOptional.of(() -> new net.minecraftforge.items.wrapper.InvWrapper(this));
++    }
+ }

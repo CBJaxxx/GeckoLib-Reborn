@@ -1,0 +1,35 @@
+--- a/net/minecraft/client/resources/model/ModelDiscovery.java
++++ b/net/minecraft/client/resources/model/ModelDiscovery.java
+@@ -174,6 +_,14 @@
+             return this.parent;
+         }
+ 
++        @Nullable private net.minecraftforge.client.model.geometry.ModelContext context = null;
++        @Override
++        public net.minecraftforge.client.model.geometry.IGeometryBakingContext getContext() {
++            if (context == null || context.parent() != parent)
++                context = new net.minecraftforge.client.model.geometry.ModelContext(this);
++            return context;
++        }
++
+         @Override
+         public String debugName() {
+             return this.id.toString();
+@@ -227,7 +_,7 @@
+ 
+         private QuadCollection bakeDefaultState(TextureSlots p_392267_, ModelBaker p_393576_, ModelState p_391972_) {
+             QuadCollection quadcollection = this.getSlot(KEY_DEFAULT_GEOMETRY);
+-            return quadcollection != null ? quadcollection : this.updateSlot(KEY_DEFAULT_GEOMETRY, this.getTopGeometry().bake(p_392267_, p_393576_, p_391972_, this));
++            return quadcollection != null ? quadcollection : this.updateSlot(KEY_DEFAULT_GEOMETRY, this.getTopGeometry().bake(p_392267_, p_393576_, p_391972_, this, getContext()));
+         }
+ 
+         @Override
+@@ -236,7 +_,7 @@
+                 ? this.bakeDefaultState(p_396404_, p_391625_, p_396681_)
+                 : this.modelBakeCache.computeIfAbsent(p_396681_, p_394933_ -> {
+                     UnbakedGeometry unbakedgeometry = this.getTopGeometry();
+-                    return unbakedgeometry.bake(p_396404_, p_391625_, p_394933_, this);
++                    return unbakedgeometry.bake(p_396404_, p_391625_, p_394933_, this, getContext());
+                 });
+         }
+     }

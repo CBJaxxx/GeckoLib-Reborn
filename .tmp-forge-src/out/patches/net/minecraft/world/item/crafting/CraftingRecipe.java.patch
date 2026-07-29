@@ -1,0 +1,12 @@
+--- a/net/minecraft/world/item/crafting/CraftingRecipe.java
++++ b/net/minecraft/world/item/crafting/CraftingRecipe.java
+@@ -23,8 +_,7 @@
+         NonNullList<ItemStack> nonnulllist = NonNullList.withSize(p_368314_.size(), ItemStack.EMPTY);
+ 
+         for (int i = 0; i < nonnulllist.size(); i++) {
+-            Item item = p_368314_.getItem(i).getItem();
+-            nonnulllist.set(i, item.getCraftingRemainder());
++            nonnulllist.set(i, p_368314_.getItem(i).getCraftingRemainder());
+         }
+ 
+         return nonnulllist;

@@ -1,0 +1,11 @@
+--- a/net/minecraft/world/entity/animal/allay/Allay.java
++++ b/net/minecraft/world/entity/animal/allay/Allay.java
+@@ -354,7 +_,7 @@
+     public boolean wantsToPickUp(ServerLevel p_363882_, ItemStack p_218387_) {
+         ItemStack itemstack = this.getItemInHand(InteractionHand.MAIN_HAND);
+         return !itemstack.isEmpty()
+-            && p_363882_.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)
++            && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(p_363882_, this)
+             && this.inventory.canAddItem(p_218387_)
+             && this.allayConsidersItemEqual(itemstack, p_218387_);
+     }

@@ -1,0 +1,24 @@
+--- a/net/minecraft/client/model/geom/ModelLayers.java
++++ b/net/minecraft/client/model/geom/ModelLayers.java
+@@ -336,15 +_,18 @@
+     }
+ 
+     public static ModelLayerLocation createStandingSignModelName(WoodType p_171292_) {
+-        return createLocation("sign/standing/" + p_171292_.name(), "main");
++        ResourceLocation location = ResourceLocation.parse(p_171292_.name());
++        return new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(location.getNamespace(), "sign/standing/" + location.getPath()), "main");
+     }
+ 
+     public static ModelLayerLocation createWallSignModelName(WoodType p_363532_) {
+-        return createLocation("sign/wall/" + p_363532_.name(), "main");
++        ResourceLocation location = ResourceLocation.parse(p_363532_.name());
++        return new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(location.getNamespace(), "sign/wall/" + location.getPath()), "main");
+     }
+ 
+     public static ModelLayerLocation createHangingSignModelName(WoodType p_252225_, HangingSignRenderer.AttachmentType p_378070_) {
+-        return createLocation("hanging_sign/" + p_252225_.name() + "/" + p_378070_.getSerializedName(), "main");
++        ResourceLocation location = ResourceLocation.parse(p_252225_.name());
++        return new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(location.getNamespace(), "hanging_sign/" + location.getPath() + "/" + p_378070_.getSerializedName()), "main");
+     }
+ 
+     public static Stream<ModelLayerLocation> getKnownLocations() {

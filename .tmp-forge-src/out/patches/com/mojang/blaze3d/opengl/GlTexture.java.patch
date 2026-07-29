@@ -1,0 +1,33 @@
+--- a/com/mojang/blaze3d/opengl/GlTexture.java
++++ b/com/mojang/blaze3d/opengl/GlTexture.java
+@@ -19,8 +_,13 @@
+     private int views;
+ 
+     protected GlTexture(int p_394590_, String p_393950_, TextureFormat p_392837_, int p_391379_, int p_391947_, int p_396659_, int p_408255_, int p_408889_) {
++        this(p_394590_, p_393950_, p_392837_, p_391379_, p_391947_, p_396659_, p_408255_, p_408889_, false);
++    }
++
++    protected GlTexture(int p_394590_, String p_393950_, TextureFormat p_392837_, int p_391379_, int p_391947_, int p_396659_, int p_408255_, int p_408889_, boolean stencil) {
+         super(p_394590_, p_393950_, p_392837_, p_391379_, p_391947_, p_396659_, p_408255_);
+         this.id = p_408889_;
++        this.stencilEnabled = stencil;
+     }
+ 
+     @Override
+@@ -93,6 +_,16 @@
+     public void setTextureFilter(FilterMode p_394977_, FilterMode p_397175_, boolean p_393558_) {
+         super.setTextureFilter(p_394977_, p_397175_, p_393558_);
+         this.modesDirty = true;
++    }
++
++
++    /* FORGE START */
++
++    private final boolean stencilEnabled;
++
++    @Override
++    public boolean isStencilEnabled() {
++        return this.stencilEnabled;
+     }
+ 
+     @Override

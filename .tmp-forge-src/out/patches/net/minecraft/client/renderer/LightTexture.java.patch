@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/renderer/LightTexture.java
++++ b/net/minecraft/client/renderer/LightTexture.java
+@@ -171,7 +_,7 @@
+     }
+ 
+     public static int block(int p_109884_) {
+-        return p_109884_ >>> 4 & 15;
++        return (p_109884_ & 0xFFFF) >> 4; // Forge: Fix fullbright quads showing dark artifacts. Reported as MC-169806
+     }
+ 
+     public static int sky(int p_109895_) {

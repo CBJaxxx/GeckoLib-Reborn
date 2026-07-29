@@ -1,0 +1,16 @@
+--- a/net/minecraft/gametest/framework/TestCommand.java
++++ b/net/minecraft/gametest/framework/TestCommand.java
+@@ -485,7 +_,12 @@
+                 return Optional.empty();
+             } else {
+                 Holder.Reference<GameTestInstance> reference = optional.get();
+-                GameTestInfo gametestinfo = new GameTestInfo(reference, testinstanceblockentity.getRotation(), serverlevel, p_330368_);
++                // Forge: The rotation is stored in the structure block, and added in the GameTestInfo constructor.
++                // So reverse it to find the manually specified rotation so the test runs the same every time.
++                var rotation = testinstanceblockentity.test().flatMap(testinstanceblockentity.getLevel().registryAccess()::get).map(Holder::value).map(GameTestInstance::rotation).orElse(Rotation.NONE);
++                var steps = StructureUtils.getRotationStepsForRotation(testinstanceblockentity.getRotation()) - StructureUtils.getRotationStepsForRotation(rotation);
++                if (steps < 0) steps += 4;
++                GameTestInfo gametestinfo = new GameTestInfo(reference, StructureUtils.getRotationForRotationSteps(steps), serverlevel, p_330368_);
+                 gametestinfo.setTestBlockPos(p_332856_);
+                 return !verifyStructureExists(p_393532_, gametestinfo.getStructure()) ? Optional.empty() : Optional.of(gametestinfo);
+             }

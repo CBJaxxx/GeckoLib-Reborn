@@ -1,0 +1,45 @@
+--- a/net/minecraft/world/level/storage/PrimaryLevelData.java
++++ b/net/minecraft/world/level/storage/PrimaryLevelData.java
+@@ -73,6 +_,7 @@
+     private boolean wasModded;
+     private final Set<String> removedFeatureFlags;
+     private final TimerQueue<MinecraftServer> scheduledEvents;
++    private boolean confirmedExperimentalWarning = false;
+ 
+     private PrimaryLevelData(
+         @Nullable CompoundTag p_277888_,
+@@ -199,7 +_,7 @@
+             p_251864_,
+             p_250651_,
+             p_78538_
+-        );
++        ).withConfirmedWarning(p_78538_ != Lifecycle.stable() && p_78531_.get("confirmedExperimentalSettings").asBoolean(false));
+     }
+ 
+     @Override
+@@ -267,6 +_,8 @@
+         p_78547_.putInt("WanderingTraderSpawnDelay", this.wanderingTraderSpawnDelay);
+         p_78547_.putInt("WanderingTraderSpawnChance", this.wanderingTraderSpawnChance);
+         p_78547_.storeNullable("WanderingTraderId", UUIDUtil.CODEC, this.wanderingTraderId);
++        p_78547_.putString("forgeLifecycle", net.minecraftforge.common.ForgeHooks.encodeLifecycle(this.settings.getLifecycle()));
++        p_78547_.putBoolean("confirmedExperimentalSettings", this.confirmedExperimentalWarning);
+     }
+ 
+     private static ListTag stringCollectionToTag(Set<String> p_277880_) {
+@@ -565,6 +_,16 @@
+     public LevelSettings getLevelSettings() {
+         return this.settings.copy();
+     }
++
++    public boolean hasConfirmedExperimentalWarning() {
++        return this.confirmedExperimentalWarning;
++    }
++
++    public PrimaryLevelData withConfirmedWarning(boolean confirmedWarning) { // Builder-like to not patch ctor
++        this.confirmedExperimentalWarning = confirmedWarning;
++        return this;
++    }
++
+ 
+     @Deprecated
+     public static enum SpecialWorldProperty {

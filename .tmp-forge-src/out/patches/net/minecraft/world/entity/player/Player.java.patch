@@ -1,0 +1,395 @@
+--- a/net/minecraft/world/entity/player/Player.java
++++ b/net/minecraft/world/entity/player/Player.java
+@@ -126,7 +_,7 @@
+ import net.minecraft.world.scores.Team;
+ import org.slf4j.Logger;
+ 
+-public abstract class Player extends LivingEntity {
++public abstract class Player extends LivingEntity implements net.minecraftforge.common.extensions.IForgePlayer {
+     private static final Logger LOGGER = LogUtils.getLogger();
+     public static final HumanoidArm DEFAULT_MAIN_HAND = HumanoidArm.RIGHT;
+     public static final int DEFAULT_MODEL_CUSTOMIZATION = 0;
+@@ -216,6 +_,9 @@
+     public Entity currentExplosionCause;
+     private boolean ignoreFallDamageFromCurrentImpulse = false;
+     private int currentImpulseContextResetGraceTime = 0;
++    private final java.util.Collection<MutableComponent> prefixes = new java.util.LinkedList<>();
++    private final java.util.Collection<MutableComponent> suffixes = new java.util.LinkedList<>();
++    @Nullable private Pose forcedPose;
+ 
+     public Player(Level p_250508_, GameProfile p_252153_) {
+         super(EntityType.PLAYER, p_250508_);
+@@ -224,6 +_,17 @@
+         this.inventory = new Inventory(this, this.equipment);
+         this.inventoryMenu = new InventoryMenu(this.inventory, !p_250508_.isClientSide, this);
+         this.containerMenu = this.inventoryMenu;
++
++        // Forge: wrapped inventories moved to constructor as the inventory init was moved in here too
++        this.playerMainHandler = net.minecraftforge.common.util.LazyOptional.of(
++            () -> new net.minecraftforge.items.wrapper.PlayerMainInvWrapper(inventory));
++        this.playerEquipmentHandler = net.minecraftforge.common.util.LazyOptional.of(
++            () -> new net.minecraftforge.items.wrapper.PlayerEquipmentInvWrapper(inventory));
++        this.playerJoinedHandler = net.minecraftforge.common.util.LazyOptional.of(
++            () -> new net.minecraftforge.items.wrapper.CombinedInvWrapper(
++                new net.minecraftforge.items.wrapper.PlayerMainInvWrapper(inventory),
++                new net.minecraftforge.items.wrapper.PlayerEquipmentInvWrapper(inventory)
++            ));
+     }
+ 
+     @Override
+@@ -258,7 +_,8 @@
+             .add(Attributes.MINING_EFFICIENCY)
+             .add(Attributes.SWEEPING_DAMAGE_RATIO)
+             .add(Attributes.WAYPOINT_TRANSMIT_RANGE, 6.0E7)
+-            .add(Attributes.WAYPOINT_RECEIVE_RANGE, 6.0E7);
++            .add(Attributes.WAYPOINT_RECEIVE_RANGE, 6.0E7)
++            .add(Attributes.ATTACK_KNOCKBACK);
+     }
+ 
+     @Override
+@@ -274,6 +_,7 @@
+ 
+     @Override
+     public void tick() {
++        net.minecraftforge.event.ForgeEventFactory.onPlayerPreTick(this);
+         this.noPhysics = this.isSpectator();
+         if (this.isSpectator() || this.isPassenger()) {
+             this.setOnGround(false);
+@@ -289,7 +_,7 @@
+                 this.sleepCounter = 100;
+             }
+ 
+-            if (!this.level().isClientSide && this.level().isBrightOutside()) {
++            if (!this.level().isClientSide && !net.minecraftforge.event.ForgeEventFactory.onSleepingTimeCheck(this, getSleepingPos())) {
+                 this.stopSleepInBed(false, true);
+             }
+         } else if (this.sleepCounter > 0) {
+@@ -350,6 +_,7 @@
+         if (this.currentImpulseContextResetGraceTime > 0) {
+             this.currentImpulseContextResetGraceTime--;
+         }
++        net.minecraftforge.event.ForgeEventFactory.onPlayerPostTick(this);
+     }
+ 
+     @Override
+@@ -452,6 +_,10 @@
+     }
+ 
+     protected void updatePlayerPose() {
++        if (forcedPose != null) {
++            this.setPose(forcedPose);
++            return;
++        }
+         if (this.canPlayerFitWithinBlocksAndEntitiesWhen(Pose.SWIMMING)) {
+             Pose pose = this.getDesiredPose();
+             Pose pose1;
+@@ -670,6 +_,7 @@
+ 
+     @Override
+     public void die(DamageSource p_36152_) {
++        if (net.minecraftforge.event.ForgeEventFactory.onLivingDeath(this, p_36152_)) return;
+         super.die(p_36152_);
+         this.reapplyPosition();
+         if (!this.isSpectator() && this.level() instanceof ServerLevel serverlevel) {
+@@ -727,10 +_,15 @@
+ 
+     @Nullable
+     public ItemEntity drop(ItemStack p_36177_, boolean p_36178_) {
+-        return this.drop(p_36177_, false, p_36178_);
++        return net.minecraftforge.common.ForgeHooks.onPlayerTossEvent(this, p_36177_, p_36178_);
+     }
+ 
++    /** @deprecated Use {@link #getDestroySpeed(BlockState,BlockPos) */
+     public float getDestroySpeed(BlockState p_36282_) {
++        return getDestroySpeed(p_36282_, null);
++    }
++
++    public float getDestroySpeed(BlockState p_36282_, @Nullable BlockPos pos) {
+         float f = this.inventory.getSelectedItem().getDestroySpeed(p_36282_);
+         if (f > 1.0F) {
+             f += (float)this.getAttributeValue(Attributes.MINING_EFFICIENCY);
+@@ -759,11 +_,14 @@
+             f /= 5.0F;
+         }
+ 
++        f = net.minecraftforge.event.ForgeEventFactory.getBreakSpeed(this, p_36282_, f, pos);
++
+         return f;
+     }
+ 
+     public boolean hasCorrectToolForDrops(BlockState p_36299_) {
+-        return !p_36299_.requiresCorrectToolForDrops() || this.inventory.getSelectedItem().isCorrectToolForDrops(p_36299_);
++        var vanilla = !p_36299_.requiresCorrectToolForDrops() || this.inventory.getSelectedItem().isCorrectToolForDrops(p_36299_);
++        return net.minecraftforge.event.ForgeEventFactory.doPlayerHarvestCheck(this, p_36299_, vanilla);
+     }
+ 
+     @Override
+@@ -840,6 +_,7 @@
+ 
+     @Override
+     public boolean hurtServer(ServerLevel p_369360_, DamageSource p_364544_, float p_368576_) {
++        if (!net.minecraftforge.common.ForgeHooks.onPlayerAttack(this, p_364544_, p_368576_)) return false;
+         if (this.isInvulnerableTo(p_369360_, p_364544_)) {
+             return false;
+         } else if (this.abilities.invulnerable && !p_364544_.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+@@ -908,10 +_,13 @@
+     @Override
+     protected void actuallyHurt(ServerLevel p_365751_, DamageSource p_36312_, float p_36313_) {
+         if (!this.isInvulnerableTo(p_365751_, p_36312_)) {
++            p_36313_ = net.minecraftforge.common.ForgeHooks.onLivingHurt(this, p_36312_, p_36313_);
++            if (p_36313_ <= 0) return;
+             p_36313_ = this.getDamageAfterArmorAbsorb(p_36312_, p_36313_);
+             p_36313_ = this.getDamageAfterMagicAbsorb(p_36312_, p_36313_);
+             float f1 = Math.max(p_36313_ - this.getAbsorptionAmount(), 0.0F);
+             this.setAbsorptionAmount(this.getAbsorptionAmount() - (p_36313_ - f1));
++            f1 = net.minecraftforge.common.ForgeHooks.onLivingDamage(this, p_36312_, f1);
+             float f = p_36313_ - f1;
+             if (f > 0.0F && f < 3.4028235E37F) {
+                 this.awardStat(Stats.DAMAGE_ABSORBED, Math.round(f * 10.0F));
+@@ -979,6 +_,10 @@
+ 
+             return InteractionResult.PASS;
+         } else {
++            var event = new net.minecraftforge.event.entity.player.PlayerInteractEvent.EntityInteract(this, p_36159_, p_36158_);
++            if (net.minecraftforge.event.entity.player.PlayerInteractEvent.EntityInteract.BUS.post(event)) {
++                return event.getCancellationResult();
++            }
+             ItemStack itemstack = this.getItemInHand(p_36159_);
+             ItemStack itemstack1 = itemstack.copy();
+             InteractionResult interactionresult = p_36158_.interact(this, p_36159_);
+@@ -987,6 +_,10 @@
+                     itemstack.setCount(itemstack1.getCount());
+                 }
+ 
++                if (!this.abilities.instabuild && itemstack.isEmpty()) {
++                    net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(this, itemstack1, getSlotForHand(p_36159_));
++                }
++
+                 return interactionresult;
+             } else {
+                 if (!itemstack.isEmpty() && p_36158_ instanceof LivingEntity) {
+@@ -998,6 +_,7 @@
+                     if (interactionresult1.consumesAction()) {
+                         this.level().gameEvent(GameEvent.ENTITY_INTERACT, p_36158_.position(), GameEvent.Context.of(this));
+                         if (itemstack.isEmpty() && !this.hasInfiniteMaterials()) {
++                            net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(this, itemstack1, getSlotForHand(p_36159_));
+                             this.setItemInHand(p_36159_, ItemStack.EMPTY);
+                         }
+ 
+@@ -1097,6 +_,7 @@
+     }
+ 
+     public void attack(Entity p_36347_) {
++        if (!net.minecraftforge.common.ForgeHooks.onPlayerAttackTarget(this, p_36347_)) return;
+         if (p_36347_.isAttackable()) {
+             if (!p_36347_.skipAttackInteraction(this)) {
+                 float f = this.isAutoSpinAttack() ? this.autoSpinAttackDmg : (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE);
+@@ -1132,8 +_,10 @@
+                             && !this.isPassenger()
+                             && p_36347_ instanceof LivingEntity
+                             && !this.isSprinting();
++                        var hitResult = net.minecraftforge.common.ForgeHooks.getCriticalHit(this, p_36347_, flag1, flag1 ? 1.5F : 1.0F);
++                        flag1 = hitResult != null;
+                         if (flag1) {
+-                            f *= 1.5F;
++                            f *= hitResult.getDamageModifier();
+                         }
+ 
+                         float f3 = f + f1;
+@@ -1141,7 +_,7 @@
+                         if (flag3 && !flag1 && !flag && this.onGround()) {
+                             double d0 = this.getKnownMovement().horizontalDistanceSqr();
+                             double d1 = this.getSpeed() * 2.5;
+-                            if (d0 < Mth.square(d1) && this.getItemInHand(InteractionHand.MAIN_HAND).is(ItemTags.SWORDS)) {
++                            if (d0 < Mth.square(d1) && this.getItemInHand(InteractionHand.MAIN_HAND).canPerformAction(net.minecraftforge.common.ToolActions.SWORD_SWEEP)) {
+                                 flag2 = true;
+                             }
+                         }
+@@ -1177,7 +_,7 @@
+                             if (flag2) {
+                                 float f6 = 1.0F + (float)this.getAttributeValue(Attributes.SWEEPING_DAMAGE_RATIO) * f;
+ 
+-                                for (LivingEntity livingentity2 : this.level().getEntitiesOfClass(LivingEntity.class, p_36347_.getBoundingBox().inflate(1.0, 0.25, 1.0))) {
++                                for (LivingEntity livingentity2 : this.level().getEntitiesOfClass(LivingEntity.class, this.getItemInHand(InteractionHand.MAIN_HAND).getSweepHitBox(this, p_36347_))) {
+                                     if (livingentity2 != this
+                                         && livingentity2 != p_36347_
+                                         && !this.isAlliedTo(livingentity2)
+@@ -1228,8 +_,8 @@
+ 
+                             this.setLastHurtMob(p_36347_);
+                             Entity entity = p_36347_;
+-                            if (p_36347_ instanceof EnderDragonPart) {
+-                                entity = ((EnderDragonPart)p_36347_).parentMob;
++                            if (p_36347_ instanceof net.minecraftforge.entity.PartEntity<?> pe) {
++                                entity = pe.getParent();
+                             }
+ 
+                             boolean flag5 = false;
+@@ -1273,6 +_,7 @@
+                         }
+                     }
+                 }
++                this.resetAttackStrengthTicker(); // FORGE: Moved from beginning of attack() so that getAttackStrengthScale() returns an accurate value during all attack events
+             }
+         }
+     }
+@@ -1375,6 +_,7 @@
+     }
+ 
+     public void stopSleepInBed(boolean p_36226_, boolean p_36227_) {
++        net.minecraftforge.event.ForgeEventFactory.onPlayerWakeup(this, p_36226_, p_36227_);
+         super.stopSleeping();
+         if (this.level() instanceof ServerLevel && p_36227_) {
+             ((ServerLevel)this.level()).updateSleepingPlayerList();
+@@ -1483,6 +_,7 @@
+     @Override
+     public boolean causeFallDamage(double p_391627_, float p_150093_, DamageSource p_150095_) {
+         if (this.abilities.mayfly) {
++            net.minecraftforge.event.ForgeEventFactory.onPlayerFall(this, p_150093_, p_150093_);
+             return false;
+         } else {
+             if (p_391627_ >= 2.0) {
+@@ -1537,13 +_,13 @@
+     protected void playStepSound(BlockPos p_282121_, BlockState p_282194_) {
+         if (this.isInWater()) {
+             this.waterSwimSound();
+-            this.playMuffledStepSound(p_282194_);
++            this.playMuffledStepSound(p_282194_, p_282121_);
+         } else {
+             BlockPos blockpos = this.getPrimaryStepSoundBlockPos(p_282121_);
+             if (!p_282121_.equals(blockpos)) {
+                 BlockState blockstate = this.level().getBlockState(blockpos);
+                 if (blockstate.is(BlockTags.COMBINATION_STEP_SOUND_BLOCKS)) {
+-                    this.playCombinationStepSounds(blockstate, p_282194_);
++                    this.playCombinationStepSounds(blockstate, p_282194_, blockpos, p_282121_);
+                 } else {
+                     super.playStepSound(blockpos, blockstate);
+                 }
+@@ -1574,6 +_,12 @@
+     }
+ 
+     public void giveExperiencePoints(int p_36291_) {
++        var event = net.minecraftforge.event.ForgeEventFactory.onPlayerXpChange(this, p_36291_);
++        if (event == null) {
++            return;
++        }
++        p_36291_ = event.getAmount();
++
+         this.increaseScore(p_36291_);
+         this.experienceProgress = this.experienceProgress + (float)p_36291_ / this.getXpNeededForNextLevel();
+         this.totalExperience = Mth.clamp(this.totalExperience + p_36291_, 0, Integer.MAX_VALUE);
+@@ -1601,7 +_,7 @@
+     }
+ 
+     public void onEnchantmentPerformed(ItemStack p_36172_, int p_36173_) {
+-        this.experienceLevel -= p_36173_;
++        giveExperienceLevels(-p_36173_);
+         if (this.experienceLevel < 0) {
+             this.experienceLevel = 0;
+             this.experienceProgress = 0.0F;
+@@ -1612,6 +_,12 @@
+     }
+ 
+     public void giveExperienceLevels(int p_36276_) {
++        var event = net.minecraftforge.event.ForgeEventFactory.onPlayerLevelChange(this, p_36276_);
++        if (event == null) {
++            return;
++        }
++        p_36276_ = event.getLevels();
++
+         this.experienceLevel = IntMath.saturatedAdd(this.experienceLevel, p_36276_);
+         if (this.experienceLevel < 0) {
+             this.experienceLevel = 0;
+@@ -1791,7 +_,13 @@
+ 
+     @Override
+     public Component getDisplayName() {
+-        MutableComponent mutablecomponent = PlayerTeam.formatNameForTeam(this.getTeam(), this.getName());
++        if (this.displayname == null) {
++            this.displayname = net.minecraftforge.event.ForgeEventFactory.getPlayerDisplayName(this, this.getName());
++        }
++        MutableComponent mutablecomponent = Component.literal("");
++        mutablecomponent = prefixes.stream().reduce(mutablecomponent, MutableComponent::append);
++        mutablecomponent = mutablecomponent.append(PlayerTeam.formatNameForTeam(this.getTeam(), this.displayname));
++        mutablecomponent = suffixes.stream().reduce(mutablecomponent, MutableComponent::append);
+         return this.decorateDisplayNameComponent(mutablecomponent);
+     }
+ 
+@@ -1953,18 +_,19 @@
+             Predicate<ItemStack> predicate = ((ProjectileWeaponItem)p_36349_.getItem()).getSupportedHeldProjectiles();
+             ItemStack itemstack = ProjectileWeaponItem.getHeldProjectile(this, predicate);
+             if (!itemstack.isEmpty()) {
+-                return itemstack;
++                return net.minecraftforge.common.ForgeHooks.getProjectile(this, p_36349_, itemstack);
+             } else {
+                 predicate = ((ProjectileWeaponItem)p_36349_.getItem()).getAllSupportedProjectiles();
+ 
+                 for (int i = 0; i < this.inventory.getContainerSize(); i++) {
+                     ItemStack itemstack1 = this.inventory.getItem(i);
+                     if (predicate.test(itemstack1)) {
+-                        return itemstack1;
++                        return net.minecraftforge.common.ForgeHooks.getProjectile(this, p_36349_, itemstack1);
+                     }
+                 }
+ 
+-                return this.hasInfiniteMaterials() ? new ItemStack(Items.ARROW) : ItemStack.EMPTY;
++                var vanilla = this.abilities.instabuild ? new ItemStack(Items.ARROW) : ItemStack.EMPTY;
++                return net.minecraftforge.common.ForgeHooks.getProjectile(this, p_36349_, vanilla);
+             }
+         }
+     }
+@@ -2109,6 +_,54 @@
+         this.currentImpulseImpactPos = null;
+         this.ignoreFallDamageFromCurrentImpulse = false;
+     }
++
++    public Collection<MutableComponent> getPrefixes() {
++        return this.prefixes;
++    }
++
++    public Collection<MutableComponent> getSuffixes() {
++        return this.suffixes;
++    }
++
++    private Component displayname = null;
++
++    /**
++     * Force the displayed name to refresh, by firing {@link net.minecraftforge.event.entity.player.PlayerEvent.NameFormat}, using the real player name as event parameter.
++     */
++    public void refreshDisplayName() {
++        this.displayname = net.minecraftforge.event.ForgeEventFactory.getPlayerDisplayName(this, this.getName());
++    }
++
++    private final net.minecraftforge.common.util.LazyOptional<net.minecraftforge.items.IItemHandler>
++        playerMainHandler, playerEquipmentHandler, playerJoinedHandler;
++
++    @Override
++    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable Direction facing) {
++        if (capability == net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER && this.isAlive()) {
++            if (facing == null) return playerJoinedHandler.cast();
++            else if (facing.getAxis().isVertical()) return playerMainHandler.cast();
++            else if (facing.getAxis().isHorizontal()) return playerEquipmentHandler.cast();
++        }
++        return super.getCapability(capability, facing);
++    }
++
++    /**
++     * Force a pose for the player. If set, the vanilla pose determination and clearance check is skipped. Make sure the pose is clear yourself (e.g. in PlayerTick).
++     * This has to be set just once, do not set it every tick.
++     * Make sure to clear (null) the pose if not required anymore and only use if necessary.
++     */
++    public void setForcedPose(@Nullable Pose pose) {
++        this.forcedPose = pose;
++    }
++
++    /**
++     * @return The forced pose if set, null otherwise
++     */
++    @Nullable
++    public Pose getForcedPose() {
++        return this.forcedPose;
++    }
++
+ 
+     public boolean shouldRotateWithMinecart() {
+         return false;

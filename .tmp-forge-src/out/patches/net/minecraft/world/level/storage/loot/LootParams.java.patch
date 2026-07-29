@@ -1,0 +1,29 @@
+--- a/net/minecraft/world/level/storage/loot/LootParams.java
++++ b/net/minecraft/world/level/storage/loot/LootParams.java
+@@ -53,6 +_,15 @@
+             this.level = p_287594_;
+         }
+ 
++        @SuppressWarnings("unchecked")
++        public Builder(LootParams parent) {
++            this.level = parent.getLevel();
++            this.withLuck(parent.getLuck());
++            parent.dynamicDrops.forEach(this::withDynamicDrop);
++            for (var key : parent.params.keySet())
++                this.withParameter((ContextKey<Object>)key, (Object)parent.contextMap().getOptional(key));
++        }
++
+         public ServerLevel getLevel() {
+             return this.level;
+         }
+@@ -93,6 +_,10 @@
+         public LootParams create(ContextKeySet p_367827_) {
+             ContextMap contextmap = this.params.create(p_367827_);
+             return new LootParams(this.level, contextmap, this.dynamicDrops, this.luck);
++        }
++
++        public LootParams create() {
++            return new LootParams(this.level, this.params.create(), this.dynamicDrops, this.luck);
+         }
+     }
+ 

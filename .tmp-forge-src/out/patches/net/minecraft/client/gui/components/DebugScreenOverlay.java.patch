@@ -1,0 +1,101 @@
+--- a/net/minecraft/client/gui/components/DebugScreenOverlay.java
++++ b/net/minecraft/client/gui/components/DebugScreenOverlay.java
+@@ -139,9 +_,9 @@
+     @Nullable
+     private CompletableFuture<LevelChunk> serverChunk;
+     private boolean renderDebug;
+-    private boolean renderProfilerChart;
+-    private boolean renderFpsCharts;
+-    private boolean renderNetworkCharts;
++    protected boolean renderProfilerChart;
++    protected boolean renderFpsCharts;
++    protected boolean renderNetworkCharts;
+     private final LocalSampleLogger frameTimeLogger = new LocalSampleLogger(1);
+     private final LocalSampleLogger tickTimeLogger = new LocalSampleLogger(TpsDebugDimensions.values().length);
+     private final LocalSampleLogger pingLogger = new LocalSampleLogger(1);
+@@ -183,15 +_,19 @@
+         this.clientChunk = null;
+     }
+ 
+-    public void render(GuiGraphics p_281427_) {
+-        ProfilerFiller profilerfiller = Profiler.get();
+-        profilerfiller.push("debug");
++    protected void update() {
+         Entity entity = this.minecraft.getCameraEntity();
+         this.block = entity.pick(20.0, 0.0F, false);
+         this.liquid = entity.pick(20.0, 0.0F, true);
++    }
++
++    protected void drawText(ProfilerFiller profilerfiller, GuiGraphics p_281427_) {
+         this.drawGameInformation(p_281427_);
+         this.drawSystemInformation(p_281427_);
+         p_281427_.nextStratum();
++    }
++
++    protected void drawFPSCharts(ProfilerFiller profilerfiller, GuiGraphics p_281427_) {
+         this.profilerPieChart.setBottomOffset(10);
+         if (this.renderFpsCharts) {
+             int i = p_281427_.guiWidth();
+@@ -204,7 +_,9 @@
+ 
+             this.profilerPieChart.setBottomOffset(this.tpsChart.getFullHeight());
+         }
++    }
+ 
++    protected void drawNetworkCharts(ProfilerFiller profilerfiller, GuiGraphics p_281427_) {
+         if (this.renderNetworkCharts) {
+             int l = p_281427_.guiWidth();
+             int i1 = l / 2;
+@@ -220,12 +_,22 @@
+         try (Zone zone = profilerfiller.zone("profilerPie")) {
+             this.profilerPieChart.render(p_281427_);
+         }
++    }
++
++    public void render(GuiGraphics p_281427_) {
++        ProfilerFiller profilerfiller = Profiler.get();
++        profilerfiller.push("debug");
++        this.update();
++
++        this.drawText(profilerfiller, p_281427_);
++        this.drawFPSCharts(profilerfiller, p_281427_);
++        this.drawNetworkCharts(profilerfiller, p_281427_);
+ 
+         profilerfiller.pop();
+     }
+ 
+-    protected void drawGameInformation(GuiGraphics p_281525_) {
+-        List<String> list = this.getGameInformation();
++    protected List<String> getOverlayHelp() {
++        List<String> list = Lists.newArrayList();
+         list.add("");
+         boolean flag = this.minecraft.getSingleplayerServer() != null;
+         list.add(
+@@ -239,11 +_,18 @@
+                 + (this.renderNetworkCharts ? " visible" : " hidden")
+         );
+         list.add("For help: press F3 + Q");
+-        this.renderLines(p_281525_, list, true);
++        return list;
++    }
++   protected void drawGameInformation(GuiGraphics p_281525_) {
++      List<String> list = this.getGameInformation();
++      list.addAll(this.getOverlayHelp());
++      net.minecraftforge.client.ForgeHooksClient.onCustomizeDebugEvent(p_281525_, minecraft.getWindow(), minecraft.getDeltaTracker().getRealtimeDeltaTicks(), list, true);
++      this.renderLines(p_281525_, list, true);
+     }
+ 
+     protected void drawSystemInformation(GuiGraphics p_281261_) {
+         List<String> list = this.getSystemInformation();
++        net.minecraftforge.client.ForgeHooksClient.onCustomizeDebugEvent(p_281261_, minecraft.getWindow(), minecraft.getDeltaTracker().getRealtimeDeltaTicks(), list, false);
+         this.renderLines(p_281261_, list, false);
+     }
+ 
+@@ -597,6 +_,7 @@
+                 list.add("");
+                 list.add(ChatFormatting.UNDERLINE + "Targeted Entity");
+                 list.add(String.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType())));
++                entity.getType().builtInRegistryHolder().tags().forEach(t -> list.add("#" + t.location()));
+             }
+ 
+             return list;

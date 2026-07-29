@@ -1,0 +1,75 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[6.0.36,6.2)'
+}
+
+version = '1.0'
+group = 'com.mcreator'
+base.archivesName = "modid"
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+minecraft {
+    mappings channel: 'official', version: '${generator.getGeneratorMinecraftVersion()}'
+
+    reobf = false
+    // Required so IDE/runClient process resources (mods.toml, assets) before launch
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'debug'
+            property 'eventbus.api.strictRuntimeChecks', 'true'
+        }
+
+        client {
+            property 'forge.enabledGameTestNamespaces', 'mcreator'
+
+            def mcreatorJvmOptions = System.getenv('MCREATOR_JVM_OPTIONS')
+            if (mcreatorJvmOptions) {
+                mcreatorJvmOptions.split("\\s+").findAll { it.trim() }.each { arg ->
+                    jvmArgs arg
+                }
+            }
+        }
+
+        server {
+            args '--nogui'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Forge'
+        url = 'https://maven.minecraftforge.net'
+    }
+    maven {
+        name = 'Minecraft libraries'
+        url = 'https://libraries.minecraft.net'
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${generator.getGeneratorMinecraftVersion()}-${generator.getGeneratorBuildFileVersion()}"
+    annotationProcessor 'net.minecraftforge:eventbus-validator:7.0-beta.10'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// Critical for Forge 1.21.x userdev: classes + resources must share one output directory.
+// Otherwise FML loads build/resources/main (mods.toml) without the @Mod class and crashes with
+// "constructed 0 mods / mods that were not found".
+// Same approach as the official Forge MDK.
+sourceSets.each {
+    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
+    it.output.resourcesDir = dir
+    it.java.destinationDirectory = dir
+}
+
+apply from: 'mcreator.gradle'

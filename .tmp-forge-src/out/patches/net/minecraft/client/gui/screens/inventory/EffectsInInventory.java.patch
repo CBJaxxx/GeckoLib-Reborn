@@ -1,0 +1,54 @@
+--- a/net/minecraft/client/gui/screens/inventory/EffectsInInventory.java
++++ b/net/minecraft/client/gui/screens/inventory/EffectsInInventory.java
+@@ -47,12 +_,16 @@
+         Collection<MobEffectInstance> collection = this.minecraft.player.getActiveEffects();
+         if (!collection.isEmpty() && j >= 32) {
+             boolean flag = j >= 120;
++            var event = net.minecraftforge.client.event.ForgeEventFactoryClient.onScreenEffectSize(this.screen, j, !flag, i);
++            if (event == null) return;
++            flag = !event.isCompact();
++            i = event.getHorizontalOffset();
+             int k = 33;
+             if (collection.size() > 5) {
+                 k = 132 / (collection.size() - 1);
+             }
+ 
+-            Iterable<MobEffectInstance> iterable = Ordering.natural().sortedCopy(collection);
++            Iterable<MobEffectInstance> iterable = collection.stream().filter(net.minecraftforge.client.ForgeHooksClient::shouldRenderEffect).sorted().toList();
+             this.renderBackgrounds(p_362146_, i, k, iterable, flag);
+             this.renderIcons(p_362146_, i, k, iterable, flag);
+             if (flag) {
+@@ -98,6 +_,11 @@
+         int i = this.screen.topPos;
+ 
+         for (MobEffectInstance mobeffectinstance : p_361981_) {
++            var renderer = net.minecraftforge.client.extensions.common.IClientMobEffectExtensions.of(mobeffectinstance);
++            if (renderer.renderInventoryIcon(mobeffectinstance, this, p_367085_, p_367644_ + (p_368681_ ? 6 : 7), i, 0)) {
++                i += p_367522_;
++                continue;
++            }
+             Holder<MobEffect> holder = mobeffectinstance.getEffect();
+             ResourceLocation resourcelocation = Gui.getMobEffectSprite(holder);
+             p_367085_.blitSprite(RenderPipelines.GUI_TEXTURED, resourcelocation, p_367644_ + (p_368681_ ? 6 : 7), i + 7, 18, 18);
+@@ -109,6 +_,11 @@
+         int i = this.screen.topPos;
+ 
+         for (MobEffectInstance mobeffectinstance : p_365480_) {
++            var renderer = net.minecraftforge.client.extensions.common.IClientMobEffectExtensions.of(mobeffectinstance);
++            if (renderer.renderInventoryText(mobeffectinstance, this, p_361851_, p_367468_, i, 0)) {
++                i += p_365556_;
++                continue;
++            }
+             Component component = this.getEffectName(mobeffectinstance);
+             p_361851_.drawString(this.screen.getFont(), component, p_367468_ + 10 + 18, i + 6, -1);
+             Component component1 = MobEffectUtil.formatDuration(mobeffectinstance, 1.0F, this.minecraft.level.tickRateManager().tickrate());
+@@ -124,5 +_,9 @@
+         }
+ 
+         return mutablecomponent;
++    }
++
++    public AbstractContainerScreen<?> getScreen() {
++        return this.screen;
+     }
+ }

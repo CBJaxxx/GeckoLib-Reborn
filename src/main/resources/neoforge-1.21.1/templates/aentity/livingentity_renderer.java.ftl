@@ -1,11 +1,3 @@
-<#--
- # GeckoLib 4.9.2 GeoEntityRenderer (NeoForge 1.21.1)
- # Pattern matched to a working GeckoLib 4.9.2 mod (DefaultedEntityGeoModel-style assets + bone hiding).
- #
- # Critical: Blockbench often exports helper bones "hitbox" and "tag_name".
- # If left visible, hitbox is a large cube with the full texture on every face.
- # Working mods hide those bones in preRender before super.preRender.
--->
 <#-- @formatter:off -->
 <#include "../procedures.java.ftl">
 

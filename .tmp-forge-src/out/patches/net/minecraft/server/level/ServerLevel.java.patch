@@ -1,0 +1,245 @@
+--- a/net/minecraft/server/level/ServerLevel.java
++++ b/net/minecraft/server/level/ServerLevel.java
+@@ -203,10 +_,12 @@
+     @Nullable
+     private EndDragonFight dragonFight;
+     final Int2ObjectMap<EnderDragonPart> dragonParts = new Int2ObjectOpenHashMap<>();
++    final Int2ObjectMap<net.minecraftforge.entity.PartEntity<?>> partEntities = new Int2ObjectOpenHashMap<>();
+     private final StructureManager structureManager;
+     private final StructureCheck structureCheck;
+     private final boolean tickTime;
+     private final RandomSequences randomSequences;
++    private net.minecraftforge.common.util.LevelCapabilityData capabilityData;
+ 
+     public ServerLevel(
+         MinecraftServer p_214999_,
+@@ -290,6 +_,18 @@
+         this.gameEventDispatcher = new GameEventDispatcher(this);
+         this.randomSequences = Objects.requireNonNullElseGet(p_288977_, () -> this.getDataStorage().computeIfAbsent(RandomSequences.TYPE));
+         this.waypointManager = new ServerWaypointManager();
++        this.initCapabilities();
++    }
++
++    protected void initCapabilities() {
++        this.gatherCapabilities();
++        capabilityData = this.getDataStorage().computeIfAbsent(net.minecraftforge.common.util.LevelCapabilityData.TYPE);
++    }
++
++    /** Forge: Internal method only for out capability storage system */
++    @org.jetbrains.annotations.ApiStatus.Internal
++    public @org.jetbrains.annotations.Nullable net.minecraftforge.common.capabilities.CapabilityDispatcher getCapabilityDispatcher() {
++        return getCapabilities();
+     }
+ 
+     @Deprecated
+@@ -331,8 +_,8 @@
+         int i = this.getGameRules().getInt(GameRules.RULE_PLAYERS_SLEEPING_PERCENTAGE);
+         if (this.sleepStatus.areEnoughSleeping(i) && this.sleepStatus.areEnoughDeepSleeping(i, this.players)) {
+             if (this.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)) {
+-                long j = this.levelData.getDayTime() + 24000L;
+-                this.setDayTime(j - j % 24000L);
++                long j = this.getDayTime() + 24000L;
++                this.setDayTime(net.minecraftforge.event.ForgeEventFactory.onSleepFinished(this, j - j % 24000L, this.getDayTime()));
+             }
+ 
+             this.wakeUpAllPlayers();
+@@ -399,6 +_,7 @@
+                                 p_358707_.stopRiding();
+                             }
+ 
++                            if (p_358707_.isRemoved() || p_358707_ instanceof net.minecraftforge.entity.PartEntity) return;
+                             profilerfiller.push("tick");
+                             this.guardEntityTick(this::tickNonPassenger, p_358707_);
+                             profilerfiller.pop();
+@@ -534,6 +_,7 @@
+         BlockPos blockpos = this.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, p_300602_);
+         BlockPos blockpos1 = blockpos.below();
+         Biome biome = this.getBiome(blockpos).value();
++        if (this.isAreaLoaded(blockpos1, 1)) // Forge: check area to avoid loading neighbors in unloaded chunks
+         if (biome.shouldFreeze(this, blockpos1)) {
+             this.setBlockAndUpdate(blockpos1, Blocks.ICE.defaultBlockState());
+         }
+@@ -713,8 +_,8 @@
+                 this.server.getPlayerList().broadcastAll(new ClientboundGameEventPacket(ClientboundGameEventPacket.START_RAINING, 0.0F));
+             }
+ 
+-            this.server.getPlayerList().broadcastAll(new ClientboundGameEventPacket(ClientboundGameEventPacket.RAIN_LEVEL_CHANGE, this.rainLevel));
+-            this.server.getPlayerList().broadcastAll(new ClientboundGameEventPacket(ClientboundGameEventPacket.THUNDER_LEVEL_CHANGE, this.thunderLevel));
++            this.server.getPlayerList().broadcastAll(new ClientboundGameEventPacket(ClientboundGameEventPacket.RAIN_LEVEL_CHANGE, this.rainLevel), this.dimension());
++            this.server.getPlayerList().broadcastAll(new ClientboundGameEventPacket(ClientboundGameEventPacket.THUNDER_LEVEL_CHANGE, this.thunderLevel), this.dimension());
+         }
+     }
+ 
+@@ -751,6 +_,7 @@
+         p_8648_.tickCount++;
+         profilerfiller.push(() -> BuiltInRegistries.ENTITY_TYPE.getKey(p_8648_.getType()).toString());
+         profilerfiller.incrementCounter("tickNonPassenger");
++        if (p_8648_.canUpdate())
+         p_8648_.tick();
+         profilerfiller.pop();
+ 
+@@ -768,6 +_,7 @@
+             ProfilerFiller profilerfiller = Profiler.get();
+             profilerfiller.push(() -> BuiltInRegistries.ENTITY_TYPE.getKey(p_8664_.getType()).toString());
+             profilerfiller.incrementCounter("tickPassenger");
++            if (p_8664_.canUpdate())
+             p_8664_.rideTick();
+             profilerfiller.pop();
+ 
+@@ -814,6 +_,7 @@
+             } else {
+                 this.entityManager.autoSave();
+             }
++            net.minecraftforge.event.ForgeEventFactory.onLevelSave(this);
+         }
+     }
+ 
+@@ -908,6 +_,7 @@
+     }
+ 
+     private void addPlayer(ServerPlayer p_8854_) {
++        if (net.minecraftforge.event.ForgeEventFactory.onEntityJoinLevel(p_8854_, this)) return;
+         Entity entity = this.getEntity(p_8854_.getUUID());
+         if (entity != null) {
+             LOGGER.warn("Force-added player with duplicate UUID {}", p_8854_.getUUID());
+@@ -915,7 +_,8 @@
+             this.removePlayerImmediately((ServerPlayer)entity, Entity.RemovalReason.DISCARDED);
+         }
+ 
+-        this.entityManager.addNewEntity(p_8854_);
++        this.entityManager.addNewEntityWithoutEvent(p_8854_);
++        p_8854_.onAddedToWorld();
+     }
+ 
+     private boolean addEntity(Entity p_8873_) {
+@@ -923,7 +_,12 @@
+             LOGGER.warn("Tried to add entity {} but it was marked as removed already", EntityType.getKey(p_8873_.getType()));
+             return false;
+         } else {
+-            return this.entityManager.addNewEntity(p_8873_);
++            if (this.entityManager.addNewEntity(p_8873_)) {
++                p_8873_.onAddedToWorld();
++                return true;
++            } else {
++                return false;
++            }
+         }
+     }
+ 
+@@ -971,6 +_,12 @@
+         float p_263520_,
+         long p_263490_
+     ) {
++        var event = net.minecraftforge.event.ForgeEventFactory.onPlaySoundAtPosition(this, p_393402_, p_397340_, p_394643_, p_263491_, p_263542_, p_263530_, p_263520_);
++        if (event == null || event.getSound() == null) return;
++        p_263491_ = event.getSound();
++        p_263542_ = event.getSource();
++        p_263530_ = event.getNewVolume();
++        p_263520_ = event.getNewPitch();
+         this.server
+             .getPlayerList()
+             .broadcast(
+@@ -988,6 +_,12 @@
+     public void playSeededSound(
+         @Nullable Entity p_392657_, Entity p_394285_, Holder<SoundEvent> p_263412_, SoundSource p_263338_, float p_263352_, float p_263390_, long p_263403_
+     ) {
++        var event = net.minecraftforge.event.ForgeEventFactory.onPlaySoundAtEntity(p_394285_.level(), p_394285_, p_263412_, p_263338_, p_263352_, p_263390_);
++        if (event == null || event.getSound() == null) return;
++        p_263412_ = event.getSound();
++        p_263338_ = event.getSource();
++        p_263352_ = event.getNewVolume();
++        p_263390_ = event.getNewPitch();
+         this.server
+             .getPlayerList()
+             .broadcast(
+@@ -1046,6 +_,7 @@
+ 
+     @Override
+     public void gameEvent(Holder<GameEvent> p_334475_, Vec3 p_215042_, GameEvent.Context p_215043_) {
++        if (net.minecraftforge.event.ForgeEventFactory.onVanillaGameEvent(this, p_334475_, p_215042_, p_215043_)) return;
+         this.gameEventDispatcher.post(p_334475_, p_215042_, p_215043_);
+     }
+ 
+@@ -1084,16 +_,24 @@
+ 
+     @Override
+     public void updateNeighborsAt(BlockPos p_215045_, Block p_215046_) {
++        if (net.minecraftforge.event.ForgeEventFactory.onNeighborNotify(this, p_215045_, this.getBlockState(p_215045_), java.util.EnumSet.allOf(Direction.class), false))
++            return;
+         this.updateNeighborsAt(p_215045_, p_215046_, ExperimentalRedstoneUtils.initialOrientation(this, null, null));
+     }
+ 
+     @Override
+     public void updateNeighborsAt(BlockPos p_362530_, Block p_362552_, @Nullable Orientation p_367766_) {
++        if (net.minecraftforge.event.ForgeEventFactory.onNeighborNotify(this, p_362530_, this.getBlockState(p_362530_), java.util.EnumSet.allOf(Direction.class), false))
++            return;
+         this.neighborUpdater.updateNeighborsAtExceptFromFacing(p_362530_, p_362552_, null, p_367766_);
+     }
+ 
+     @Override
+     public void updateNeighborsAtExceptFromFacing(BlockPos p_215052_, Block p_215053_, Direction p_215054_, @Nullable Orientation p_370072_) {
++        var directions = java.util.EnumSet.allOf(Direction.class);
++        directions.remove(p_215054_);
++        if (net.minecraftforge.event.ForgeEventFactory.onNeighborNotify(this, p_215052_, this.getBlockState(p_215052_), directions, false))
++           return;
+         this.neighborUpdater.updateNeighborsAtExceptFromFacing(p_215052_, p_215053_, p_215054_, p_370072_);
+     }
+ 
+@@ -1139,12 +_,14 @@
+         Explosion.BlockInteraction explosion$blockinteraction = switch (p_255827_) {
+             case NONE -> Explosion.BlockInteraction.KEEP;
+             case BLOCK -> this.getDestroyType(GameRules.RULE_BLOCK_EXPLOSION_DROP_DECAY);
+-            case MOB -> this.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) ? this.getDestroyType(GameRules.RULE_MOB_EXPLOSION_DROP_DECAY) : Explosion.BlockInteraction.KEEP;
++            case MOB -> net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this, p_256039_) ? this.getDestroyType(GameRules.RULE_MOB_EXPLOSION_DROP_DECAY) : Explosion.BlockInteraction.KEEP;
+             case TNT -> this.getDestroyType(GameRules.RULE_TNT_EXPLOSION_DROP_DECAY);
+             case TRIGGER -> Explosion.BlockInteraction.TRIGGER_BLOCK;
+         };
+         Vec3 vec3 = new Vec3(p_256067_, p_256370_, p_256153_);
+         ServerExplosion serverexplosion = new ServerExplosion(this, p_256039_, p_255778_, p_256002_, vec3, p_256045_, p_255686_, explosion$blockinteraction);
++        if (net.minecraftforge.event.ForgeEventFactory.onExplosionStart(this, serverexplosion))
++            return;
+         serverexplosion.explode();
+         ParticleOptions particleoptions = serverexplosion.isSmall() ? p_310962_ : p_310322_;
+ 
+@@ -1737,6 +_,11 @@
+         return this.chunkSource.getGenerator().getSeaLevel();
+     }
+ 
++    @Override
++    public java.util.Collection<net.minecraftforge.entity.PartEntity<?>> getPartEntities() {
++        return this.partEntities.values();
++    }
++
+     final class EntityCallbacks implements LevelCallback<Entity> {
+         public void onCreated(Entity p_143355_) {
+             if (p_143355_ instanceof WaypointTransmitter waypointtransmitter && waypointtransmitter.isTransmittingWaypoint()) {
+@@ -1792,6 +_,12 @@
+                 }
+             }
+ 
++            if (p_143371_.isMultipartEntity()) {
++                for (var part : p_143371_.getParts()) {
++                    ServerLevel.this.partEntities.put(part.getId(), part);
++                }
++            }
++
+             p_143371_.updateDynamicGameEventListener(DynamicGameEventListener::add);
+         }
+ 
+@@ -1820,7 +_,16 @@
+                 }
+             }
+ 
++            if (p_143375_.isMultipartEntity()) {
++                for (var part : p_143375_.getParts()) {
++                    ServerLevel.this.partEntities.remove(part.getId());
++                }
++            }
++
+             p_143375_.updateDynamicGameEventListener(DynamicGameEventListener::remove);
++
++            p_143375_.onRemovedFromWorld();
++            net.minecraftforge.event.ForgeEventFactory.onEntityLeaveLevel(p_143375_, ServerLevel.this);
+         }
+ 
+         public void onSectionChange(Entity p_215086_) {

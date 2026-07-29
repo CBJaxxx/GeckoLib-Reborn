@@ -1,0 +1,33 @@
+--- a/net/minecraft/world/level/block/VegetationBlock.java
++++ b/net/minecraft/world/level/block/VegetationBlock.java
+@@ -12,7 +_,7 @@
+ import net.minecraft.world.level.block.state.BlockState;
+ import net.minecraft.world.level.pathfinder.PathComputationType;
+ 
+-public abstract class VegetationBlock extends Block {
++public abstract class VegetationBlock extends Block implements net.minecraftforge.common.IPlantable {
+     protected VegetationBlock(BlockBehaviour.Properties p_395394_) {
+         super(p_395394_);
+     }
+@@ -43,6 +_,9 @@
+     @Override
+     protected boolean canSurvive(BlockState p_397664_, LevelReader p_395119_, BlockPos p_393561_) {
+         BlockPos blockpos = p_393561_.below();
++        if (p_397664_.getBlock() == this) { //Forge: This function is called during world gen and placement, before this block is set, so if we are not 'here' then assume it's the pre-check.
++            return p_395119_.getBlockState(blockpos).canSustainPlant(p_395119_, blockpos, Direction.UP, this);
++        }
+         return this.mayPlaceOn(p_395119_.getBlockState(blockpos), p_395119_, blockpos);
+     }
+ 
+@@ -54,5 +_,11 @@
+     @Override
+     protected boolean isPathfindable(BlockState p_392416_, PathComputationType p_395772_) {
+         return p_395772_ == PathComputationType.AIR && !this.hasCollision ? true : super.isPathfindable(p_392416_, p_395772_);
++    }
++
++    @Override
++    public BlockState getPlant(BlockGetter world, BlockPos pos) {
++        BlockState state = world.getBlockState(pos);
++        return state.getBlock() == this ? state : defaultBlockState();
+     }
+ }

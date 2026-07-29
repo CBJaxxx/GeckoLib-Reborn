@@ -1,0 +1,13 @@
+--- a/net/minecraft/server/level/DistanceManager.java
++++ b/net/minecraft/server/level/DistanceManager.java
+@@ -189,6 +_,10 @@
+         return this.ticketDispatcher.getDebugStatus();
+     }
+ 
++    public boolean shouldForceTicks(long chunkPos) {
++        return this.ticketStorage.getForceLoadedChunks().contains(chunkPos);
++    }
++
+     public boolean hasTickets() {
+         return this.ticketStorage.hasTickets();
+     }

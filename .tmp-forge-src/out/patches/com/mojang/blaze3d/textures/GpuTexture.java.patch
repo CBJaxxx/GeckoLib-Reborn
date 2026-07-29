@@ -1,0 +1,11 @@
+--- a/com/mojang/blaze3d/textures/GpuTexture.java
++++ b/com/mojang/blaze3d/textures/GpuTexture.java
+@@ -6,7 +_,7 @@
+ 
+ @OnlyIn(Dist.CLIENT)
+ @DontObfuscate
+-public abstract class GpuTexture implements AutoCloseable {
++public abstract class GpuTexture implements AutoCloseable, net.minecraftforge.client.extensions.IForgeGpuTexture {
+     public static final int USAGE_COPY_DST = 1;
+     public static final int USAGE_COPY_SRC = 2;
+     public static final int USAGE_TEXTURE_BINDING = 4;

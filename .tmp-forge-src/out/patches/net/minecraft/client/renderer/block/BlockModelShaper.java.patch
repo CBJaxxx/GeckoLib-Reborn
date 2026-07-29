@@ -1,0 +1,17 @@
+--- a/net/minecraft/client/renderer/block/BlockModelShaper.java
++++ b/net/minecraft/client/renderer/block/BlockModelShaper.java
+@@ -17,8 +_,13 @@
+         this.modelManager = p_110880_;
+     }
+ 
++    /** @deprecated Forge: Use {@link #getParticleIcon(BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos) getParticleIcon(BlockState, Level, Pos)} */
+     public TextureAtlasSprite getParticleIcon(BlockState p_110883_) {
+-        return this.getBlockModel(p_110883_).particleIcon();
++        return this.getBlockModel(p_110883_).particleIcon(net.minecraftforge.client.model.data.ModelData.EMPTY);
++    }
++
++    public TextureAtlasSprite getParticleIcon(BlockState p_110883_, net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
++       return this.getBlockModel(p_110883_).particleIcon(level.getModelDataManager().getAt(pos));
+     }
+ 
+     public BlockStateModel getBlockModel(BlockState p_110894_) {
