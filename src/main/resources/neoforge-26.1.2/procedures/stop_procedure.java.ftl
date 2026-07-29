@@ -1,6 +1,6 @@
 <#--
- # Stop GeckoLib entity procedure animation.
+ # Stop the animation on the named GeckoLib controller.
 -->
 if (${input$entity} instanceof ${(field$name)?replace("CUSTOM:", "")}Entity _geckolibEntity) {
-	_geckolibEntity.setAnimation("empty");
+	_geckolibEntity.setControllerAnimation(${input$controller}, "empty");
 }

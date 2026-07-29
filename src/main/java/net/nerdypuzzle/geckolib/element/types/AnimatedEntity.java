@@ -183,6 +183,35 @@ public class AnimatedEntity extends GeneratableElement
     public boolean enable10;
     //
 
+    /** Controller names the generated entity always registers on its own. */
+    public static final Set<String> RESERVED_CONTROLLER_NAMES = Set.of("movement", "attacking", "procedure");
+
+    /**
+     * A user-defined GeckoLib AnimationController.
+     *
+     * <p>GeckoLib exposes no additive blend API (bernie-g/geckolib#659). Controllers
+     * are layered purely by registration order: one registered later overrides the
+     * bones its animation actually keyframes, and leaves every other bone to the
+     * controllers registered before it. {@link #additive} therefore picks which side
+     * of the built-in {@code movement} controller this one is registered on, so an
+     * additive controller layers on top of the movement pose.
+     */
+    public static class ControllerEntry {
+        public String name;
+        public boolean additive;
+
+        /**
+         * Crossfade length in ticks when this controller switches animation, or
+         * {@code null} to inherit the entity's global transition ticks. Additive
+         * layers usually want 0: GeckoLib ramps into the first keyframe from the
+         * stopped state, which is visible on scale channels in particular.
+         */
+        public Integer transitionTicks;
+    }
+
+    /** Extra controllers, registered alongside the built-in movement/attacking/procedure ones. */
+    public List<ControllerEntry> animationControllers;
+
 
     public boolean breedable;
     public boolean tameable;
@@ -233,6 +262,7 @@ public class AnimatedEntity extends GeneratableElement
         this.stepHeight = 0.6;
 
         this.entityDataEntries = new ArrayList<>();
+        this.animationControllers = new ArrayList<>();
 
         this.raidSpawnsCount = new int[] {4, 3, 3, 4, 4, 4, 2};
 
@@ -276,6 +306,65 @@ public class AnimatedEntity extends GeneratableElement
 
     public boolean hasCustomProjectile() {
         return ranged && "Default item".equals(rangedItemType) && !rangedAttackItem.isEmpty();
+    }
+
+    /**
+     * A controller name is emitted verbatim into generated Java (as a method and
+     * field name suffix), so it has to be a plain identifier and must not clash
+     * with a controller the template registers itself.
+     */
+    public static boolean isValidControllerName(String name) {
+        return name != null && name.matches("[a-zA-Z_][a-zA-Z0-9_]*") && !isReservedControllerName(name);
+    }
+
+    /**
+     * Compared case-insensitively on purpose: a controller called "Movement" would
+     * compile, but it sits next to the built-in "movement" controller and competes
+     * with it for the same bones, which is never what the user meant.
+     */
+    public static boolean isReservedControllerName(String name) {
+        return name != null && RESERVED_CONTROLLER_NAMES.contains(name.toLowerCase(Locale.ENGLISH));
+    }
+
+    /**
+     * Controllers that are safe to generate code for. Invalid and duplicate names
+     * are dropped rather than emitted, so a half-filled entry in the UI can never
+     * produce a workspace that fails to compile.
+     */
+    public List<ControllerEntry> getValidControllers() {
+        if (animationControllers == null)
+            return List.of();
+        List<ControllerEntry> retval = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (ControllerEntry entry : animationControllers) {
+            // Dedup case-insensitively too: two controllers differing only in case
+            // are indistinguishable in the UI and almost certainly a mistake.
+            if (entry != null && isValidControllerName(entry.name)
+                    && seen.add(entry.name.toLowerCase(Locale.ENGLISH)))
+                retval.add(entry);
+        }
+        return retval;
+    }
+
+    /**
+     * Transition ticks to register the given controller with. Entries saved before
+     * per-controller transitions existed have no value and fall back to the entity's
+     * global setting, so their behaviour is unchanged.
+     */
+    public int getTransitionTicks(ControllerEntry controller) {
+        if (controller == null || controller.transitionTicks == null)
+            return lerp;
+        return Math.max(0, controller.transitionTicks);
+    }
+
+    /** Controllers registered before {@code movement}, so movement overrides them. */
+    public List<ControllerEntry> getBaseControllers() {
+        return getValidControllers().stream().filter(controller -> !controller.additive).toList();
+    }
+
+    /** Controllers registered after {@code movement}, so they layer on top of it. */
+    public List<ControllerEntry> getAdditiveControllers() {
+        return getValidControllers().stream().filter(controller -> controller.additive).toList();
     }
 
     public List<MCItem> providedMCItems() {

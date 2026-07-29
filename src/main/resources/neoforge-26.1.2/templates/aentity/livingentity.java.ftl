@@ -20,8 +20,10 @@ import com.geckolib.animatable.instance.AnimatableInstanceCache;
 import com.geckolib.animatable.manager.AnimatableManager;
 import com.geckolib.animation.AnimationController;
 import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.LoopType;
 import com.geckolib.animation.object.PlayState;
 import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.state.AnimationTimeline;
 import com.geckolib.util.GeckoLibUtil;
 
 <#assign extendsClass = "PathfinderMob">
@@ -47,6 +49,12 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
       ${name}Entity.class, EntityDataSerializers.STRING);
     public static final EntityDataAccessor<String> TEXTURE = SynchedEntityData.defineId(
       ${name}Entity.class, EntityDataSerializers.STRING);
+	<#-- One synched slot per custom controller, so procedures can drive each
+	     controller independently and the value reaches the rendering client. -->
+	<#list data.getValidControllers() as ctrl>
+	public static final EntityDataAccessor<String> ANIMATION_${ctrl.name?upper_case} = SynchedEntityData.defineId(
+	  ${name}Entity.class, EntityDataSerializers.STRING);
+	</#list>
 
 	<#if data.mobBehaviourType == "Raider">
 	public static final EnumProxy<Raid.RaiderType> RAIDER_TYPE = new EnumProxy<>(Raid.RaiderType.class,
@@ -69,6 +77,15 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 	private boolean lastloop;
 	private long lastSwing;
         public String animationprocedure = "empty";
+	<#list data.getValidControllers() as ctrl>
+	public String animation_${ctrl.name} = "empty";
+	private String prevAnim_${ctrl.name} = "empty";
+	</#list>
+	<#if data.getValidControllers()?has_content>
+	/** Separates the animation name from the request token; see tagAnimationRequest. */
+	private static final String ANIMATION_REQUEST_SEPARATOR = "#";
+	private int animationRequestCounter;
+	</#if>
 	<#if data.isBoss>
 	private final ServerBossEvent bossInfo = new ServerBossEvent(this.getDisplayName(),
 		ServerBossEvent.BossBarColor.${data.bossBarColor}, ServerBossEvent.BossBarOverlay.${data.bossBarType});
@@ -161,6 +178,9 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		builder.define(SHOOT, false);
 	    builder.define(ANIMATION, "undefined");
 		builder.define(TEXTURE, "${data.mobModelTexture?replace(".png", "")}");
+		<#list data.getValidControllers() as ctrl>
+		builder.define(ANIMATION_${ctrl.name?upper_case}, "undefined");
+		</#list>
 		<#if data.entityDataEntries?has_content>
 		    <#list data.entityDataEntries as entry>
 			    builder.define(DATA_${entry.property().getName()}, ${entry.value()?is_string?then("\"" + entry.value() + "\"", entry.value())});
@@ -1159,6 +1179,56 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		return PlayState.CONTINUE;
 	}
 
+	<#if data.getValidControllers()?has_content>
+	/**
+	 * Whether the animation currently queued on this controller loops.
+	 *
+	 * <p>hasAnimationFinished() is also true for a moment at every cycle boundary of a
+	 * looping animation, so a controller must not be released there - doing so drops the
+	 * pose for a frame before the next request restores it. thenPlay() queues
+	 * LoopType.DEFAULT and AnimationTimeline keeps that value unresolved, so the baked
+	 * animation's own loop type (the "loop" flag from the animation JSON) decides.
+	 */
+	private static boolean currentAnimationLoops(AnimationController<?> controller) {
+		AnimationTimeline timeline = controller.getTimeline();
+		if (timeline == null)
+			return false;
+		AnimationTimeline.Stage stage = timeline.getAnimationStage(controller.getCurrentTimelineTime());
+		if (stage == null)
+			return false;
+		LoopType loopType = stage.loopType();
+		if (loopType == LoopType.DEFAULT && stage.animation() != null)
+			loopType = stage.animation().loopType();
+		return loopType == LoopType.LOOP;
+	}
+	</#if>
+
+	<#-- One predicate per custom controller: start what a procedure requested, hold a
+	     looping animation indefinitely, and release the controller once a one-shot has
+	     finished so lower-priority (or, for additive controllers, the base) pose returns. -->
+	<#list data.getValidControllers() as ctrl>
+	private PlayState controllerPredicate_${ctrl.name}(AnimationTest<${name}Entity> event) {
+		if (this.animation_${ctrl.name}.equals("empty")) {
+			this.prevAnim_${ctrl.name} = "empty";
+			return PlayState.STOP;
+		}
+		if (!this.animation_${ctrl.name}.equals(this.prevAnim_${ctrl.name})) {
+			// New request - restart even when it is the same animation as before.
+			event.controller().reset();
+			event.controller().setAnimation(RawAnimation.begin().thenPlay(stripAnimationRequest(this.animation_${ctrl.name})));
+			this.prevAnim_${ctrl.name} = this.animation_${ctrl.name};
+			return PlayState.CONTINUE;
+		}
+		if (event.controller().hasAnimationFinished() && !currentAnimationLoops(event.controller())) {
+			this.animation_${ctrl.name} = "empty";
+			this.prevAnim_${ctrl.name} = "empty";
+			event.controller().reset();
+			return PlayState.STOP;
+		}
+		return PlayState.CONTINUE;
+	}
+	</#list>
+
 	/**
 	 * Custom death animation length. XP/loot are already dropped by LivingEntity#die
 	 * via dropAllDeathLoot -> dropExperience(ServerLevel, Entity); do not re-drop here.
@@ -1189,13 +1259,94 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		this.entityData.set(ANIMATION, animation);
 	}
 
+	/**
+	 * Moves whatever procedures wrote into the synched controller slots over to the
+	 * fields the AnimationControllers read, the same way EntityAnimationFactory
+	 * handles the built-in "procedure" controller.
+	 */
+	public void applySyncedControllerAnimations() {
+		<#list data.getValidControllers() as ctrl>
+		String synced_${ctrl.name} = this.entityData.get(ANIMATION_${ctrl.name?upper_case});
+		if (!synced_${ctrl.name}.equals("undefined")) {
+			this.entityData.set(ANIMATION_${ctrl.name?upper_case}, "undefined");
+			this.animation_${ctrl.name} = synced_${ctrl.name};
+		}
+		</#list>
+	}
+
+	<#if data.getValidControllers()?has_content>
+	/**
+	 * Appends a counter so that requesting the animation a controller already holds
+	 * still registers as a new request.
+	 *
+	 * <p>Without this, replaying the same animation would depend on the slot having been
+	 * cleared when the previous run finished. That clearing happens in the animation
+	 * predicate, which only runs while the entity is being rendered - so an entity that
+	 * finished its animation off-screen would never play it again.
+	 */
+	private String tagAnimationRequest(String animation) {
+		if (animation == null || animation.isBlank() || animation.equals("empty"))
+			return "empty";
+		return animation + ANIMATION_REQUEST_SEPARATOR + (++this.animationRequestCounter);
+	}
+
+	/** The animation name without the token added by {@link #tagAnimationRequest}. */
+	private static String stripAnimationRequest(String animation) {
+		int separator = animation.indexOf(ANIMATION_REQUEST_SEPARATOR);
+		return separator < 0 ? animation : animation.substring(0, separator);
+	}
+	</#if>
+
+	/**
+	 * Plays an animation on a named controller. A blank or unknown controller name
+	 * falls back to the built-in "procedure" controller, so procedures written
+	 * before custom controllers existed keep behaving exactly as before.
+	 */
+	public void setControllerAnimation(String controller, String animation) {
+		if (controller == null || controller.isBlank()) {
+			this.setAnimation(animation);
+			return;
+		}
+		switch (controller) {
+			<#list data.getValidControllers() as ctrl>
+			case "${ctrl.name}" -> this.entityData.set(ANIMATION_${ctrl.name?upper_case}, tagAnimationRequest(animation));
+			</#list>
+			default -> this.setAnimation(animation);
+		}
+	}
+
+	/** Currently playing animation on a named controller, or "empty" if idle. */
+	public String getControllerAnimation(String controller) {
+		if (controller == null || controller.isBlank())
+			return this.animationprocedure;
+		return switch (controller) {
+			<#list data.getValidControllers() as ctrl>
+			case "${ctrl.name}" -> stripAnimationRequest(this.animation_${ctrl.name});
+			</#list>
+			default -> this.animationprocedure;
+		};
+	}
+
 	@Override
 	public void registerControllers(AnimatableManager.ControllerRegistrar data) {
+		<#-- additiveAnimations() (GeckoLib 5 only) makes a controller add its animation
+		     on top of what earlier controllers already produced instead of assigning over
+		     them, so an additive animation's keyframes are offsets from the base pose and
+		     a keyframe of 0 means "leave the base pose alone".
+
+		     Additive controllers are still registered last: a non-additive controller
+		     assigns, so one registered afterwards would discard the accumulated offset. -->
+		<#list data.getBaseControllers() as ctrl>
+		data.add(new AnimationController<>("${ctrl.name}", ${data.getTransitionTicks(ctrl)}, this::controllerPredicate_${ctrl.name}));
+		</#list>
 		data.add(new AnimationController<>("movement", ${data.lerp}, this::movementPredicate));
 		<#if data.enable4 && data.animation4?has_content>
 		data.add(new AnimationController<>("attacking", ${data.lerp}, this::attackingPredicate));
 		</#if>
 		data.add(new AnimationController<>("procedure", ${data.lerp}, this::procedurePredicate));
+		<#list data.getAdditiveControllers() as ctrl>
+		data.add(new AnimationController<>("${ctrl.name}", ${data.getTransitionTicks(ctrl)}, this::controllerPredicate_${ctrl.name}).additiveAnimations());
+		</#list>
 	}
 
 	@Override

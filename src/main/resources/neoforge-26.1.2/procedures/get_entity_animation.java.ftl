@@ -1,1 +1,1 @@
-((${(field$entityname)?replace("CUSTOM:", "")}Entity) ${input$entity}).animationprocedure
+((${(field$entityname)?replace("CUSTOM:", "")}Entity) ${input$entity}).getControllerAnimation(${input$controller})
