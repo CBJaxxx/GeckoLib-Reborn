@@ -1,9 +1,4 @@
 <#-- @formatter:off -->
-
-/*
- *    MCreator note: This file will be REGENERATED on each build.
- */
-
 package ${package}.init;
 
 <#assign hasLivingEntities = w.hasElementsOfType("livingentity") || w.hasElementsOfType("animatedentity")>
