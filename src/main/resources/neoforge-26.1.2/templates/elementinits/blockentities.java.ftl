@@ -31,24 +31,24 @@ public class ${JavaModName}BlockEntities {
 	<#compress>
 	@SubscribeEvent public static void registerCapabilities(RegisterCapabilitiesEvent event) {
 		<#list blockentitiesWithInventory as blockentity>
-			event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(), SidedInvWrapper::new);
+			event.registerBlockEntity(Capabilities.Item.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(), WorldlyContainerWrapper::new);
 			<#if blockentity.hasEnergyStorage>
-			event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(),
+			event.registerBlockEntity(Capabilities.Energy.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(),
 				(blockEntity, side) -> ((${blockentity.getModElement().getName()}BlockEntity) blockEntity).getEnergyStorage());
 			</#if>
 			<#if blockentity.isFluidTank>
-			event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(),
+			event.registerBlockEntity(Capabilities.Fluid.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(),
 				(blockEntity, side) -> ((${blockentity.getModElement().getName()}BlockEntity) blockEntity).getFluidTank());
 			</#if>
 		</#list>
 		<#list animatedBlockentitiesWithInventory as blockentity>
-			event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(), SidedInvWrapper::new);
+			event.registerBlockEntity(Capabilities.Item.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(), WorldlyContainerWrapper::new);
 			<#if blockentity.hasEnergyStorage>
-			event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(),
+			event.registerBlockEntity(Capabilities.Energy.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(),
 				(blockEntity, side) -> ((${blockentity.getModElement().getName()}TileEntity) blockEntity).getEnergyStorage());
 			</#if>
 			<#if blockentity.isFluidTank>
-			event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(),
+			event.registerBlockEntity(Capabilities.Fluid.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(),
 				(blockEntity, side) -> ((${blockentity.getModElement().getName()}TileEntity) blockEntity).getFluidTank());
 			</#if>
 		</#list>
