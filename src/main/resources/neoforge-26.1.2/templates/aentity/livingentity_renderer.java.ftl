@@ -3,6 +3,7 @@
 
 package ${package}.client.renderer;
 
+import com.geckolib.constant.DefaultAnimations;
 import com.geckolib.constant.dataticket.DataTicket;
 import com.geckolib.renderer.GeoEntityRenderer;
 import com.geckolib.renderer.base.BoneSnapshots;
@@ -32,10 +33,16 @@ public class ${name}Renderer extends GeoEntityRenderer<${name}Entity, LivingEnti
 
 
 	@Override
-	public void adjustModelBonesForRender(RenderPassInfo<LivingEntityRenderState> renderPassInfo, BoneSnapshots snapshots) {
-		snapshots.ifPresent("hitbox", snapshot -> snapshot.skipRender(true).skipChildrenRender(true));
-		snapshots.ifPresent("tag_name", snapshot -> snapshot.skipRender(true).skipChildrenRender(true));
-	}
+    public void adjustModelBonesForRender(RenderPassInfo<LivingEntityRenderState> renderPassInfo, BoneSnapshots snapshots) {
+        // Hide Blockbench utility bones (same as before)
+        snapshots.ifPresent("hitbox", snapshot -> snapshot.skipRender(true).skipChildrenRender(true));
+        snapshots.ifPresent("tag_name", snapshot -> snapshot.skipRender(true).skipChildrenRender(true));
+
+        // The head rotation is now done with this render helper to target the bone
+        <#if data.headMovement>
+        DefaultAnimations.hardcodedHeadRotation(renderPassInfo, snapshots, "${data.groupName}");
+        </#if>
+    }
 
 	<#assign needsScale = data.visualScale?? && (hasProcedure(data.visualScale) || data.visualScale.getFixedValue() != 1)>
 	<#if needsScale>
