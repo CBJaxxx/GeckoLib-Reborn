@@ -7,7 +7,7 @@
   ],
   "info": {
     "name": "GeckoLib Reborn Plugin",
-    "version": "7.3.3",
+    "version": "7.3.4",
     "description": "Adds GeckoLib support for NeoForge 1.21.1 (GeckoLib 4.9.2) and NeoForge 26.1.2 (GeckoLib 5.5.2) on MCreator 2026.2",
     "author": "CBJaxx"
   }

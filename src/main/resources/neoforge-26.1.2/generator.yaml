@@ -1,0 +1,9 @@
+base_templates:
+  - name: "@RESROOT/META-INF/enumextensions.json"
+    _merge_policy: override_all
+    template: modbase/enumextensions.json.ftl
+    writer: json
+    condition_any:
+      - "${w.getGElementsOfType('livingentity')?filter(e -> e.mobBehaviourType == \"Raider\")?size != 0}"
+      - "${w.getGElementsOfType('animatedentity')?filter(e -> e.mobBehaviourType == \"Raider\")?size != 0}"
+      - "${w.getGElementsOfType('animateditem')?filter(e -> e.enableArmPose)?size != 0}"

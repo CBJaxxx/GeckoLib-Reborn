@@ -699,7 +699,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 					if (this.isOwnedBy(sourceentity)) {
 						if (this.isFood(itemstack) && this.getHealth() < this.getMaxHealth()) {
 							this.usePlayerItem(sourceentity, hand, itemstack);
-							FoodProperties foodproperties = itemstack.getFoodProperties(this);
+							FoodProperties foodproperties = itemstack.get(DataComponents.FOOD);
 							float nutrition = foodproperties != null ? (float) foodproperties.nutrition() : 1;
 							this.heal(nutrition);
 							retval = InteractionResult.SUCCESS;
