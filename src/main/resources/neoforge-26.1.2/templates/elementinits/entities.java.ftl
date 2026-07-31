@@ -52,8 +52,8 @@ public class ${JavaModName}Entities {
 			event.registerEntity(Capabilities.Item.ENTITY, ${entity.getModElement().getRegistryNameUpper()}.get(), (living, context) -> living.getCombinedInventory());
 		</#list>
 		<#list animatedEntitiesWithInventory as entity>
-			event.registerEntity(Capabilities.Item.ENTITY, ${entity.getModElement().getRegistryNameUpper()}.get(), (living, context) -> living.getInventory());
-		</#list>
+            event.registerEntity(Capabilities.Item.ENTITY, ${entity.getModElement().getRegistryNameUpper()}.get(), (living, context) -> living.getCombinedInventory());
+        </#list>
 	}
 	</#compress>
 	</#if>

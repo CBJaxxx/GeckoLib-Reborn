@@ -87,9 +87,9 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 	private int animationRequestCounter;
 	</#if>
 	<#if data.isBoss>
-	private final ServerBossEvent bossInfo = new ServerBossEvent(this.getDisplayName(),
-		ServerBossEvent.BossBarColor.${data.bossBarColor}, ServerBossEvent.BossBarOverlay.${data.bossBarType});
-	</#if>
+    private final ServerBossEvent bossInfo = new ServerBossEvent(Mth.createInsecureUUID(this.random), this.getDisplayName(),
+        ServerBossEvent.BossBarColor.${data.bossBarColor}, ServerBossEvent.BossBarOverlay.${data.bossBarType});
+    </#if>
 
 	public ${name}Entity(EntityType<${name}Entity> type, Level world) {
     	super(type, world);
@@ -583,29 +583,35 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 	}
     </#if>
 
-	<#if data.guiBoundTo?has_content && data.guiBoundTo != "<NONE>">
-	private final ItemStackHandler inventory = new ItemStackHandler(${data.inventorySize}) {
-		@Override public int getSlotLimit(int slot) {
-			return ${data.inventoryStackSize};
-		}
-	};
+    <#if data.guiBoundTo?has_content && data.guiBoundTo != "<NONE>">
+    private final ItemStacksResourceHandler inventory = new ItemStacksResourceHandler(${data.inventorySize})
+    <#if data.inventoryStackSize != 99>
+    {
+        @Override protected int getCapacity(int index, ItemResource resource) {
+            return Math.min(${data.inventoryStackSize}, super.getCapacity(index, resource));
+        }
+    }
+    </#if>;
 
-	private final CombinedInvWrapper combined = new CombinedInvWrapper(inventory, new EntityHandsInvWrapper(this), new EntityArmorInvWrapper(this));
+    private final CombinedResourceHandler combined = new CombinedResourceHandler(inventory,
+        LivingEntityEquipmentWrapper.of(this, EquipmentSlot.Type.HAND),
+        LivingEntityEquipmentWrapper.of(this, EquipmentSlot.Type.HUMANOID_ARMOR)
+    );
 
-	public CombinedInvWrapper getInventory() {
-		return combined;
-	}
+    public CombinedResourceHandler getCombinedInventory() {
+        return combined;
+    }
 
-   	@Override protected void dropEquipment() {
-		super.dropEquipment();
-		for (int i = 0; i < inventory.getSlots(); ++i) {
-			ItemStack itemstack = inventory.getStackInSlot(i);
-			if (!itemstack.isEmpty() && !EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
-				this.spawnAtLocation(itemstack);
-			}
-		}
-	}
-	</#if>
+    @Override protected void dropEquipment(ServerLevel serverLevel) {
+        super.dropEquipment(serverLevel);
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack itemstack = ItemUtil.getStack(inventory, i);
+            if (!itemstack.isEmpty() && !EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
+                this.spawnAtLocation(serverLevel, itemstack);
+            }
+        }
+    }
+    </#if>
 
 	@Override public void addAdditionalSaveData(ValueOutput valueOutput) {
 		super.addAdditionalSaveData(valueOutput);
@@ -879,10 +885,10 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		this.bossInfo.removePlayer(player);
 	}
 
-	@Override public void customServerAiStep() {
-		super.customServerAiStep();
-		this.bossInfo.setProgress(this.getHealth() / this.getMaxHealth());
-	}
+	@Override public void customServerAiStep(ServerLevel serverLevel) {
+        super.customServerAiStep(serverLevel);
+        this.bossInfo.setProgress(this.getHealth() / this.getMaxHealth());
+    }
 	</#if>
 
 	<#-- Single travel() for ridable and/or water AI (cannot define twice) -->
