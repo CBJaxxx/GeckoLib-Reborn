@@ -391,8 +391,8 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 	<#if !data.mobDrop.isEmpty()>
     protected void dropCustomDeathLoot(ServerLevel serverLevel, DamageSource source, boolean recentlyHitIn) {
         super.dropCustomDeathLoot(serverLevel, source, recentlyHitIn);
-        this.spawnAtLocation(${mappedMCItemToItemStackCode(data.mobDrop, 1)});
-   	}
+        this.spawnAtLocation(serverLevel, ${mappedMCItemToItemStackCode(data.mobDrop, 1)});
+    }
 	</#if>
 
     <#if data.livingSound?has_content && data.livingSound.getUnmappedValue()?has_content>
