@@ -570,7 +570,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
     </#if>
 
 	<#if hasProcedure(data.onInitialSpawn)>
-	@Override public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData livingdata) {
+	@Override public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData livingdata) {
 		SpawnGroupData retval = super.finalizeSpawn(world, difficulty, reason, livingdata);
 		<@procedureCode data.onInitialSpawn, {
 			"x": "this.getX()",
@@ -838,14 +838,16 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 
 	<#if data.breedable>
         @Override public AgeableMob getBreedOffspring(ServerLevel serverWorld, AgeableMob ageable) {
-			${name}Entity retval = ${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get().create(serverWorld);
-			retval.finalizeSpawn(serverWorld, serverWorld.getCurrentDifficultyAt(retval.blockPosition()), MobSpawnType.BREEDING, null);
-			return retval;
-		}
+            return ${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get().create(serverWorld, EntitySpawnReason.BREEDING);
+        }
 
-		@Override public boolean isFood(ItemStack stack) {
-			return List.of(<#list data.breedTriggerItems as breedTriggerItem>${mappedMCItemToItem(breedTriggerItem)}<#sep>,</#list>).contains(stack.getItem());
-		}
+        @Override public boolean isFood(ItemStack stack) {
+            <#if data.breedTriggerItems?has_content>
+            return ${mappedMCItemsToIngredient(data.breedTriggerItems)}.test(stack);
+            <#else>
+            return false;
+            </#if>
+        }
     </#if>
 
 	<#if needsWaterAI>
