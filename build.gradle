@@ -4,11 +4,13 @@ plugins {
     id "java"
 }
 
+def mcreatorInstall = file(findProperty('mcreator_install') ?: 'C:/Program Files/Pylo/MCreator')
+
 repositories {
     mavenCentral()
     maven { url "https://repo.gradle.org/gradle/libs-releases" } // for gradle-tooling-api
     flatDir { dirs mcreator_path + '/lib' }
-    flatDir { dirs 'C:/Program Files/Pylo/MCreator/lib' }
+    flatDir { dirs mcreatorInstall.path + '/lib' }
     flatDir { dirs 'libs' }
 }
 
@@ -41,7 +43,7 @@ compileJava {
  * (only if that project builds cleanly on its own).
  */
 def useMcreatorSource = project.hasProperty('mcreatorFromSource')
-def mcreatorInstallLib = file('C:/Program Files/Pylo/MCreator/lib')
+def mcreatorInstallLib = file("${mcreatorInstall}/lib")
 def mcreatorApiJar = file('libs/mcreator-api.jar')
 
 dependencies {
