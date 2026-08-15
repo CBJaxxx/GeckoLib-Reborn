@@ -23,8 +23,10 @@ public class ${JavaModName}Entities {
 				register("${entity.getModElement().getRegistryName()}", EntityType.Builder.<${entity.getModElement().getName()}Entity>
 						of(${entity.getModElement().getName()}Entity::new, ${generator.map(entity.mobSpawningType, "mobspawntypes")})
 							.setShouldReceiveVelocityUpdates(true).setTrackingRange(${entity.trackingRange}).setUpdateInterval(3)
-							<#if entity.immuneToFire>.fireImmune()</#if>
-							.sized(${entity.modelWidth}f, ${entity.modelHeight}f)
+							 <#if entity.immuneToFire>.fireImmune()</#if>
+                             <#if entity.getModElement().getTypeString() == "livingentity" && (entity.mobModelName)?? && entity.mobModelName == "Biped">.ridingOffset(-0.6f)</#if>
+                             <#if (entity.mobBehaviourType)?? && entity.mobBehaviourType != "Creature">.notInPeaceful()</#if>
+                             .sized(${entity.modelWidth}f, ${entity.modelHeight}f)
 						);
 			<#if entity.hasCustomProjectile()>
 			public static final DeferredHolder<EntityType<?>, EntityType<${entity.getModElement().getName()}EntityProjectile>> ${entity.getModElement().getRegistryNameUpper()}_PROJECTILE =

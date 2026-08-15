@@ -24,6 +24,7 @@ public class ${JavaModName}Entities {
 						of(${entity.getModElement().getName()}Entity::new, ${generator.map(entity.mobSpawningType, "mobspawntypes")})
 							.setShouldReceiveVelocityUpdates(true).setTrackingRange(${entity.trackingRange}).setUpdateInterval(3)
 							<#if entity.immuneToFire>.fireImmune()</#if>
+							<#if entity.getModElement().getTypeString() == "livingentity" && (entity.mobModelName)?? && entity.mobModelName == "Biped">.ridingOffset(-0.6f)</#if>
 							.sized(${entity.modelWidth}f, ${entity.modelHeight}f)
 						);
 			<#if entity.hasCustomProjectile()>
