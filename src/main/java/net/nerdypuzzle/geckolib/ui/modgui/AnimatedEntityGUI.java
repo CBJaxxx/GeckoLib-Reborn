@@ -39,6 +39,7 @@ import net.mcreator.ui.validation.ValidationResult;
 import net.mcreator.ui.validation.Validator;
 import net.mcreator.ui.validation.component.VComboBox;
 import net.mcreator.ui.validation.component.VTextField;
+import net.mcreator.ui.validation.validators.ItemListFieldSingleTagValidator;
 import net.mcreator.ui.validation.validators.TextFieldValidator;
 import net.mcreator.ui.workspace.resources.TextureType;
 import net.mcreator.util.ListUtils;
@@ -280,11 +281,14 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
 
         BlocklyToJava blocklyToJava;
         try {
+            String xml = blocklyPanel != null ? blocklyPanel.getXML() : null;
+            if (xml == null || xml.isBlank())
+                return List.of();
             blocklyToJava = new BlocklyToJava(mcreator.getWorkspace(), this.modElement, BlocklyEditorType.AI_TASK,
-                    blocklyPanel.getXML(), null,
+                    xml, null,
                     new ProceduralBlockCodeGenerator(blocklyBlockCodeGenerator),
                     new OutputBlockCodeGenerator(blocklyBlockCodeGenerator));
-        } catch (TemplateGeneratorException e) {
+        } catch (TemplateGeneratorException | RuntimeException e) {
             return List.of();
         }
 
@@ -366,7 +370,8 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
                 Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity")).setDefaultName(
                 L10N.t("condition.common.false")).makeInline();
 
-        restrictionBiomes = new BiomeListField(mcreator);
+        restrictionBiomes = new BiomeListField(mcreator, true);
+        restrictionBiomes.setValidator(new ItemListFieldSingleTagValidator(restrictionBiomes));
         breedTriggerItems = new MCItemListField(mcreator, ElementUtil::loadBlocksAndItems);
 
         entityDataList = new JEntityDataList(mcreator, this);
@@ -1203,9 +1208,9 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         Set<String> seen = new HashSet<>();
         for (AnimatedEntity.ControllerEntry controller : element.animationControllers) {
             String name = controller.name;
+            // Empty rows are filtered by getValidControllers and must not block save.
             if (name == null || name.isBlank())
-                return new AggregatedValidationResult.FAIL(
-                        L10N.t("elementgui.animatedentity.controller_error_empty"));
+                continue;
             if (AnimatedEntity.isReservedControllerName(name))
                 return new AggregatedValidationResult.FAIL(
                         L10N.t("elementgui.animatedentity.controller_error_reserved", name));

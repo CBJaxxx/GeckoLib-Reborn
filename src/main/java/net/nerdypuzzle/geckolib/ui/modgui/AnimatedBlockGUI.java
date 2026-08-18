@@ -277,7 +277,6 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
     protected void initGUI() {
         this.destroyTool.setRenderer(new ItemTexturesComboBoxRenderer());
         this.blocksToReplace = new MCItemListField(this.mcreator, ElementUtil::loadBlocksAndTags, false, true);
-        this.restrictionBiomes = new BiomeListField(this.mcreator);
         restrictionBiomes = new BiomeListField(mcreator, true);
         restrictionBiomes.setValidator(new ItemListFieldSingleTagValidator(restrictionBiomes));
         this.fluidRestrictions = new FluidListField(this.mcreator);

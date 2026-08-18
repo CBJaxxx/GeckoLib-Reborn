@@ -44,8 +44,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 
 import javax.annotation.Nullable;
 
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationState;
 
 <#assign extendsClass = "PathfinderMob">
 
