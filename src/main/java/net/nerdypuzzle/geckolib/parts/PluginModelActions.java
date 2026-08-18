@@ -29,7 +29,7 @@ import java.util.Set;
 public class PluginModelActions extends ModelImportActions {
 
 	/**
-	 * GeckoLib 4.x (NeoForge 1.21.1): assets/&lt;modid&gt;/geo and animations
+	 * GeckoLib 4.x (Forge 1.20.1 / NeoForge 1.21.1): assets/&lt;modid&gt;/geo and animations
 	 * GeckoLib 5.x (NeoForge 26.1.2): assets/&lt;modid&gt;/geckolib/models and geckolib/animations
 	 */
 	private static boolean usesGeckoLib5AssetLayout(MCreator mcreator) {

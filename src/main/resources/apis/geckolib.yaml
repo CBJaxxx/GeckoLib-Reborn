@@ -1,4 +1,28 @@
 ---
+forge-1.20.1:
+  gradle: |
+    repositories {
+      exclusiveContent {
+        forRepository {
+          maven {
+            name = 'GeckoLib'
+            url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+          }
+        }
+        filter {
+          includeGroupAndSubgroups('software.bernie.geckolib')
+        }
+      }
+    }
+
+    dependencies {
+      // Spectrall uses NeoForged ModDev LegacyForge: remaps SRG-published Forge mods
+      // to official names. Plain implementation leaves GeckoLib on SRG (m_91087_ etc.).
+      modImplementation 'software.bernie.geckolib:geckolib-forge-1.20.1:4.8.4'
+    }
+  update_files:
+    - ~
+
 neoforge-1.21.1:
   gradle: |
     repositories {

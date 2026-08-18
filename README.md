@@ -4,6 +4,7 @@ Adds GeckoLib animated block/item/entity/armor elements for:
 
 | Generator | GeckoLib | Asset layout |
 |-----------|----------|--------------|
+| **Forge 1.20.1** | **4.8.4** | `geo/` + `animations/` |
 | **NeoForge 1.21.1** | **4.9.2** | `geo/` + `animations/` |
 | **NeoForge 26.1.2** | **5.5.2** | `geckolib/models/` + `geckolib/animations/` |
 
@@ -12,13 +13,15 @@ Adds GeckoLib animated block/item/entity/armor elements for:
 
 - **MCreator 2026.2** (supported version id `2026002`)
 - Java **25** (MCreator-bundled JBR works for building the plugin)
+- For **Forge 1.20.1** workspaces, also install [Spectrall's Forge 1.20.1 generator](https://github.com/Spectrall368/Generator-Forge-1.20.1) **V1.7** (MCreator 2026.2 has no built-in Forge generator)
 
 ## Install
 
 1. Build: `gradlew jar` (sets `org.gradle.java.home` to MCreator’s JDK)
 2. Copy `build/libs/GeckoLib_Reborn_Plugin.zip` into `.mcreator/plugins/`
-3. Restart MCreator
-4. Enable the **GeckoLib** API in workspace settings
+3. For Forge 1.20.1, also copy Spectrall's generator zip into `.mcreator/plugins/`
+4. Restart MCreator
+5. Enable the **GeckoLib** API in workspace settings
 
 ## Custom animation controllers
 
