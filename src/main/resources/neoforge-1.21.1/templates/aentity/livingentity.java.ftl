@@ -791,9 +791,9 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
     		double x = this.getX();
     		double y = entity.getY();
     		double z = entity.getZ();
-    		return super.getDefaultDimensions(pose).scale((float) <@procedureOBJToNumberCode data.boundingBoxScale/>);
+    		return super.getDefaultDimensions(pose).scale((float) <@procedureOBJToNumberCode data.boundingBoxScale/>)<#if data.eyeHeight>.withEyeHeight(${data.height}f)</#if>;
     	<#else>
-    		return super.getDefaultDimensions(pose).scale(${data.boundingBoxScale.getFixedValue()}f);
+    		return super.getDefaultDimensions(pose).scale(${data.boundingBoxScale.getFixedValue()}f)<#if data.eyeHeight>.withEyeHeight(${data.height}f)</#if>;
     	</#if>
     }
     </#if>
@@ -962,7 +962,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 
 	public static void init(RegisterSpawnPlacementsEvent event) {
 		<#if data.spawnThisMob>
-			<#if data.mobSpawningType == "creature">
+			<#if data.mobSpawningType.getUnmappedValue() == "creature">
 			event.register(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(),
 					SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 				<#if hasProcedure(data.spawningCondition)>
@@ -979,7 +979,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 				</#if>,
 				RegisterSpawnPlacementsEvent.Operation.REPLACE
 			);
-			<#elseif data.mobSpawningType == "ambient" || data.mobSpawningType == "misc">
+			<#elseif data.mobSpawningType.getUnmappedValue() == "ambient" || data.mobSpawningType.getUnmappedValue() == "misc">
 			event.register(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(),
 					SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 					<#if hasProcedure(data.spawningCondition)>
@@ -994,7 +994,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 					</#if>,
 					RegisterSpawnPlacementsEvent.Operation.REPLACE
 			);
-			<#elseif data.mobSpawningType == "waterCreature" || data.mobSpawningType == "waterAmbient">
+			<#elseif data.mobSpawningType.getUnmappedValue() == "waterCreature" || data.mobSpawningType.getUnmappedValue() == "waterAmbient">
 			event.register(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(),
 					SpawnPlacementTypes.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 					<#if hasProcedure(data.spawningCondition)>
@@ -1011,7 +1011,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 					</#if>,
 					RegisterSpawnPlacementsEvent.Operation.REPLACE
 			);
-			<#elseif data.mobSpawningType == "undergroundWaterCreature">
+			<#elseif data.mobSpawningType.getUnmappedValue() == "undergroundWaterCreature">
 			event.register(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(),
 					SpawnPlacementTypes.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 					<#if hasProcedure(data.spawningCondition)>

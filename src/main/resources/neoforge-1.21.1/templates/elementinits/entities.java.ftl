@@ -26,6 +26,7 @@ public class ${JavaModName}Entities {
 							<#if entity.immuneToFire>.fireImmune()</#if>
 							<#if entity.getModElement().getTypeString() == "livingentity" && (entity.mobModelName)?? && entity.mobModelName == "Biped">.ridingOffset(-0.6f)</#if>
 							.sized(${entity.modelWidth}f, ${entity.modelHeight}f)
+                            <#if entity.getModElement().getTypeString() == "animatedentity" && entity.eyeHeight>.eyeHeight(${entity.height}f)</#if>
 						);
 			<#if entity.hasCustomProjectile()>
 			public static final DeferredHolder<EntityType<?>, EntityType<${entity.getModElement().getName()}EntityProjectile>> ${entity.getModElement().getRegistryNameUpper()}_PROJECTILE =

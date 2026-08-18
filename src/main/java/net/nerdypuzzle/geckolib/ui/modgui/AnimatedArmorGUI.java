@@ -514,7 +514,7 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
             }
         });
 
-        group1page.addValidationElement(armorTextureFile);
+        group2page.addValidationElement(armorTextureFile);
 
 
         JPanel gprops = new JPanel(new GridLayout(13, 2, 4, 4));
@@ -575,9 +575,9 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
         group2page.addValidationElement(geoModel);
         group2page.addValidationElement(idle);
 
-        addPage(L10N.t("elementgui.common.page_visual"), pane2);
+        addPage(L10N.t("elementgui.common.page_visual"), pane2).validate(group1page);
         addPage(L10N.t("elementgui.common.page_properties"), pane5);
-        addPage(L10N.t("elementgui.animatedarmor.geckolib_properties"), pane3);
+        addPage(L10N.t("elementgui.animatedarmor.geckolib_properties"), pane3).validate(group2page);
 
         if (!isEditingMode()) {
             String readableNameFromModElement = StringUtils.machineToReadableName(modElement.getName());

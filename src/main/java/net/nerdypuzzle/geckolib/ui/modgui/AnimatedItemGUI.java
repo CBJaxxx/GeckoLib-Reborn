@@ -333,11 +333,7 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         inventoryProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/inventory_stack_size"), L10N.label("elementgui.common.max_stack_size", new Object[0])));
         inventoryProperties.add(this.inventoryStackSize);
         advancedProperties.add("Center", PluginPanelUtils.totalCenterInPanel(inventoryProperties));
-        this.texture.setValidator(new Validator() {
-            @Override public ValidationResult validate() {
-                return ValidationResult.PASSED;
-            }
-        });
+        this.texture.requireValue();
         this.page1group.addValidationElement(this.texture);
         this.page1group.addValidationElement(this.idle);
         this.page1group.addValidationElement(this.geoModel);
@@ -355,9 +351,9 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         JComponent poseEditor = PluginPanelUtils.northAndCenterElement(enableArmPose, armPoseList);
         paneHands.add(PluginPanelUtils.northAndCenterElement(PluginPanelUtils.join(0, new Component[]{new JEmptyBox()}), poseEditor));
 
-        this.addPage(L10N.t("elementgui.common.page_visual", new Object[0]), pane2);
+        this.addPage(L10N.t("elementgui.common.page_visual", new Object[0]), pane2).validate(this.page1group);
         this.addPage(L10N.t("elementgui.animateditem.page_hands", new Object[0]), paneHands);
-        this.addPage(L10N.t("elementgui.common.page_properties", new Object[0]), pane3);
+        this.addPage(L10N.t("elementgui.common.page_properties", new Object[0]), pane3).validate(this.name);
         this.addPage(L10N.t("elementgui.item.food_properties", new Object[0]), foodProperties);
         this.addPage(L10N.t("elementgui.common.page_advanced_properties", new Object[0]), advancedProperties);
         this.addPage(L10N.t("elementgui.common.page_triggers", new Object[0]), pane4);
@@ -433,16 +429,6 @@ public class AnimatedItemGUI extends ModElementGUI<AnimatedItem> implements Geck
         ComboBoxUtil.updateComboBoxContents(this.displaySettings, ListUtils.merge(Collections.singleton(""), (Collection)PluginModelActions.getDisplaysettings(this.mcreator).stream().map(File::getName).filter((s) -> {
             return s.endsWith(".json");
         }).collect(Collectors.toList())), "");
-    }
-
-    // MCreator 2025.x: validatePage removed, validation handled by field validators
-    @SuppressWarnings("unused")
-    private AggregatedValidationResult validatePage(int page) {
-        if (page == 1) {
-            return new AggregatedValidationResult(new IValidable[]{this.name});
-        } else {
-            return page == 0 ? new AggregatedValidationResult(this.page1group) : new AggregatedValidationResult.PASS();
-        }
     }
 
     @Override public @Nullable java.net.URI contextURL() throws java.net.URISyntaxException {

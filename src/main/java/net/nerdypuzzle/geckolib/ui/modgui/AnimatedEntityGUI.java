@@ -1069,14 +1069,22 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
         headMovement.setOpaque(false);
         eyeHeight.setOpaque(false);
 
-        addPage(L10N.t("elementgui.living_entity.page_visual_and_sound"), pane2);
+        addPage(L10N.t("elementgui.living_entity.page_visual_and_sound"), pane2)
+                .validate(mobModelTexture).validate(mobName).validate(geoModel);
         addPage(L10N.t("elementgui.living_entity.page_behaviour"), pane1);
         addPage(L10N.t("elementgui.living_entity.page_entity_data"), entityDataListPanel);
         addPage(L10N.t("elementgui.common.page_inventory"), pane7);
         addPage(L10N.t("elementgui.common.page_triggers"), pane4);
-        addPage(L10N.t("elementgui.living_entity.page_ai_and_goals"), pane3);
-        addPage(L10N.t("elementgui.living_entity.page_spawning"), pane5);
-        addPage(L10N.t("elementgui.animatedentity.animations_page"), pane8);
+        addPage(L10N.t("elementgui.living_entity.page_ai_and_goals"), pane3).lazyValidate(
+                BlocklyAggregatedValidationResult.blocklyValidator(this,
+                        compileNote -> "Animated entity AI builder: " + compileNote));
+        addPage(L10N.t("elementgui.living_entity.page_spawning"), pane5).validate(restrictionBiomes).lazyValidate(() -> {
+            if ((int) minNumberOfMobsPerGroup.getValue() > (int) maxNumberOfMobsPerGroup.getValue())
+                return new AggregatedValidationResult.FAIL(
+                        "Minimal mob group size can't be bigger than maximal size");
+            return new AggregatedValidationResult.PASS();
+        });
+        addPage(L10N.t("elementgui.animatedentity.animations_page"), pane8).validate(animation1);
 
         animation2.setEnabled(enable2.isSelected());
         animation3.setEnabled(enable3.isSelected());
@@ -1207,22 +1215,6 @@ public class AnimatedEntityGUI extends ModElementGUI<AnimatedEntity> implements 
             if (!seen.add(name.toLowerCase(java.util.Locale.ENGLISH)))
                 return new AggregatedValidationResult.FAIL(
                         L10N.t("elementgui.animatedentity.controller_error_duplicate", name));
-        }
-        return new AggregatedValidationResult.PASS();
-    }
-
-    // MCreator 2025.x: validatePage removed, validation handled by field validators / lazyValidate
-    @SuppressWarnings("unused")
-    private AggregatedValidationResult validatePage(int page) {
-        if (page == 0) {
-            return new AggregatedValidationResult(mobModelTexture, mobName, geoModel, animation1);
-        } else if (page == 5) {
-            if (hasErrors)
-                return new AggregatedValidationResult.FAIL(L10N.t("elementgui.living_entity.ai_errors"));
-        } else if (page == 6) {
-            if ((int) minNumberOfMobsPerGroup.getValue() > (int) maxNumberOfMobsPerGroup.getValue()) {
-                return new AggregatedValidationResult.FAIL("Minimal mob group size can't be bigger than maximal size");
-            }
         }
         return new AggregatedValidationResult.PASS();
     }

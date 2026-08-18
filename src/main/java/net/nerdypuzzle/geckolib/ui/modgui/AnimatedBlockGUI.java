@@ -822,11 +822,7 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         pane7.setOpaque(false);
         pane9.setOpaque(false);
         pane9.add("Center", PluginPanelUtils.totalCenterInPanel(PluginPanelUtils.centerInPanel(enderpanel2)));
-        this.texture.setValidator(new Validator() {
-            @Override public ValidationResult validate() {
-                return ValidationResult.PASSED;
-            }
-        });
+        this.texture.requireValue();
         this.page1group.addValidationElement(this.texture);
         this.page1group.addValidationElement(this.geoModel);
         this.page1group.addValidationElement(this.displaySettings);
@@ -855,15 +851,23 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
         mainEditor.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         blockstates.add(PluginPanelUtils.northAndCenterElement(PluginPanelUtils.join(0, new JEmptyBox()), mainEditor));
 
-        this.addPage(L10N.t("elementgui.common.page_visual", new Object[0]), pane2);
+        this.addPage(L10N.t("elementgui.common.page_visual", new Object[0]), pane2).validate(this.page1group);
         this.addPage(L10N.t("elementgui.common.page_bounding_boxes", new Object[0]), bbPane);
-        this.addPage(L10N.t("elementgui.animatedblock.page_blockstates", new Object[0]), blockstates);
-        this.addPage(L10N.t("elementgui.common.page_properties", new Object[0]), pane3);
+        this.addPage(L10N.t("elementgui.animatedblock.page_blockstates", new Object[0]), blockstates)
+                .lazyValidate(this.blockstateList::getValidationResult);
+        this.addPage(L10N.t("elementgui.common.page_properties", new Object[0]), pane3).validate(this.page3group);
         this.addPage(L10N.t("elementgui.common.page_advanced_properties", new Object[0]), pane7);
-        this.addPage(L10N.t("elementgui.block.page_tile_entity", new Object[0]), pane8);
+        this.addPage(L10N.t("elementgui.block.page_tile_entity", new Object[0]), pane8)
+                .validate(this.outSlotIDs).validate(this.inSlotIDs);
         this.addPage(L10N.t("elementgui.block.page_energy_fluid_storage", new Object[0]), pane10);
         this.addPage(L10N.t("elementgui.common.page_triggers", new Object[0]), pane4);
-        this.addPage(L10N.t("elementgui.common.page_generation", new Object[0]), pane9);
+        this.addPage(L10N.t("elementgui.common.page_generation", new Object[0]), pane9)
+                .validate(this.restrictionBiomes).lazyValidate(() -> {
+                    if ((Integer) this.minGenerateHeight.getValue() >= (Integer) this.maxGenerateHeight.getValue())
+                        return new AggregatedValidationResult.FAIL(
+                                L10N.t("elementgui.block.error_minimal_generation_height"));
+                    return new AggregatedValidationResult.PASS();
+                });
         if (!this.isEditingMode()) {
             String readableNameFromModElement = StringUtils.machineToReadableName(this.modElement.getName());
             this.name.setText(readableNameFromModElement);
@@ -993,20 +997,6 @@ public class AnimatedBlockGUI extends ModElementGUI<AnimatedBlock> implements Ge
 
     @Override public @Nullable URI contextURL() throws URISyntaxException {
         return null;
-    }
-
-    protected AggregatedValidationResult validatePage(int page) {
-        if (page == 0) {
-            return new AggregatedValidationResult(new ValidationGroup[]{this.page1group});
-        } else if (page == 2) {
-            return new AggregatedValidationResult(new ValidationGroup[]{this.page3group});
-        } else if (page == 3) {
-            return blockstateList.getValidationResult();
-        } else if (page == 5) {
-            return new AggregatedValidationResult(new IValidable[]{this.outSlotIDs, this.inSlotIDs});
-        } else {
-            return (AggregatedValidationResult)(page == 7 && (Integer)this.minGenerateHeight.getValue() >= (Integer)this.maxGenerateHeight.getValue() ? new AggregatedValidationResult.FAIL(L10N.t("elementgui.block.error_minimal_generation_height", new Object[0])) : new AggregatedValidationResult.PASS());
-        }
     }
 
     public void openInEditingMode(AnimatedBlock block) {

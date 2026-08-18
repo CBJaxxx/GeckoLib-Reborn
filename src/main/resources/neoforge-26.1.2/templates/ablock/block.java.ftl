@@ -207,7 +207,7 @@ public class ${name}Block extends Block implements EntityBlock<#if data.isWaterl
                 			return Shapes.empty();
                 		<#else>
                 			<#if !data.shouldDisableOffset()>Vec3 offset = state.getOffset(world, pos);</#if>
-                			<@boundingBoxWithRotation state.positiveBoundingBoxes() state.negativeBoundingBoxes() data.shouldDisableOffset() data.rotationMode data.enablePitch/>
+                			<@boundingBoxWithRotation state data.rotationMode data.enablePitch/>
                 		</#if>
 	                }
 	            </#if>
@@ -217,7 +217,7 @@ public class ${name}Block extends Block implements EntityBlock<#if data.isWaterl
 			return Shapes.empty();
 		<#else>
 			<#if !data.shouldDisableOffset()>Vec3 offset = state.getOffset(world, pos);</#if>
-			<@boundingBoxWithRotation data.positiveBoundingBoxes() data.negativeBoundingBoxes() data.shouldDisableOffset() data.rotationMode data.enablePitch/>
+			<@boundingBoxWithRotation data data.rotationMode data.enablePitch/>
 		</#if>
 	}
 	</#if>

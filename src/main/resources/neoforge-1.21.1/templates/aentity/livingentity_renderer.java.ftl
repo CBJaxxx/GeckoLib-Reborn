@@ -8,6 +8,8 @@ import software.bernie.geckolib.cache.object.BakedGeoModel;
 
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -26,6 +28,11 @@ public class ${name}Renderer extends GeoEntityRenderer<${name}Entity> {
 		<#if data.mobModelGlowTexture?has_content && data.mobModelGlowTexture != data.mobModelTexture>
 		this.addRenderLayer(new ${name}Layer(this));
 		</#if>
+	}
+
+	@Override
+	public RenderType getRenderType(${name}Entity animatable, ResourceLocation texture, MultiBufferSource bufferSource, float partialTick) {
+		return RenderType.entityTranslucent(getTextureLocation(animatable));
 	}
 
 	@Override

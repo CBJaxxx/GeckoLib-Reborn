@@ -12,6 +12,9 @@ import com.geckolib.renderer.base.RenderPassInfo;
 
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 import ${package}.entity.${name}Entity;
@@ -31,6 +34,12 @@ public class ${name}Renderer extends GeoEntityRenderer<${name}Entity, LivingEnti
 		</#if>
 	}
 
+	@Override
+	public RenderType getRenderType(LivingEntityRenderState renderState, Identifier texture) {
+		if (!renderState.isInvisible)
+			return RenderTypes.entityTranslucent(texture);
+		return super.getRenderType(renderState, texture);
+	}
 
 	@Override
     public void adjustModelBonesForRender(RenderPassInfo<LivingEntityRenderState> renderPassInfo, BoneSnapshots snapshots) {

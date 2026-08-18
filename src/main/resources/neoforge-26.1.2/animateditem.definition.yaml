@@ -1,5 +1,5 @@
 global_templates:
-  # Only when an animated item uses first-person arm bones (unused by default G5 renderer)
+  # Shared helper for first-person player arms drawn onto named geo bones
   - template: aitem/firstperson/anim_utils.java.ftl
     name: "@SRCROOT/@BASEPACKAGEPATH/utils/AnimUtils.java"
     condition: "${w.getGElementsOfType('animateditem')?filter(e -> e.firstPersonArms)?size != 0}"
