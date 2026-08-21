@@ -214,7 +214,7 @@ public class ${name}Block extends BaseEntityBlock <#if data.isWaterloggable>impl
                 			return Shapes.empty();
                 		<#else>
                 			<#if !data.shouldDisableOffset()>Vec3 offset = state.getOffset(world, pos);</#if>
-                			<@boundingBoxWithRotation state data.rotationMode data.enablePitch/>
+                            return <@boundingBoxWithRotation state data.rotationMode data.enablePitch/>;
                 		</#if>
 	                }
 	            </#if>
@@ -224,7 +224,7 @@ public class ${name}Block extends BaseEntityBlock <#if data.isWaterloggable>impl
 			return Shapes.empty();
 		<#else>
 			<#if !data.shouldDisableOffset()>Vec3 offset = state.getOffset(world, pos);</#if>
-			<@boundingBoxWithRotation data data.rotationMode data.enablePitch/>
+            return <@boundingBoxWithRotation data data.rotationMode data.enablePitch/>;
 		</#if>
 	}
 	</#if>
