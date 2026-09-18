@@ -1,6 +1,12 @@
 package ${package}.init;
 
-@Mod.EventBusSubscriber
+import net.minecraftforge.api.distmarker.Dist;
+
+<#-- Client-only: the trigger field this reads is consumed (reset to "undefined") on
+     read, so if the server also ran this it could reset its own sync pulse before the
+     packet reaches remote clients. The server-side copy of animationprocedure is now
+     written directly by setAnimation() instead. -->
+@Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class EntityAnimationFactory {
 
 	@SubscribeEvent

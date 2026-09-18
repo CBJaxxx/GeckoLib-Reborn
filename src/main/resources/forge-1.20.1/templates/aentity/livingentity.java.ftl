@@ -1042,7 +1042,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		<#if data.enable2>
 		if ((event.isMoving() || !(event.getLimbSwingAmount() > -0.15F && event.getLimbSwingAmount() < 0.15F))
 		<#if data.enable8>&& this.onGround()</#if> <#if data.enable9>&& !this.isVehicle()</#if>
-		<#if data.enable10>&& !this.isAggressive()</#if> <#if data.enable7>&& !this.isSprinting()</#if>) {
+		<#if data.enable7>&& !this.isSprinting()</#if>) {
 			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation2}"));
 		}
 		</#if>
@@ -1076,15 +1076,22 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation9}"));
 		}
 		</#if>
-		<#if data.enable10>
-		if (this.isAggressive() && event.isMoving()<#if data.enable9> && !this.isVehicle()</#if>) {
-			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation10}"));
-		}
-		</#if>
 			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation1}"));
 	}
         return PlayState.STOP;
 	}
+
+	<#if data.enable10>
+	<#-- Registered as its own controller (after "movement") so it only overlays the bones
+	     its own clip keyframes: bones it leaves untouched keep following whatever the
+	     "movement" controller is playing underneath, instead of snapping to bind pose. -->
+	private PlayState aggressionPredicate(AnimationState event) {
+		if (this.isAggressive() && event.isMoving()<#if data.enable9> && !this.isVehicle()</#if>) {
+			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation10}"));
+		}
+		return PlayState.STOP;
+	}
+	</#if>
 
 	<#if data.enable4>
 	private PlayState attackingPredicate(AnimationState event) {
@@ -1150,11 +1157,20 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 
 	public void setAnimation(String animation) {
 		this.entityData.set(ANIMATION, animation);
+		<#-- Written directly too, not just synced: on the side that called this (almost
+		     always the server), the render predicate must see the new value immediately
+		     rather than waiting on EntityAnimationFactory, which is now client-only so it
+		     can't race the server into consuming its own sync pulse before the packet
+		     reaches remote clients. -->
+		this.animationprocedure = animation;
 	}
 
 	@Override
 	public void registerControllers(AnimatableManager.ControllerRegistrar data) {
 		data.add(new AnimationController<>(this, "movement", ${data.lerp}, this::movementPredicate));
+		<#if data.enable10>
+		data.add(new AnimationController<>(this, "aggression", ${data.lerp}, this::aggressionPredicate));
+		</#if>
 		<#if data.enable4>
 		data.add(new AnimationController<>(this, "attacking", ${data.lerp}, this::attackingPredicate));
 		</#if>

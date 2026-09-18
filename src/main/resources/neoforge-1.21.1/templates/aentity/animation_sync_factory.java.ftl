@@ -1,6 +1,12 @@
 package ${package}.init;
 
-@EventBusSubscriber
+import net.neoforged.api.distmarker.Dist;
+
+<#-- Client-only: the trigger fields this reads are consumed (reset to "undefined") on
+     read, so if the server also ran this it could reset its own sync pulse before the
+     packet reaches remote clients. The server-side copy of animationprocedure/animation_X
+     is now written directly by setAnimation()/setControllerAnimation() instead. -->
+@EventBusSubscriber(value = Dist.CLIENT)
 public class EntityAnimationFactory {
 
 	@SubscribeEvent

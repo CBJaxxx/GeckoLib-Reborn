@@ -92,10 +92,13 @@ public class ${name}Item extends Item implements GeoItem {
             <#if data.enableArmPose>
 	        @Override
 	        public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
+	            <#-- itemStack is already the stack held in `hand` (the game calls this once
+	                 per hand with that hand's own stack), so the pose should apply whenever
+	                 this item is simply being held there. Gating on getUsedItemHand() limited
+	                 it to the brief window an item is actively being "used" (e.g. right-click
+	                 held), which is empty for items with no use action - the pose never showed. -->
 	            if (!itemStack.isEmpty()) {
-	                if (entityLiving.getUsedItemHand() == hand) {
-	                    return (HumanoidModel.ArmPose) ARM_POSE.getValue();
-	                }
+	                return (HumanoidModel.ArmPose) ARM_POSE.getValue();
 	            }
 	            return HumanoidModel.ArmPose.EMPTY;
 	        }

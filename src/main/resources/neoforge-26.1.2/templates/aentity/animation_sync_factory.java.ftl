@@ -1,5 +1,6 @@
 package ${package}.init;
 
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
@@ -8,7 +9,11 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import ${package}.entity.${syncable.getModElement().getName()}Entity;
 </#list>
 
-@EventBusSubscriber
+<#-- Client-only: the trigger fields this reads are consumed (reset to "undefined") on
+     read, so if the server also ran this it could reset its own sync pulse before the
+     packet reaches remote clients. The server-side copy of animationprocedure/animation_X
+     is now written directly by setAnimation()/setControllerAnimation() instead. -->
+@EventBusSubscriber(value = Dist.CLIENT)
 public class EntityAnimationFactory {
 
 	@SubscribeEvent

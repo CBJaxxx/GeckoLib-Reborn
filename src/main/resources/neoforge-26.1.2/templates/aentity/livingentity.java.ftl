@@ -1103,7 +1103,7 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		<#if data.enable2 && data.animation2?has_content>
 		if (event.isMoving()
 		<#if data.enable8>&& this.onGround()</#if> <#if data.enable9>&& !this.isVehicle()</#if>
-		<#if data.enable10>&& !this.isAggressive()</#if> <#if data.enable7>&& !this.isSprinting()</#if>) {
+		<#if data.enable7>&& !this.isSprinting()</#if>) {
 			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation2}"));
 		}
 		</#if>
@@ -1137,11 +1137,6 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation9}"));
 		}
 		</#if>
-		<#if data.enable10 && data.animation10?has_content>
-		if (this.isAggressive() && event.isMoving()<#if data.enable9> && !this.isVehicle()</#if>) {
-			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation10}"));
-		}
-		</#if>
 		<#if data.animation1?has_content>
 			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation1}"));
 		<#else>
@@ -1150,6 +1145,18 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 	}
         return PlayState.STOP;
 	}
+
+	<#if data.enable10 && data.animation10?has_content>
+	<#-- Registered as its own controller (after "movement") so it only overlays the bones
+	     its own clip keyframes: bones it leaves untouched keep following whatever the
+	     "movement" controller is playing underneath, instead of snapping to bind pose. -->
+	private PlayState aggressionPredicate(AnimationTest<${name}Entity> event) {
+		if (this.isAggressive() && event.isMoving()<#if data.enable9> && !this.isVehicle()</#if>) {
+			return event.setAndContinue(RawAnimation.begin().thenLoop("${data.animation10}"));
+		}
+		return PlayState.STOP;
+	}
+	</#if>
 
 	<#if data.enable4 && data.animation4?has_content>
 	private PlayState attackingPredicate(AnimationTest<${name}Entity> event) {
@@ -1265,6 +1272,12 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 
 	public void setAnimation(String animation) {
 		this.entityData.set(ANIMATION, animation);
+		<#-- Written directly too, not just synced: on the side that called this (almost
+		     always the server), the render predicate and getControllerAnimation() must see
+		     the new value immediately rather than waiting on EntityAnimationFactory, which is
+		     now client-only so it can't race the server into consuming its own sync pulse
+		     before the packet reaches remote clients. -->
+		this.animationprocedure = animation;
 	}
 
 	/**
@@ -1317,7 +1330,11 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		}
 		switch (controller) {
 			<#list data.getValidControllers() as ctrl>
-			case "${ctrl.name}" -> this.entityData.set(ANIMATION_${ctrl.name?upper_case}, tagAnimationRequest(animation));
+			case "${ctrl.name}" -> {
+				String tagged_${ctrl.name} = tagAnimationRequest(animation);
+				this.entityData.set(ANIMATION_${ctrl.name?upper_case}, tagged_${ctrl.name});
+				this.animation_${ctrl.name} = tagged_${ctrl.name};
+			}
 			</#list>
 			default -> this.setAnimation(animation);
 		}
@@ -1348,6 +1365,9 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		data.add(new AnimationController<>("${ctrl.name}", ${data.getTransitionTicks(ctrl)}, this::controllerPredicate_${ctrl.name}));
 		</#list>
 		data.add(new AnimationController<>("movement", ${data.lerp}, this::movementPredicate));
+		<#if data.enable10 && data.animation10?has_content>
+		data.add(new AnimationController<>("aggression", ${data.lerp}, this::aggressionPredicate));
+		</#if>
 		<#if data.enable4 && data.animation4?has_content>
 		data.add(new AnimationController<>("attacking", ${data.lerp}, this::attackingPredicate));
 		</#if>
