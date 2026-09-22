@@ -161,6 +161,7 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         JPanel pane2 = new JPanel(new BorderLayout(10, 10));
         JPanel pane5 = new JPanel(new BorderLayout(10, 10));
+        JPanel pane4 = new JPanel(new BorderLayout(0, 0));
 
         helmetName.setPreferredSize(new Dimension(350, 36));
         bodyName.setPreferredSize(new Dimension(350, 36));
@@ -560,6 +561,15 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
         pane3.setOpaque(false);
         this.fullyEquipped.setOpaque(false);
 
+        JPanel events = new JPanel(new GridLayout(2, 2, 8, 8));
+        events.add(onHelmetTick);
+        events.add(onBodyTick);
+        events.add(onLeggingsTick);
+        events.add(onBootsTick);
+        events.setOpaque(false);
+        pane4.add("Center", PluginPanelUtils.totalCenterInPanel(events));
+        pane4.setOpaque(false);
+
         geoModel.setValidator(new Validator() {
             @Override public ValidationResult validate() {
                 if (geoModel.getSelectedItem() == null || geoModel.getSelectedItem().equals(""))
@@ -577,6 +587,7 @@ public class AnimatedArmorGUI extends ModElementGUI<AnimatedArmor> implements Ge
 
         addPage(L10N.t("elementgui.common.page_visual"), pane2).validate(group1page);
         addPage(L10N.t("elementgui.common.page_properties"), pane5);
+        addPage(L10N.t("elementgui.common.page_triggers"), pane4);
         addPage(L10N.t("elementgui.animatedarmor.geckolib_properties"), pane3).validate(group2page);
 
         if (!isEditingMode()) {

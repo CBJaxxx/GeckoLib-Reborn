@@ -621,6 +621,15 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 			    </#if>
 		    </#list>
 		</#if>
+		<#-- Persisted so a currently-active (still playing/looping) controller-triggered animation
+		     resumes after a chunk/entity reload (e.g. restarting singleplayer and rejoining), instead
+		     of silently resetting to idle. A one-shot animation that already finished before the save
+		     is already "empty"/"undefined" by then, so this cannot replay something that already ran
+		     its course. -->
+		compound.putString("AnimationProcedure", this.entityData.get(ANIMATION));
+		<#list data.getValidControllers() as ctrl>
+		compound.putString("Animation${ctrl.name?cap_first}", this.entityData.get(ANIMATION_${ctrl.name?upper_case}));
+		</#list>
 	}
 
 	@Override public void readAdditionalSaveData(CompoundTag compound) {
@@ -632,6 +641,12 @@ public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements R
 		</#if>
 		if (compound.contains("Texture"))
 		    this.setTexture(compound.getString("Texture"));
+		if (compound.contains("AnimationProcedure"))
+		    this.entityData.set(ANIMATION, compound.getString("AnimationProcedure"));
+		<#list data.getValidControllers() as ctrl>
+		if (compound.contains("Animation${ctrl.name?cap_first}"))
+		    this.entityData.set(ANIMATION_${ctrl.name?upper_case}, compound.getString("Animation${ctrl.name?cap_first}"));
+		</#list>
 		<#if data.entityDataEntries?has_content>
 		    <#list data.entityDataEntries as entry>
 			    if (compound.contains("Data${entry.property().getName()}"))
